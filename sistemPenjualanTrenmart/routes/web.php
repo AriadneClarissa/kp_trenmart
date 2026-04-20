@@ -21,8 +21,14 @@ Route::get('/search', [ProdukController::class, 'search'])->name('produk.search'
 // Detail Produk
 Route::get('/produk/detail/{id}', [ProdukController::class, 'show'])->name('produk.detail');
 
-// Navigasi Statis
-Route::get('/katalog', [ProdukController::class, 'index'])->name('katalog');
+// Route Navigasi Statis (Sesuai KAKP)
+Route::get('/katalog', function () {
+    return view('katalog'); // Pastikan file resources/views/katalog.blade.php sudah ada
+})->name('katalog');
+
+Route::get('/pesanan', function () {
+    return view('pesanan'); // Untuk fitur Minggu ke-10
+})->name('pesanan');
 
 Route::get('/tentang-kami', function () {
     return view('tentang-kami');

@@ -2,80 +2,58 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Produk;
-use Illuminate\Support\Facades\Storage;
+use App\Models\Produk; // Pastikan Model Produk sudah dibuat
 use Illuminate\Http\Request;
 
 class ProdukController extends Controller
 {
     /**
-     * Menampilkan Halaman Beranda
+     * Menampilkan halaman beranda dengan daftar produk terbaru.
      */
     public function index()
     {
-        // 1. Ambil 5 produk terbaru untuk section "Produk Terbaru"
-        $produk_terbaru = Produk::latest()->take(5)->get();
+        // Mengambil semua produk dari database
+        // Kita gunakan paginate(10) agar jika produk banyak, halaman tidak terlalu panjang
+        $produk = Produk::all();
 
-        // 2. Ambil 5 produk secara acak untuk section "Produk Terpopuler"
-        // (Nantinya bisa diganti berdasarkan jumlah penjualan terbanyak)
-        $produk_populer = Produk::inRandomOrder()->take(5)->get();
+        // Logika untuk menentukan harga yang tampil berdasarkan status login
+        foreach ($produk as $produk) {
+            // Cek apakah user sudah login dan memiliki role 'langganan'
+            // Catatan: Asumsi kamu punya kolom 'role' atau 'tipe' di tabel users/pelanggan
+            if (Auth::check() && Auth::user()->role === 'langganan') {
+                $produk->harga_tampil = $produk->harga_jual_langganan;
+                $produk->label_status = 'Harga Langganan';
+            } else {
+                $produk->harga_tampil = $produk->harga_jual_umum;
+                $produk->label_status = 'Harga Umum';
+            }
+        }
 
-        // 3. Kirim kedua variabel ke view 'beranda'
-        return view('beranda', compact('produk_terbaru', 'produk_populer'));
+        // Mengirim data ke view 'beranda'
+        return view('beranda', compact('produk'));
     }
 
     /**
-     * Menangani Pencarian Produk
+     * Fitur Pencarian Produk
      */
     public function search(Request $request)
     {
         $query = $request->input('query');
 
-        // Cari produk yang namanya mirip dengan kata kunci
-        $produk_terbaru = Produk::where('nama_produk', 'LIKE', "%{$query}%")
-                                ->get();
+        // Mencari produk berdasarkan nama atau deskripsi
+        $produk = Produk::where('nama_produk', 'LIKE', "%{$query}%")
+                         ->orWhere('deskripsi', 'LIKE', "%{$query}%")
+                         ->get();
 
-        // Biarkan produk populer kosong saat pencarian agar fokus pada hasil cari
-        $produk_populer = collect(); 
-
-        return view('beranda', compact('produk_terbaru', 'produk_populer', 'query'));
+        return view('beranda', compact('produk', 'query'));
     }
 
     /**
-     * Menampilkan Detail Produk (Opsional jika dibutuhkan)
+     * Menampilkan detail produk jika gambar atau nama ditekan
      */
     public function show($id)
     {
-        $produk = Produk::findOrFail($id);
+        $produk = Produk::where('kd_produk', $id)->firstOrFail();
         return view('produk.detail', compact('produk'));
     }
-
-    public function create() {
-    return view('admin.tambah_produk');
-}
-
-public function store(Request $request) {
-    $request->validate([
-        'kd_produk' => 'required|unique:produk',
-        'nama_produk' => 'required',
-        'harga_jual_umum' => 'required|numeric',
-        'harga_jual_langganan' => 'required|numeric',
-        'gambar' => 'required|image|mimes:jpg,png,jpeg|max:2048',
-    ]);
-
-    // Handle Upload Gambar
-    $path = $request->file('gambar')->store('produk', 'public');
-
-    // Simpan ke Database
-    Produk::create([
-        'kd_produk' => $request->kd_produk,
-        'nama_produk' => $request->nama_produk,
-        'harga_jual_umum' => $request->harga_jual_umum,
-        'harga_jual_langganan' => $request->harga_jual_langganan,
-        'gambar' => $path, // Ini akan menyimpan path: produk/namafile.png
-        'status' => 'aktif',
-    ]);
-
-    return redirect()->route('beranda')->with('success', 'Produk berhasil ditambahkan!');
-}
 }
