@@ -12,50 +12,55 @@ class AuthController extends Controller
     // Menangani Pendaftaran (Sign Up)
     public function register(Request $request)
     {
+        // 1. Validasi Input (Menambahkan 'confirmed' untuk keamanan)
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
+            'password' => 'required|string|min:8|confirmed', // Mencari input 'password_confirmation'
             'customer_type' => 'required|in:regular,langganan',
         ]);
 
-        $user = User::create([
+        // 2. Buat User Baru
+        User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'customer', // Default pendaftar adalah customer
+            'role' => 'customer', 
             'customer_type' => $request->customer_type,
-            // Jika pilih regular langsung aktif, jika langganan harus di-approve (false)
             'is_approved' => ($request->customer_type === 'regular') ? true : false,
         ]);
 
-        Auth::login($user);
+        // 3. JANGAN Auth::login($user); agar user tidak otomatis masuk.
 
-        return redirect()->route('beranda')->with('success', 'Pendaftaran berhasil!');
+        // 4. Arahkan ke halaman login dengan pesan sukses
+        return redirect()->route('login')->with('success', 'Pendaftaran berhasil! Silakan masuk menggunakan akun Anda.');
     }
 
     // Menangani Login
     public function login(Request $request)
-    {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
-        ]);
+        {
+    // Validasi menggunakan 'name'
+    $credentials = $request->validate([
+        'name' => ['required', 'string'], // Berubah dari email ke name
+        'password' => ['required'],
+    ]);
 
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
+    if (Auth::attempt($credentials)) {
+        $request->session()->regenerate();
 
-            // Jika Admin, arahkan ke Dashboard Admin
-            if (Auth::user()->role === 'admin') {
-                return redirect()->intended('/admin/dashboard');
-            }
-
-            return redirect()->intended('/');
+        // JIKA ADMIN: Ke Dashboard Admin
+        if (Auth::user()->role === 'admin') {
+            return redirect()->intended('/admin/dashboard');
         }
 
-        return back()->withErrors([
-            'email' => 'Email atau password tidak sesuai.',
-        ])->onlyInput('email');
+        // JIKA CUSTOMER: Ke Beranda (/)
+        return redirect()->intended('/'); 
+    }
+
+    // Jika gagal, kembali ke login dengan pesan error
+    return back()->withErrors([
+        'email' => 'Email atau password tidak sesuai.',
+    ])->onlyInput('email');
     }
 
     // Menangani Logout
@@ -89,5 +94,14 @@ class AuthController extends Controller
         $user->update(['is_approved' => true]);
 
         return back()->with('success', 'User ' . $user->name . ' sekarang mendapatkan harga khusus.');
+    }
+
+    public function up()
+    {
+    Schema::table('users', function (Blueprint $table) {
+        $table->string('no_telp')->nullable()->after('email');
+        $table->text('alamat')->nullable()->after('no_telp');
+        $table->string('kode_pos', 10)->nullable()->after('alamat');
+    });
     }
 }
