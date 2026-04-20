@@ -157,7 +157,7 @@
     </div>
     <h5 class="text-center fw-bold mb-4">Produk Terpopuler</h5>
     <div class="row row-cols-2 row-cols-md-5 g-4 mb-5">
-        @forelse($produk_terbaru as $item)
+        @forelse($produk_terpopuler as $item)
         <div class="col">
             <div class="card h-100 card-produk text-center p-2">
                 <img src="{{ asset('storage/' . $item->gambar) }}" class="card-img-top mx-auto p-2" style="height: 140px; object-fit: contain;" alt="{{ $item->nama_produk }}">
@@ -180,5 +180,22 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+        function previewImage(input) {
+            const preview = document.getElementById('img-preview');
+            const placeholder = document.getElementById('upload-placeholder');
+            const file = input.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.classList.remove('d-none');
+                    placeholder.classList.add('d-none');
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+    </script>
 </body>
 </html>

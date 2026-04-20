@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Produk; // Pastikan Model Produk sudah dibuat
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ProdukController extends Controller
 {
@@ -12,25 +13,26 @@ class ProdukController extends Controller
      */
     public function index()
     {
-        // Mengambil semua produk dari database
-        // Kita gunakan paginate(10) agar jika produk banyak, halaman tidak terlalu panjang
-        $produk = Produk::all();
+    // 1. Ambil data untuk Produk Terbaru (urut berdasarkan yang terakhir diinput)
+    $produk_terbaru = Produk::latest()->take(10)->get();
 
-        // Logika untuk menentukan harga yang tampil berdasarkan status login
-        foreach ($produk as $produk) {
-            // Cek apakah user sudah login dan memiliki role 'langganan'
-            // Catatan: Asumsi kamu punya kolom 'role' atau 'tipe' di tabel users/pelanggan
-            if (Auth::check() && Auth::user()->role === 'langganan') {
-                $produk->harga_tampil = $produk->harga_jual_langganan;
-                $produk->label_status = 'Harga Langganan';
-            } else {
-                $produk->harga_tampil = $produk->harga_jual_umum;
-                $produk->label_status = 'Harga Umum';
-            }
+    // 2. Ambil data untuk Produk Terpopuler 
+    // (Untuk sementara kita ambil random atau bisa berdasarkan stok tersedikit/terbanyak)
+    $produk_terpopuler = Produk::inRandomOrder()->take(10)->get();
+
+    // 3. Gabungkan semua produk untuk diproses harganya
+    $semua_produk = $produk_terbaru->merge($produk_terpopuler);
+
+    foreach ($semua_produk as $item) {
+        if (Auth::check() && Auth::user()->customer_type === 'langganan') {
+            $item->harga_tampil = $item->harga_jual_langganan;
+        } else {
+            $item->harga_tampil = $item->harga_jual_umum;
         }
+    }
 
-        // Mengirim data ke view 'beranda'
-        return view('beranda', compact('produk'));
+    // 4. Kirim KEDUA variabel ke View
+    return view('beranda', compact('produk_terbaru', 'produk_terpopuler'));
     }
 
     /**
