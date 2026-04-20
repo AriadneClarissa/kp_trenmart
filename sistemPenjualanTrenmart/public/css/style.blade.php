@@ -60,3 +60,10 @@ body {
     border: none;
     padding: 6px 0;
 }
+
+.text-maroon { color: #800000 !important; }
+.nav-link.active { color: #800000 !important; font-weight: bold; }
+.btn-tambah { background-color: #800000; color: white; border-radius: 20px; }
+.btn-tambah:hover { background-color: #600000; color: white; }
+.card-produk { transition: 0.3s; }
+.card-produk:hover { transform: translateY(-5px); }
