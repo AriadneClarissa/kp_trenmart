@@ -1,12 +1,16 @@
 <?php
 
 use App\Http\Controllers\ProdukController;
+use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
 /*
-| Web Routes - Trenmart Project
+|--------------------------------------------------------------------------
+| Web Routes - PT Tren Abadi Stationeri
 |--------------------------------------------------------------------------
 */
+
+// --- HALAMAN PUBLIK / KATALOG ---
 
 // Halaman Utama (Menampilkan Produk Terbaru)
 Route::get('/', [ProdukController::class, 'index'])->name('beranda');
@@ -14,12 +18,13 @@ Route::get('/', [ProdukController::class, 'index'])->name('beranda');
 // Fitur Pencarian Produk
 Route::get('/search', [ProdukController::class, 'search'])->name('produk.search');
 
-// Detail Produk (Saat gambar atau nama produk diklik)
-// Kita gunakan {id} sebagai parameter kode produk
+// Detail Produk
 Route::get('/produk/detail/{id}', [ProdukController::class, 'show'])->name('produk.detail');
 
 // Route Navigasi Statis (Sesuai KAKP)
-Route::get('/katalog', [ProdukController::class, 'katalog'])->name('katalog');
+Route::get('/katalog', function () {
+    return view('katalog'); // Pastikan file resources/views/katalog.blade.php sudah ada
+})->name('katalog');
 
 Route::get('/pesanan', function () {
     return view('pesanan'); // Untuk fitur Minggu ke-10
@@ -29,5 +34,41 @@ Route::get('/tentang-kami', function () {
     return view('tentang-kami');
 })->name('tentang');
 
-// Route Keranjang (Minggu ke-9)
-Route::post('/keranjang/tambah', [ProdukController::class, 'addToCart'])->name('keranjang.tambah');
+
+// --- SISTEM AUTENTIKASI (LOGIN & REGISTER) ---
+
+// Guest Middleware: Hanya bisa diakses jika BELUM login
+Route::middleware(['guest'])->group(function () {
+    Route::get('/register', function () {
+        return view('auth.register');
+    })->name('register');
+
+    Route::post('/register', [AuthController::class, 'register']);
+
+    Route::get('/login', function () {
+        return view('auth.login');
+    })->name('login');
+
+    Route::post('/login', [AuthController::class, 'login']);
+});
+
+// Auth Middleware: Harus Login untuk akses ini
+Route::middleware(['auth'])->group(function () {
+    // Logout
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+    // Route Keranjang (Minggu ke-9)
+    Route::post('/keranjang/tambah', [ProdukController::class, 'addToCart'])->name('keranjang.tambah');
+    
+    // Route Pesanan (Minggu ke-10)
+    Route::get('/pesanan', function () {
+        return view('pesanan');
+    })->name('pesanan');
+
+    // --- KHUSUS ADMIN ---
+    // Route ini hanya boleh diakses jika user punya role 'admin'
+    Route::get('/admin/dashboard', [AuthController::class, 'adminDashboard'])->name('admin.dashboard');
+    Route::post('/admin/approve/{id}', [AuthController::class, 'approveUser'])->name('admin.approve');
+    Route::get('/admin/tambah', [ProdukController::class, 'create'])->name('admin.produk.create');
+    Route::post('/admin/tambah', [ProdukController::class, 'store'])->name('admin.produk.store');
+});
