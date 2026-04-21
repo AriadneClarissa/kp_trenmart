@@ -7,19 +7,34 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
-        :root { --maroon: #800000; }
+        :root { --maroon-trenmart: #800000; }
         
         /* Navbar Styles */
         .navbar { z-index: 1050; } /* Agar dropdown tidak tertutup banner */
         .navbar-brand img { height: 40px; }
         .navbar-nav {margin-left: 227px !important;}
         .nav-link { font-weight: 600; color: #333; }
-        .search-bar { border-radius: 50px; background-color: #f1f1f1; border: none; padding-left: 20px; }
-        .btn-search { border-radius: 50px; background-color: var(--maroon); color: white; border: none; }
+
+        .search-bar { border-radius: 50px 0 0 50px !important; 
+            background-color: #f1f1f1 !important; 
+            border: none !important; 
+            padding-left: 20px; 
+            width: 30px;
+            height: 35px; 
+        }
+
+        .btn-search { 
+            border-radius: 0 50px 50px 0 !important; 
+            background-color: var(--maroon-trenmart) !important; 
+            color: white !important; 
+            border: none !important; 
+            padding: 0 15px !important;
+            height: 35px;
+        }
 
         .nav-link.active { 
-            color: var(--maroon) !important; 
-            border-bottom: 2px solid var(--maroon); 
+            color: var(--maroon-trenmart) !important; 
+            border-bottom: 2px solid var(--maroon-trenmart); 
         }
         
         .main-card { border-radius: 15px; border: none; box-shadow: 0 0 15px rgba(0,0,0,0.05); }
@@ -32,17 +47,72 @@
             justify-content: center; min-height: 250px; overflow: hidden;
             background-color: #fff;
         }
-        .upload-box:hover { border-color: var(--maroon-trenmart); background-color: #fff5f5; }
-        #img-preview { max-width: 100%; max-height: 220px; object-fit: contain; border-radius: 8px; }
+
+        .upload-box:hover { 
+            border-color: var(--maroon-trenmart); 
+            background-color: #fff5f5; 
+        }
+        #img-preview { 
+            max-width: 100%; 
+            max-height: 220px; 
+            object-fit: contain; 
+            border-radius: 8px; 
+        }
         
-        .form-label { font-weight: 600; font-size: 0.9rem; color: #444; }
-        .form-control, .form-select { border-radius: 8px; border: 1px solid #ddd; padding: 10px; }
-        .form-control:focus { border-color: var(--maroon-trenmart); box-shadow: none; }
+        .form-label { 
+            font-weight: 600; 
+            font-size: 0.9rem; 
+            color: #444; 
+        }
+
+        .form-control, .form-select { 
+            border-radius: 8px; 
+            border: 1px solid #ddd; 
+            padding: 10px; 
+        }
+
+        .form-control:focus { 
+            border-color: var(--maroon-trenmart); 
+            box-shadow: none; }
         
-        .btn-batal { border-radius: 8px; padding: 10px 40px; border: 1px solid #ccc; background: white; text-decoration: none; color: black; transition: 0.2s; }
-        .btn-batal:hover { background: #eee; }
-        .btn-simpan { border-radius: 8px; padding: 10px 40px; background-color: var(--maroon-trenmart); color: white; border: none; transition: 0.2s; }
-        .btn-simpan:hover { background-color: #4a0000; color: white; }
+        .btn-batal { 
+            border-radius: 8px; 
+            padding: 10px 40px; 
+            border: 1px solid #ccc; 
+            background: white; 
+            text-decoration: none; 
+            color: black; 
+            transition: 0.2s; 
+        }
+        .btn-batal:hover { 
+            background: #eee; 
+        }
+
+        .btn-simpan { 
+            border-radius: 8px; 
+            padding: 10px 40px; 
+            background-color: var(--maroon-trenmart) !important; 
+            color: white !important; /* Tambahkan !important agar teks wajib putih */
+            border: none; 
+            transition: 0.2s; 
+            cursor: pointer;
+        }
+
+        .btn-simpan:hover { 
+            background-color: #600000 !important; 
+            color: white !important; 
+        }
+        .btn-tambah-cart { 
+            background-color: var(--maroon); 
+            color: white; 
+            border-radius: 10px; 
+            width: 100%; 
+            border: none; 
+            padding: 8px; 
+            font-weight: 600;
+        }
+        /* Dropdown Profile Style */
+        .dropdown-menu { border-radius: 15px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
@@ -59,18 +129,45 @@
 
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav mx-auto">
-                <li class="nav-item">
-                    <a class="nav-link {{ $source == 'beranda' ? 'active' : '' }}" href="/">Beranda</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ $source == 'layar_produk' ? 'active' : '' }}" href="#">Produk</a>
-                </li>
+                <li class="nav-item"><a class="nav-link active" href="/">Beranda</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">Produk</a></li>
                 <li class="nav-item"><a class="nav-link" href="#">Pesanan</a></li>
                 <li class="nav-item"><a class="nav-link" href="#">Tentang Kami</a></li>
             </ul>
 
-            <div class="d-flex align-items-center gap-3">
-                <div style="width: 40px;"></div> <i class="bi bi-person-circle fs-4 text-dark"></i>
+            <form class="d-flex me-3" role="search">
+                <div class="input-group">
+                    <input class="form-control search-bar" type="search" placeholder="Cari produk...">
+                    <button class="btn btn-search px-3" type="submit"><i class="bi bi-search"></i></button>
+                </div>
+            </form>
+
+                <div class="dropdown">
+                    <a href="#" class="text-dark" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle fs-4"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2" aria-labelledby="userMenu">
+                        @auth
+                            <li><div class="dropdown-header fw-bold text-dark">Halo, {{ auth()->user()->name }}</div></li>
+                            <li><a class="dropdown-item rounded-3" href="#"><i class="bi bi-person me-2"></i>Profil Saya</a></li>
+                            @if(auth()->user()->isAdmin())
+                                <li><a class="dropdown-item rounded-3 text-primary" href="/admin/dashboard"><i class="bi bi-speedometer2 me-2"></i>Dashboard Admin</a></li>
+                            @endif
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form action="{{ route('logout') }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item rounded-3 text-danger">
+                                        <i class="bi bi-box-arrow-right me-2"></i>Keluar
+                                    </button>
+                                </form>
+                            </li>
+                        @else
+                            <li><a class="dropdown-item rounded-3" href="{{ route('login') }}">Masuk</a></li>
+                            <li><a class="dropdown-item rounded-3" href="{{ route('register') }}">Daftar</a></li>
+                        @endauth
+                    </ul>
+                </div>
             </div>
         </div>
     </div>

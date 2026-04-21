@@ -122,7 +122,7 @@
                     </div>
                     <div class="col-md-8 text-md-end mt-3 mt-md-0">
                         <a href="{{ route('admin.tambah.beranda') }}" class="btn btn-success rounded-pill px-4 me-2">Tambah Produk</a>
-                        <button class="btn btn-outline-dark rounded-pill px-4 me-2">Edit Katalog</button>
+                        <button class="btn btn-warning rounded-pill px-4 me-2">Edit Katalog</button>
                     </div>
                 </div>
             </div>
