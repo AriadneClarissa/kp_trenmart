@@ -9,14 +9,16 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    // Menangani Pendaftaran (Sign Up)
+    /**
+     * Menangani Pendaftaran (Sign Up)
+     */
     public function register(Request $request)
     {
-        // 1. Validasi Input (Menambahkan 'confirmed' untuk keamanan)
+        // 1. Validasi Input
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed', // Mencari input 'password_confirmation'
+            'password' => 'required|string|min:8|confirmed', 
             'customer_type' => 'required|in:regular,langganan',
         ]);
 
@@ -30,40 +32,37 @@ class AuthController extends Controller
             'is_approved' => ($request->customer_type === 'regular') ? true : false,
         ]);
 
-        // 3. JANGAN Auth::login($user); agar user tidak otomatis masuk.
-
-        // 4. Arahkan ke halaman login dengan pesan sukses
+        // 3. Arahkan ke login (user tidak otomatis login sebelum disetujui jika tipe langganan)
         return redirect()->route('login')->with('success', 'Pendaftaran berhasil! Silakan masuk menggunakan akun Anda.');
     }
 
-    // Menangani Login
+    /**
+     * Menangani Login
+     */
     public function login(Request $request)
-        {
-    // Validasi menggunakan 'name'
-    $credentials = $request->validate([
-        'name' => ['required', 'string'], // Berubah dari email ke name
-        'password' => ['required'],
-    ]);
+    {
+        // Validasi menggunakan 'name' sesuai kebutuhan form Anda
+        $credentials = $request->validate([
+            'name' => ['required', 'string'],
+            'password' => ['required'],
+        ]);
 
-    if (Auth::attempt($credentials)) {
-        $request->session()->regenerate();
+        if (Auth::attempt($credentials)) {
+            $request->session()->regenerate();
 
-        // JIKA ADMIN: Ke Dashboard Admin
-        if (Auth::user()->role === 'admin') {
-            return redirect()->intended('/admin/dashboard');
+            // Admin diarahkan ke 'beranda' agar Panel Kontrol Admin muncul
+            return redirect()->route('beranda'); 
         }
 
-        // JIKA CUSTOMER: Ke Beranda (/)
-        return redirect()->intended('/'); 
+        // Jika gagal, kembali dengan error pada input 'name'
+        return back()->withErrors([
+            'name' => 'Nama atau password tidak sesuai.',
+        ])->onlyInput('name');
     }
 
-    // Jika gagal, kembali ke login dengan pesan error
-    return back()->withErrors([
-        'email' => 'Email atau password tidak sesuai.',
-    ])->onlyInput('email');
-    }
-
-    // Menangani Logout
+    /**
+     * Menangani Logout
+     */
     public function logout(Request $request)
     {
         Auth::logout();
@@ -72,9 +71,12 @@ class AuthController extends Controller
         return redirect('/');
     }
 
-    // Tampilan Dashboard Admin (List Approval)
+    /**
+     * Tampilan Dashboard Admin (List Approval)
+     */
     public function adminDashboard()
     {
+        // Proteksi tambahan jika middleware belum terpasang sempurna
         if (Auth::user()->role !== 'admin') {
             return redirect('/')->with('error', 'Akses ditolak.');
         }
@@ -87,21 +89,14 @@ class AuthController extends Controller
         return view('admin.dashboard', compact('pendingUsers'));
     }
 
-    // Proses Approval User Langganan oleh Admin
+    /**
+     * Proses Approval User Langganan oleh Admin
+     */
     public function approveUser($id)
     {
         $user = User::findOrFail($id);
         $user->update(['is_approved' => true]);
 
         return back()->with('success', 'User ' . $user->name . ' sekarang mendapatkan harga khusus.');
-    }
-
-    public function up()
-    {
-    Schema::table('users', function (Blueprint $table) {
-        $table->string('no_telp')->nullable()->after('email');
-        $table->text('alamat')->nullable()->after('no_telp');
-        $table->string('kode_pos', 10)->nullable()->after('alamat');
-    });
     }
 }

@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\KategoriController; // Tambahkan ini
+use App\Http\Controllers\MerkController;     // Tambahkan ini
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -11,64 +13,57 @@ use Illuminate\Support\Facades\Route;
 */
 
 // --- HALAMAN PUBLIK / KATALOG ---
-
-// Halaman Utama (Menampilkan Produk Terbaru)
 Route::get('/', [ProdukController::class, 'index'])->name('beranda');
-
-// Fitur Pencarian Produk
 Route::get('/search', [ProdukController::class, 'search'])->name('produk.search');
-
-// Detail Produk
 Route::get('/produk/detail/{id}', [ProdukController::class, 'show'])->name('produk.detail');
 
-// Route Navigasi Statis (Sesuai KAKP)
-Route::get('/katalog', function () {
-    return view('katalog'); // Pastikan file resources/views/katalog.blade.php sudah ada
-})->name('katalog');
+Route::get('/katalog', function () { return view('katalog'); })->name('katalog');
+Route::get('/tentang-kami', function () { return view('tentang-kami'); })->name('tentang');
 
-Route::get('/pesanan', function () {
-    return view('pesanan'); // Untuk fitur Minggu ke-10
-})->name('pesanan');
-
-Route::get('/tentang-kami', function () {
-    return view('tentang-kami');
-})->name('tentang');
-
-
-// --- SISTEM AUTENTIKASI (LOGIN & REGISTER) ---
-
-// Guest Middleware: Hanya bisa diakses jika BELUM login
+// --- SISTEM AUTENTIKASI (GUEST - Belum Login) ---
 Route::middleware(['guest'])->group(function () {
-    Route::get('/register', function () {
-        return view('auth.register');
-    })->name('register');
-
+    Route::get('/register', function () { return view('auth.register'); })->name('register');
     Route::post('/register', [AuthController::class, 'register']);
 
-    Route::get('/login', function () {
-        return view('auth.login');
-    })->name('login');
-
+    Route::get('/login', function () { return view('auth.login'); })->name('login');
     Route::post('/login', [AuthController::class, 'login']);
 });
 
-// Auth Middleware: Harus Login untuk akses ini
+// --- SISTEM AUTENTIKASI (AUTH - Sudah Login) ---
 Route::middleware(['auth'])->group(function () {
-    // Logout
-    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-
-    // Route Keranjang (Minggu ke-9)
-    Route::post('/keranjang/tambah', [ProdukController::class, 'addToCart'])->name('keranjang.tambah');
     
-    // Route Pesanan (Minggu ke-10)
-    Route::get('/pesanan', function () {
-        return view('pesanan');
-    })->name('pesanan');
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::post('/keranjang/tambah', [ProdukController::class, 'addToCart'])->name('keranjang.tambah');
+    Route::get('/pesanan', function () { return view('pesanan'); })->name('pesanan.index');
 
-    // --- KHUSUS ADMIN ---
-    // Route ini hanya boleh diakses jika user punya role 'admin'
-    Route::get('/admin/dashboard', [AuthController::class, 'adminDashboard'])->name('admin.dashboard');
-    Route::post('/admin/approve/{id}', [AuthController::class, 'approveUser'])->name('admin.approve');
-    Route::get('/admin/tambah', [ProdukController::class, 'create'])->name('admin.produk.create');
-    Route::post('/admin/tambah', [ProdukController::class, 'store'])->name('admin.produk.store');
+    // --- GRUP KHUSUS ADMIN ---
+    // (Middleware 'can:admin' dikomentari sementara sesuai permintaanmu untuk menghindari 403)
+    // Route::middleware(['can:admin'])->group(function () { 
+        
+        Route::get('/admin/dashboard', [AuthController::class, 'adminDashboard'])->name('admin.dashboard');
+        Route::post('/admin/approve/{id}', [AuthController::class, 'approveUser'])->name('admin.approve');
+
+        Route::prefix('admin')->group(function () {
+            
+            // 1. MANAJEMEN PRODUK
+            // Jalur akses via tombol di Beranda
+            Route::get('/tambah-beranda', [ProdukController::class, 'createBeranda'])->name('admin.tambah.beranda');
+            // Jalur akses via Layar Produk
+            Route::get('/produk', [ProdukController::class, 'produkIndex'])->name('produk.index');
+            Route::get('/produk/tambah', [ProdukController::class, 'create'])->name('produk.create');
+            // Proses Simpan Produk
+            Route::post('/produk/simpan', [ProdukController::class, 'store'])->name('produk.store');
+
+            // 2. MANAJEMEN KATEGORI (Data Master)
+            Route::get('/kategori', [KategoriController::class, 'index'])->name('kategori.index');
+            Route::post('/kategori/simpan', [KategoriController::class, 'store'])->name('kategori.store');
+            Route::delete('/kategori/hapus/{id}', [KategoriController::class, 'destroy'])->name('kategori.destroy');
+
+            // 3. MANAJEMEN MERK (Data Master)
+            Route::get('/merk', [MerkController::class, 'index'])->name('merk.index');
+            Route::post('/merk/simpan', [MerkController::class, 'store'])->name('merk.store');
+            Route::delete('/merk/hapus/{id}', [MerkController::class, 'destroy'])->name('merk.destroy');
+            
+        });
+    // }); 
 });

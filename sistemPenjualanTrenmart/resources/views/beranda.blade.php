@@ -22,7 +22,6 @@
             position: relative; 
             border-radius: 20px; 
             overflow: hidden; 
-            /* Garis biru sudah dihapus di sini */
         }
         .card-produk { 
             border-radius: 15px; 
@@ -123,7 +122,7 @@
                         <p class="text-muted small mb-0">Atur produk dan stok toko Anda</p>
                     </div>
                     <div class="col-md-8 text-md-end mt-3 mt-md-0">
-                        <a href="{{ route('admin.produk.create') }}" class="btn btn-success rounded-pill px-4 me-2">Tambah Produk</a>
+                        <a href="{{ route('admin.tambah.beranda') }}" class="btn btn-success rounded-pill px-4 me-2">Tambah Produk</a>
                         <button class="btn btn-outline-dark rounded-pill px-4 me-2">Edit Katalog</button>
                         <button class="btn btn-info text-white rounded-pill px-4">Kelola Kategori</button>
                     </div>
