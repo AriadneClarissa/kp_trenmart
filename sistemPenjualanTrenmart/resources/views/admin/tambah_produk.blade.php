@@ -7,11 +7,20 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
-        :root { --maroon-trenmart: #660000; }
-        body { background-color: #f8f9fa; font-family: 'Segoe UI', sans-serif; }
+        :root { --maroon: #800000; }
         
+        /* Navbar Styles */
         .navbar { z-index: 1050; } /* Agar dropdown tidak tertutup banner */
         .navbar-brand img { height: 40px; }
+        .navbar-nav {margin-left: 227px !important;}
+        .nav-link { font-weight: 600; color: #333; }
+        .search-bar { border-radius: 50px; background-color: #f1f1f1; border: none; padding-left: 20px; }
+        .btn-search { border-radius: 50px; background-color: var(--maroon); color: white; border: none; }
+
+        .nav-link.active { 
+            color: var(--maroon) !important; 
+            border-bottom: 2px solid var(--maroon); 
+        }
         
         .main-card { border-radius: 15px; border: none; box-shadow: 0 0 15px rgba(0,0,0,0.05); }
         .section-card { border-radius: 12px; border: 1px solid #eee; padding: 20px; margin-bottom: 20px; }
@@ -43,6 +52,27 @@
         <a class="navbar-brand" href="/">
             <img src="{{ asset('images/logotrenmart.png') }}" alt="Logo">
         </a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item">
+                    <a class="nav-link {{ $source == 'beranda' ? 'active' : '' }}" href="/">Beranda</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ $source == 'layar_produk' ? 'active' : '' }}" href="#">Produk</a>
+                </li>
+                <li class="nav-item"><a class="nav-link" href="#">Pesanan</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">Tentang Kami</a></li>
+            </ul>
+
+            <div class="d-flex align-items-center gap-3">
+                <div style="width: 40px;"></div> <i class="bi bi-person-circle fs-4 text-dark"></i>
+            </div>
+        </div>
     </div>
 </nav>
 

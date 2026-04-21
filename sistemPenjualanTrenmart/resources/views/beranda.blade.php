@@ -13,9 +13,13 @@
         .navbar { z-index: 1050; } /* Agar dropdown tidak tertutup banner */
         .navbar-brand img { height: 40px; }
         .nav-link { font-weight: 600; color: #333; }
-        .nav-link.active { color: var(--maroon) !important; }
         .search-bar { border-radius: 50px; background-color: #f1f1f1; border: none; padding-left: 20px; }
         .btn-search { border-radius: 50px; background-color: var(--maroon); color: white; border: none; }
+
+        .nav-link.active { 
+            color: var(--maroon) !important; 
+            border-bottom: 2px solid var(--maroon); 
+        }
         
         /* Content Styles */
         .banner-wrapper { 
@@ -71,11 +75,6 @@
                 </div>
             </form>
 
-            <div class="d-flex align-items-center gap-3">
-                <a href="#" class="text-dark position-relative">
-                    <i class="bi bi-cart3 fs-4"></i>
-                </a>
-
                 <div class="dropdown">
                     <a href="#" class="text-dark" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-person-circle fs-4"></i>
@@ -124,7 +123,6 @@
                     <div class="col-md-8 text-md-end mt-3 mt-md-0">
                         <a href="{{ route('admin.tambah.beranda') }}" class="btn btn-success rounded-pill px-4 me-2">Tambah Produk</a>
                         <button class="btn btn-outline-dark rounded-pill px-4 me-2">Edit Katalog</button>
-                        <button class="btn btn-info text-white rounded-pill px-4">Kelola Kategori</button>
                     </div>
                 </div>
             </div>
