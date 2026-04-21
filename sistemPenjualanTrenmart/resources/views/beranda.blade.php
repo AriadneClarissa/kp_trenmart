@@ -63,7 +63,7 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav mx-auto">
                 <li class="nav-item"><a class="nav-link active" href="/">Beranda</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">Produk</a></li>
+                <li class="nav-item"><a class="nav-link" href="/katalog">Produk</a></li>
                 <li class="nav-item"><a class="nav-link" href="#">Pesanan</a></li>
                 <li class="nav-item"><a class="nav-link" href="#">Tentang Kami</a></li>
             </ul>

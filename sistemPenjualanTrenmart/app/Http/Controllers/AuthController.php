@@ -14,7 +14,6 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
-        // 1. Validasi Input
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
@@ -22,7 +21,6 @@ class AuthController extends Controller
             'customer_type' => 'required|in:regular,langganan',
         ]);
 
-        // 2. Buat User Baru
         User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -32,8 +30,7 @@ class AuthController extends Controller
             'is_approved' => ($request->customer_type === 'regular') ? true : false,
         ]);
 
-        // 3. Arahkan ke login (user tidak otomatis login sebelum disetujui jika tipe langganan)
-        return redirect()->route('login')->with('success', 'Pendaftaran berhasil! Silakan masuk menggunakan akun Anda.');
+        return redirect()->route('login')->with('success', 'Pendaftaran berhasil! Silakan masuk.');
     }
 
     /**
@@ -41,62 +38,72 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
-        // Validasi menggunakan 'name' sesuai kebutuhan form Anda
         $credentials = $request->validate([
             'name' => ['required', 'string'],
             'password' => ['required'],
         ]);
 
         if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
+            $user = Auth::user();
 
-            // Admin diarahkan ke 'beranda' agar Panel Kontrol Admin muncul
+            // Proteksi: Langganan yang belum di-approve tidak bisa login
+            if ($user->customer_type === 'langganan' && !$user->is_approved) {
+                Auth::logout();
+                return back()->withErrors(['name' => 'Akun langganan Anda sedang menunggu verifikasi admin.']);
+            }
+
+            $request->session()->regenerate();
             return redirect()->route('beranda'); 
         }
 
-        // Jika gagal, kembali dengan error pada input 'name'
-        return back()->withErrors([
-            'name' => 'Nama atau password tidak sesuai.',
-        ])->onlyInput('name');
+        return back()->withErrors(['name' => 'Nama atau password tidak sesuai.'])->onlyInput('name');
     }
 
     /**
-     * Menangani Logout
+     * Dashboard Admin: Menampilkan Persetujuan & Daftar User
      */
+    public function adminDashboard()
+    {
+        if (Auth::user()->role !== 'admin') {
+            return redirect('/')->with('error', 'Akses ditolak.');
+        }
+
+        // 1. Ambil data langganan yang butuh approval
+        $pendingUsers = User::where('customer_type', 'langganan')
+                            ->where('is_approved', false)
+                            ->get();
+
+        // 2. Ambil semua user untuk dikelola rolenya (Manajemen Akses)
+        $allUsers = User::all();
+
+        return view('admin.dashboard', compact('pendingUsers', 'allUsers'));
+    }
+
+    /**
+     * Mengubah User biasa menjadi Admin lewat UI
+     */
+    public function promoteToAdmin($id)
+    {
+        if (Auth::user()->role !== 'admin') { abort(403); }
+
+        $user = User::findOrFail($id);
+        $user->update(['role' => 'admin']);
+
+        return back()->with('success', 'Berhasil! ' . $user->name . ' sekarang memiliki akses Admin.');
+    }
+
+    public function approveUser($id)
+    {
+        $user = User::findOrFail($id);
+        $user->update(['is_approved' => true]);
+        return back()->with('success', 'User ' . $user->name . ' telah disetujui.');
+    }
+
     public function logout(Request $request)
     {
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         return redirect('/');
-    }
-
-    /**
-     * Tampilan Dashboard Admin (List Approval)
-     */
-    public function adminDashboard()
-    {
-        // Proteksi tambahan jika middleware belum terpasang sempurna
-        if (Auth::user()->role !== 'admin') {
-            return redirect('/')->with('error', 'Akses ditolak.');
-        }
-
-        // Ambil customer langganan yang belum di-approve
-        $pendingUsers = User::where('customer_type', 'langganan')
-                            ->where('is_approved', false)
-                            ->get();
-
-        return view('admin.dashboard', compact('pendingUsers'));
-    }
-
-    /**
-     * Proses Approval User Langganan oleh Admin
-     */
-    public function approveUser($id)
-    {
-        $user = User::findOrFail($id);
-        $user->update(['is_approved' => true]);
-
-        return back()->with('success', 'User ' . $user->name . ' sekarang mendapatkan harga khusus.');
     }
 }

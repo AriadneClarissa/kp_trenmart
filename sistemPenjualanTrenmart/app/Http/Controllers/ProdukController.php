@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Produk;
-use App\Models\Kategori; // Tambahkan ini
-use App\Models\Merk;     // Tambahkan ini
+use App\Models\Kategori; 
+use App\Models\Merk;    
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -18,7 +18,7 @@ class ProdukController extends Controller
         $produk_terbaru = Produk::latest()->take(10)->get();
         $produk_terpopuler = Produk::inRandomOrder()->take(10)->get();
         
-        // Memproses harga tampil secara dinamis
+        // Memproses harga tampil secara dinamis pada beranda
         $semua_produk = $produk_terbaru->merge($produk_terpopuler);
         foreach ($semua_produk as $item) {
             if (Auth::check() && Auth::user()->customer_type === 'langganan') {
@@ -32,11 +32,47 @@ class ProdukController extends Controller
     }
 
     /**
+     * PERUBAHAN DISINI: Menampilkan Halaman Katalog Produk
+     */
+    public function katalog(Request $request)
+    {
+        // 1. Ambil data kategori & merk untuk sidebar/filter
+        $kategori = Kategori::all();
+        $merk = Merk::all();
+
+        // 2. Query dasar produk dengan relasi
+        $query = Produk::with(['kategori', 'merk']);
+
+        // 3. Logika Filter Pencarian
+        if ($request->has('search')) {
+            $query->where('nama_produk', 'like', '%' . $request->search . '%');
+        }
+
+        // 4. Logika Filter Kategori
+        if ($request->has('kategori')) {
+            $query->where('kd_kategori', $request->kategori);
+        }
+
+        $produk = $query->get();
+
+        // 5. Memproses Harga Dinamis untuk setiap produk di Katalog
+        foreach ($produk as $item) {
+            if (Auth::check() && Auth::user()->customer_type === 'langganan') {
+                $item->harga_tampil = $item->harga_jual_langganan;
+            } else {
+                $item->harga_tampil = $item->harga_jual_umum;
+            }
+        }
+
+        // 6. Kirim ke view katalog.blade.php
+        return view('katalog', compact('produk', 'kategori', 'merk'));
+    }
+
+    /**
      * Jalur 1: Tambah Produk via Beranda
      */
     public function createBeranda()
     {
-        // Mengambil data kategori & merk dari DB agar Admin tidak utak-atik kodingan
         $kategoris = Kategori::all();
         $merks = Merk::all();
 
@@ -67,7 +103,6 @@ class ProdukController extends Controller
      */
     public function store(Request $request)
     {
-        // 1. Validasi Input
         $request->validate([
             'nama_produk'     => 'required|string|max:255',
             'gambar'          => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
@@ -77,23 +112,20 @@ class ProdukController extends Controller
             'kd_merk'         => 'required',
         ]);
 
-        // 2. Proses Upload Gambar ke public/storage
         $imageName = time() . '.' . $request->gambar->extension();  
         $request->gambar->move(public_path('storage'), $imageName);
 
-        // 3. Simpan ke tabel produk
-        // Note: kd_produk biasanya otomatis jika di DB diset auto-increment
         Produk::create([
             'nama_produk'     => $request->nama_produk,
             'deskripsi'       => $request->deskripsi,
             'kd_kategori'     => $request->kd_kategori,
             'kd_merk'         => $request->kd_merk,
             'harga_jual_umum' => $request->harga_jual_umum,
+            'harga_jual_langganan' => $request->harga_jual_langganan ?? $request->harga_jual_umum, // Tambahan field jika ada
             'stok_tersedia'   => $request->stok_tersedia,
             'gambar'          => $imageName,
         ]);
 
-        // 4. Redirect otomatis berdasarkan asal tombol (origin)
         if ($request->origin == 'beranda') {
             return redirect()->route('beranda')->with('success', 'Produk berhasil ditambahkan ke Beranda!');
         }
@@ -115,7 +147,6 @@ class ProdukController extends Controller
      */
     public function show($id)
     {
-        // Mencari berdasarkan primary key kd_produk
         $produk = Produk::where('kd_produk', $id)->firstOrFail();
         return view('produk.detail', compact('produk'));
     }
