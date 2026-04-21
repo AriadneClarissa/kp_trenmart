@@ -1,9 +1,10 @@
 <?php
-namespace App\Http\Controllers;
+
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\MerkController;
+use App\Http\Controllers\KeranjangController; 
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -35,11 +36,15 @@ Route::middleware(['auth'])->group(function () {
     
     // Fitur Dasar User Terautentikasi
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-    Route::post('/keranjang/tambah', [ProdukController::class, 'addToCart'])->name('keranjang.tambah');
     Route::get('/pesanan', function () { return view('pesanan'); })->name('pesanan.index');
 
+    // --- FITUR KERANJANG (TABEL TUNGGAL: keranjang) ---
+    Route::get('/keranjang', [KeranjangController::class, 'index'])->name('cart.index');
+    Route::post('/keranjang/tambah/{id}', [KeranjangController::class, 'store'])->name('cart.add');
+    Route::post('/keranjang/update/{id}', [KeranjangController::class, 'update'])->name('cart.update'); // Untuk +/- jumlah
+    Route::delete('/keranjang/hapus/{id}', [KeranjangController::class, 'destroy'])->name('cart.remove');
+
     // --- GRUP KHUSUS ADMIN & PEMILIK TOKO ---
-    // Dashboard Admin & Manajemen User
     Route::get('/admin/dashboard', [AuthController::class, 'adminDashboard'])->name('admin.dashboard');
     Route::post('/admin/approve/{id}', [AuthController::class, 'approveUser'])->name('admin.approve');
     Route::post('/admin/promote/{id}', [AuthController::class, 'promoteToAdmin'])->name('admin.promote');
