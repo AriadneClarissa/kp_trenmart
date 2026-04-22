@@ -18,89 +18,86 @@ class ProdukController extends Controller
         $produk_terbaru = Produk::latest()->take(10)->get();
         $produk_terpopuler = Produk::inRandomOrder()->take(10)->get();
         
-        // Memproses harga tampil secara dinamis pada beranda
         $semua_produk = $produk_terbaru->merge($produk_terpopuler);
         foreach ($semua_produk as $item) {
-            if (Auth::check() && Auth::user()->customer_type === 'langganan') {
-                $item->harga_tampil = $item->harga_jual_langganan;
-            } else {
-                $item->harga_tampil = $item->harga_jual_umum;
-            }
+            $this->setHargaTampil($item);
         }
 
         return view('beranda', compact('produk_terbaru', 'produk_terpopuler'));
     }
 
     /**
-     * PERUBAHAN DISINI: Menampilkan Halaman Katalog Produk
+     * Menampilkan Halaman Katalog Produk dengan Filter Kategori & Merk
      */
     public function katalog(Request $request)
     {
-        // 1. Ambil data kategori & merk untuk sidebar/filter
+        // 1. Ambil semua kategori untuk bar navigasi kategori (Foto 2)
         $kategori = Kategori::all();
-        $merk = Merk::all();
+        
+        // 2. Default: Merk kosong, baru akan terisi jika kategori dipilih
+        $merk = collect();
 
-        // 2. Query dasar produk dengan relasi
+        // 3. Query dasar produk
         $query = Produk::with(['kategori', 'merk']);
 
-        // 3. Logika Filter Pencarian
+        // 4. Filter Pencarian Nama
         if ($request->has('search')) {
             $query->where('nama_produk', 'like', '%' . $request->search . '%');
         }
 
-        // 4. Logika Filter Kategori
+        // 5. Filter Kategori & Logika Merk Dinamis
         if ($request->has('kategori')) {
-            $query->where('kd_kategori', $request->kategori);
+            $kd_kat = $request->kategori;
+            $query->where('kd_kategori', $kd_kat);
+
+            // AMBIL MERK: Hanya merk yang punya produk di kategori yang sedang diklik
+            $merk = Merk::whereHas('produk', function($q) use ($kd_kat) {
+                $q->where('kd_kategori', $kd_kat);
+            })->get();
+        }
+
+        // 6. Filter Merk (Jika user mengklik merk di sidebar)
+        if ($request->has('merk')) {
+            $query->where('kd_merk', $request->merk);
         }
 
         $produk = $query->get();
 
-        // 5. Memproses Harga Dinamis untuk setiap produk di Katalog
+        // 7. Memproses Harga Dinamis
         foreach ($produk as $item) {
-            if (Auth::check() && Auth::user()->customer_type === 'langganan') {
-                $item->harga_tampil = $item->harga_jual_langganan;
-            } else {
-                $item->harga_tampil = $item->harga_jual_umum;
-            }
+            $this->setHargaTampil($item);
         }
 
-        // 6. Kirim ke view katalog.blade.php
         return view('katalog', compact('produk', 'kategori', 'merk'));
     }
 
     /**
-     * Jalur 1: Tambah Produk via Beranda
+     * Helper untuk menentukan harga berdasarkan tipe customer
      */
-    public function createBeranda()
+    private function setHargaTampil($item)
     {
-        $kategoris = Kategori::all();
-        $merks = Merk::all();
-
-        return view('admin.tambah_produk', [
-            'source' => 'beranda',
-            'kategoris' => $kategoris,
-            'merks' => $merks
-        ]);
+        if (Auth::check() && Auth::user()->customer_type === 'langganan') {
+            $item->harga_tampil = $item->harga_jual_langganan;
+        } else {
+            $item->harga_tampil = $item->harga_jual_umum;
+        }
     }
 
     /**
-     * Jalur 2: Tambah Produk via Layar Produk (Admin)
+     * Tambah Produk via Beranda & Admin
      */
-    public function create()
-    {
-        $kategoris = Kategori::all();
-        $merks = Merk::all();
+    public function createBeranda() { return $this->createForm('beranda'); }
+    public function create() { return $this->createForm('layar_produk'); }
 
+    private function createForm($source)
+    {
         return view('admin.tambah_produk', [
-            'source' => 'layar_produk',
-            'kategoris' => $kategoris,
-            'merks' => $merks
+            'source' => $source,
+            'kategoris' => Kategori::all(),
+            'merks' => Merk::all()
         ]);
     }
 
-    /**
-     * Menyimpan produk baru ke database
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -121,33 +118,25 @@ class ProdukController extends Controller
             'kd_kategori'     => $request->kd_kategori,
             'kd_merk'         => $request->kd_merk,
             'harga_jual_umum' => $request->harga_jual_umum,
-            'harga_jual_langganan' => $request->harga_jual_langganan ?? $request->harga_jual_umum, // Tambahan field jika ada
+            'harga_jual_langganan' => $request->harga_jual_langganan ?? $request->harga_jual_umum,
             'stok_tersedia'   => $request->stok_tersedia,
             'gambar'          => $imageName,
         ]);
 
-        if ($request->origin == 'beranda') {
-            return redirect()->route('beranda')->with('success', 'Produk berhasil ditambahkan ke Beranda!');
-        }
-        
-        return redirect()->route('produk.index')->with('success', 'Produk berhasil ditambahkan ke Daftar Produk!');
+        return redirect()->route($request->origin == 'beranda' ? 'beranda' : 'produk.index')
+                         ->with('success', 'Produk berhasil ditambahkan!');
     }
 
-    /**
-     * Daftar semua produk untuk sisi Admin
-     */
     public function produkIndex()
     {
         $produk = Produk::with(['kategori', 'merk'])->get(); 
         return view('admin.produk_index', compact('produk')); 
     }
 
-    /**
-     * Menampilkan detail produk
-     */
     public function show($id)
     {
         $produk = Produk::where('kd_produk', $id)->firstOrFail();
+        $this->setHargaTampil($produk);
         return view('produk.detail', compact('produk'));
     }
 }

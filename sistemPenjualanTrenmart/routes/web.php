@@ -60,6 +60,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/produk/edit/{id}', [ProdukController::class, 'edit'])->name('produk.edit');
         Route::put('/produk/update/{id}', [ProdukController::class, 'update'])->name('produk.update');
         Route::delete('/produk/hapus/{id}', [ProdukController::class, 'destroy'])->name('produk.destroy');
+        
 
         // B. MANAJEMEN KATEGORI
         Route::get('/kategori', [KategoriController::class, 'index'])->name('kategori.index');
@@ -71,5 +72,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/merk/simpan', [MerkController::class, 'store'])->name('merk.store');
         Route::delete('/merk/hapus/{id}', [MerkController::class, 'destroy'])->name('merk.destroy');
         
+        // D. MANAJEMEN KATALOG PRODUK
+        Route::get('/katalog', [ProdukController::class, 'katalog'])->name('katalog');
     });
 });
