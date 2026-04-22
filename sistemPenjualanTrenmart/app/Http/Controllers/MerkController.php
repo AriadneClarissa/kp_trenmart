@@ -2,33 +2,36 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Merk;
 use Illuminate\Http\Request;
+use App\Models\Merk; 
+use Illuminate\Support\Str; 
 
 class MerkController extends Controller
 {
-    public function index() {
-        $merk = Merk::all();
-        return view('admin.kelola_merk', compact('merk'));
-    }
+    public function store(Request $request)
+    {
+    $request->validate([
+        'nama_merk' => 'required|string|max:255',
+    ]);
 
-    public function store(Request $request) {
-        $request->validate([
-            'kd_merk' => 'required|unique:merk,kd_merk',
-            'nama_merk' => 'required'
-        ]);
+    // Format menjadi Kapital Awal Kata
+    $nama_format = ucwords(strtolower($request->nama_merk));
 
-        Merk::create([
-            'kd_merk' => $request->kd_merk,
-            'nama_merk' => $request->nama_merk
-        ]);
+    \App\Models\Merk::create([
+        'kd_merk' => Str::slug($nama_format), 
+        'nama_merk' => $nama_format
+    ]);
 
-        return back()->with('success', 'Merk baru berhasil ditambahkan!');
-    }
+    return redirect()->back()->with('success', 'Merk berhasil ditambahkan!');
+    }  
 
-    public function destroy($id) {
-        // Menggunakan where karena primary key adalah string
-        Merk::where('kd_merk', $id)->delete();
-        return back()->with('success', 'Merk berhasil dihapus!');
+    public function toggleVisible($id)
+    {
+    $merk = Merk::findOrFail($id);
+    // Mengubah status: jika 0 jadi 1, jika 1 jadi 0
+    $merk->is_hidden = !$merk->is_hidden; 
+    $merk->save();
+
+    return response()->json(['success' => true]);
     }
 }

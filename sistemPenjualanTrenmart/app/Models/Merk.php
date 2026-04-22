@@ -10,10 +10,10 @@ class Merk extends Model
     protected $primaryKey = 'kd_merk';
     public $incrementing = false;
     protected $keyType = 'string';
+    public $timestamps = true; 
 
-    protected $fillable = ['kd_merk', 'nama_merk'];
+    protected $fillable = ['kd_merk', 'nama_merk', 'is_hidden'];
 
-    // Relasi: Satu merk punya banyak produk
     public function produk()
     {
         return $this->hasMany(Produk::class, 'kd_merk', 'kd_merk');

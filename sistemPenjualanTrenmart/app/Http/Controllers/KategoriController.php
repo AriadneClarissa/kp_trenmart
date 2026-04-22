@@ -2,32 +2,26 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Kategori;
 use Illuminate\Http\Request;
+use App\Models\Kategori; // Pastikan Model Kategori dipanggil
+use Illuminate\Support\Str;
 
 class KategoriController extends Controller
 {
-    public function index() {
-        $kategori = Kategori::all();
-        return view('admin.kelola_kategori', compact('kategori'));
-    }
+    public function store(Request $request)
+{
+    $request->validate([
+        'nama_kategori' => 'required|string|max:255',
+    ]);
 
-    public function store(Request $request) {
-        $request->validate([
-            'kd_kategori' => 'required|unique:kategori,kd_kategori',
-            'nama_kategori' => 'required'
-        ]);
+    // Menggunakan ucwords untuk membuat huruf pertama kapital
+    $nama_format = ucwords(strtolower($request->nama_kategori));
 
-        Kategori::create([
-            'kd_kategori' => $request->kd_kategori,
-            'nama_kategori' => $request->nama_kategori
-        ]);
+    \App\Models\Kategori::create([
+        'kd_kategori' => Str::slug($nama_format), 
+        'nama_kategori' => $nama_format
+    ]);
 
-        return back()->with('success', 'Kategori berhasil ditambahkan!');
-    }
-
-    public function destroy($id) {
-        Kategori::where('kd_kategori', $id)->delete();
-        return back()->with('success', 'Kategori berhasil dihapus!');
+    return redirect()->back()->with('success', 'Kategori berhasil ditambah!');
     }
 }

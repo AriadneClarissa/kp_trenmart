@@ -14,15 +14,15 @@ use Illuminate\Support\Facades\Route;
 */
 
 // --- 1. HALAMAN PUBLIK / KATALOG (Bisa diakses tanpa login) ---
-Route::get('/', [ProdukController::class, 'index'])->name('beranda');
-Route::get('/katalog', [ProdukController::class, 'katalog'])->name('katalog');
-Route::get('/produk/detail/{id}', [ProdukController::class, 'show'])->name('produk.detail');
-Route::get('/search', [ProdukController::class, 'search'])->name('produk.search');
-Route::get('/tentang-kami', function () { return view('tentang-kami'); })->name('tentang');
+    Route::get('/', [ProdukController::class, 'index'])->name('beranda');
+    Route::get('/katalog', [ProdukController::class, 'katalog'])->name('katalog');
+    Route::get('/produk/detail/{id}', [ProdukController::class, 'show'])->name('produk.detail');
+    Route::get('/search', [ProdukController::class, 'search'])->name('produk.search');
+    Route::get('/tentang-kami', function () { return view('tentang-kami'); })->name('tentang');
 
 
 // --- 2. SISTEM AUTENTIKASI (GUEST - Hanya untuk yang belum login) ---
-Route::middleware(['guest'])->group(function () {
+    Route::middleware(['guest'])->group(function () {
     Route::get('/register', function () { return view('auth.register'); })->name('register');
     Route::post('/register', [AuthController::class, 'register']);
 
@@ -32,7 +32,7 @@ Route::middleware(['guest'])->group(function () {
 
 
 // --- 3. SISTEM AUTENTIKASI (AUTH - Harus Login) ---
-Route::middleware(['auth'])->group(function () {
+    Route::middleware(['auth'])->group(function () {
     
     // Fitur Dasar User Terautentikasi
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -74,5 +74,15 @@ Route::middleware(['auth'])->group(function () {
         
         // D. MANAJEMEN KATALOG PRODUK
         Route::get('/katalog', [ProdukController::class, 'katalog'])->name('katalog');
+        Route::post('/kategori/store', [KategoriController::class, 'store'])->name('kategori.store');
+
+
+        // E. MANAJEMEN MERK PRODUK
+        Route::post('/merk/store', [MerkController::class, 'store'])->name('merk.store');
+
+        // F. TOGGLE VISIBILITAS MERK (AJAX)
+        Route::post('/merk/toggle/{id}', [MerkController::class, 'toggleVisible'])->name('merk.toggle');
+        Route::post('/kategori/toggle/{id}', [KategoriController::class, 'toggleVisible']);    
+        
     });
 });

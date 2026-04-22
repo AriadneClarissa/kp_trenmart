@@ -30,45 +30,47 @@ class ProdukController extends Controller
      * Menampilkan Halaman Katalog Produk dengan Filter Kategori & Merk
      */
     public function katalog(Request $request)
-    {
-        // 1. Ambil semua kategori untuk bar navigasi kategori (Foto 2)
-        $kategori = Kategori::all();
+{
+    // 1. Ambil semua kategori untuk bar navigasi atas
+    $kategori = Kategori::all();
+    
+    // Merk yang tampil di sidebar hanya yang TIDAK disembunyikan
+    $merk = Merk::where('is_hidden', 0)->get(); 
+
+    $query = Produk::with(['kategori', 'merk']);
+
+    // 4. Filter Pencarian Nama
+    if ($request->has('search')) {
+        $query->where('nama_produk', 'like', '%' . $request->search . '%');
+    }
+
+    // 5. Filter Kategori
+    if ($request->has('kategori')) {
+        $kd_kat = $request->kategori;
+        $query->where('kd_kategori', $kd_kat);
         
-        // 2. Default: Merk kosong, baru akan terisi jika kategori dipilih
-        $merk = collect();
+        // OPSI: Jika ingin merk tetap terfilter berdasarkan kategori yang dipilih, 
+        // aktifkan baris di bawah ini. Jika ingin semua merk tampil terus, biarkan saja.
+        /*
+        $merk = Merk::whereHas('produk', function($q) use ($kd_kat) {
+            $q->where('kd_kategori', $kd_kat);
+        })->get();
+        */
+    }
 
-        // 3. Query dasar produk
-        $query = Produk::with(['kategori', 'merk']);
+    // 6. Filter Merk
+    if ($request->has('merk')) {
+        $query->where('kd_merk', $request->merk);
+    }
 
-        // 4. Filter Pencarian Nama
-        if ($request->has('search')) {
-            $query->where('nama_produk', 'like', '%' . $request->search . '%');
-        }
+    $produk = $query->get();
 
-        // 5. Filter Kategori & Logika Merk Dinamis
-        if ($request->has('kategori')) {
-            $kd_kat = $request->kategori;
-            $query->where('kd_kategori', $kd_kat);
+    // 7. Memproses Harga Dinamis
+    foreach ($produk as $item) {
+        $this->setHargaTampil($item);
+    }
 
-            // AMBIL MERK: Hanya merk yang punya produk di kategori yang sedang diklik
-            $merk = Merk::whereHas('produk', function($q) use ($kd_kat) {
-                $q->where('kd_kategori', $kd_kat);
-            })->get();
-        }
-
-        // 6. Filter Merk (Jika user mengklik merk di sidebar)
-        if ($request->has('merk')) {
-            $query->where('kd_merk', $request->merk);
-        }
-
-        $produk = $query->get();
-
-        // 7. Memproses Harga Dinamis
-        foreach ($produk as $item) {
-            $this->setHargaTampil($item);
-        }
-
-        return view('katalog', compact('produk', 'kategori', 'merk'));
+    return view('katalog', compact('produk', 'kategori', 'merk'));
     }
 
     /**

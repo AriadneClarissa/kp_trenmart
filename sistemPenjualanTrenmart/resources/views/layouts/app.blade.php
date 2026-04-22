@@ -78,26 +78,22 @@
 
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
-                {{-- Link Beranda: Aktif jika di "/" atau sedang di halaman admin tambah produk --}}
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('/') || Request::is('admin*') ? 'active' : '' }}" href="/">Beranda</a>
                 </li>
-                
-                {{-- Link Produk: Aktif jika URL mengandung kata 'katalog' atau 'produk' --}}
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('katalog*') || Request::is('produk*') ? 'active' : '' }}" href="/katalog">Produk</a>
                 </li>
-                
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('pesanan*') ? 'active' : '' }}" href="#">Pesanan</a>
                 </li>
-                
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('tentang*') ? 'active' : '' }}" href="#">Tentang Kami</a>
                 </li>
             </ul>
 
             <div class="d-flex align-items-center ms-auto">
+                {{-- Form Cari --}}
                 <form class="d-flex me-3" action="/katalog" method="GET">
                     <div class="input-group">
                         <input name="search" class="form-control search-bar" type="search" placeholder="Cari...">
@@ -105,6 +101,14 @@
                     </div>
                 </form>
 
+                {{-- Ikon Keranjang (Hanya untuk Non-Admin atau Guest) --}}
+                @if(!auth()->check() || (auth()->check() && !auth()->user()->isAdmin()))
+                    <a href="/keranjang" class="text-dark me-3 position-relative">
+                        <i class="bi bi-cart3 fs-4"></i>
+                    </a>
+                @endif
+
+                {{-- Menu User --}}
                 <div class="dropdown">
                     <a href="#" class="text-dark" id="userMenu" data-bs-toggle="dropdown">
                         <i class="bi bi-person-circle fs-4"></i>
@@ -129,16 +133,18 @@
                         @endauth
                     </ul>
                 </div>
-            </div>
-        </div>
-    </div>
+            </div> {{-- Tutup d-flex --}}
+        </div> {{-- Tutup collapse --}}
+    </div> {{-- Tutup container --}}
 </nav>
 
 <main>
     @yield('content')
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-@stack('scripts')
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    @stack('scripts')
 </body>
 </html>
