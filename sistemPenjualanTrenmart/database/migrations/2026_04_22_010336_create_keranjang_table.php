@@ -15,7 +15,7 @@ return new class extends Migration
     Schema::create('keranjang', function (Blueprint $table) {
         $table->id();
         $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-        $table->unsignedBigInteger('kd_produk'); 
+        $table->string('kd_produk'); 
         $table->integer('jumlah')->default(1);
         $table->timestamps();
 

@@ -27,8 +27,8 @@ return new class extends Migration
         $table->string('kd_merk');
         
         // Menghubungkan FK ke tabel referensi
-        $table->foreign('kd_kategori')->references('kd_kategori')->on('kategoris')->onDelete('cascade');
-        $table->foreign('kd_merk')->references('kd_merk')->on('merks')->onDelete('cascade');
+        $table->foreign('kd_kategori')->references('kd_kategori')->on('kategori')->onDelete('cascade');
+        $table->foreign('kd_merk')->references('kd_merk')->on('merk')->onDelete('cascade');
         
         $table->timestamps();
     });
