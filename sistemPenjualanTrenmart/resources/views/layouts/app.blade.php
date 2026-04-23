@@ -79,10 +79,10 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::is('/') || Request::is('admin*') ? 'active' : '' }}" href="/">Beranda</a>
+                    <a class="nav-link {{ Request::is('/') ? 'active' : '' }}" href="/">Beranda</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::is('katalog*') || Request::is('produk*') ? 'active' : '' }}" href="/katalog">Produk</a>
+                    <a class="nav-link {{ Request::is('admin/produk*') ? 'active' : '' }}" href="{{ route('produk.index') }}">Produk</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('pesanan*') ? 'active' : '' }}" href="#">Pesanan</a>

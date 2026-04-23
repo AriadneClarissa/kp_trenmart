@@ -3,74 +3,70 @@
 namespace App\Http\Controllers;
 
 use App\Models\Produk;
-use App\Models\Kategori; 
-use App\Models\Merk;    
+use App\Models\Kategori;
+use App\Models\Merk;
+use App\Models\BerandaSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ProdukController extends Controller
 {
     /**
-     * Menampilkan halaman beranda untuk pembeli
+     * Menampilkan halaman beranda utama
      */
     public function index()
     {
-        $produk_terbaru = Produk::latest()->take(10)->get();
-        $produk_terpopuler = Produk::inRandomOrder()->take(10)->get();
-        
-        $semua_produk = $produk_terbaru->merge($produk_terpopuler);
-        foreach ($semua_produk as $item) {
-            $this->setHargaTampil($item);
-        }
+        $settings = BerandaSetting::all()->pluck('value', 'key');
 
-        return view('beranda', compact('produk_terbaru', 'produk_terpopuler'));
+        $produk_terbaru = Produk::latest()->take(8)->get();
+        foreach ($produk_terbaru as $item) { $this->setHargaTampil($item); }
+
+        // Menggunakan nama $produk_terpopuler agar sesuai dengan Blade
+        $produk_terpopuler = Produk::where('is_highlight', true)->get();
+        foreach ($produk_terpopuler as $item) { $this->setHargaTampil($item); }
+
+        $kategori = Kategori::all();
+        $merk = Merk::all();
+
+        return view('beranda', compact('settings', 'produk_terbaru', 'produk_terpopuler', 'kategori', 'merk'));
     }
 
     /**
-     * Menampilkan Halaman Katalog Produk dengan Filter Kategori & Merk
+     * Menampilkan Halaman Katalog/Filter (diarahkan ke view beranda)
      */
     public function katalog(Request $request)
-{
-    // 1. Ambil semua kategori untuk bar navigasi atas
-    $kategori = Kategori::all();
-    
-    // Merk yang tampil di sidebar hanya yang TIDAK disembunyikan
-    $merk = Merk::where('is_hidden', 0)->get(); 
+    {
+        // Pastikan variabel settings tetap dikirim agar header/footer di beranda tidak error
+        $settings = BerandaSetting::all()->pluck('value', 'key');
+        $kategori = Kategori::all();
+        $merk = Merk::where('is_hidden', 0)->get(); 
 
-    $query = Produk::with(['kategori', 'merk']);
+        $query = Produk::with(['kategori', 'merk']);
 
-    // 4. Filter Pencarian Nama
-    if ($request->has('search')) {
-        $query->where('nama_produk', 'like', '%' . $request->search . '%');
-    }
+        if ($request->has('search')) {
+            $query->where('nama_produk', 'like', '%' . $request->search . '%');
+        }
 
-    // 5. Filter Kategori
-    if ($request->has('kategori')) {
-        $kd_kat = $request->kategori;
-        $query->where('kd_kategori', $kd_kat);
+        if ($request->has('kategori')) {
+            $query->where('kd_kategori', $request->kategori);
+        }
+
+        if ($request->has('merk')) {
+            $query->where('kd_merk', $request->merk);
+        }
+
+        // Kita masukkan hasil filter ke $produk_terbaru agar section produk di beranda terupdate
+        $produk_terbaru = $query->get();
+        foreach ($produk_terbaru as $item) {
+            $this->setHargaTampil($item);
+        }
+
+        // Tetap kirimkan produk terpopuler agar section tersebut tidak error/kosong
+        $produk_terpopuler = Produk::where('is_highlight', true)->get();
+        foreach ($produk_terpopuler as $item) { $this->setHargaTampil($item); }
         
-        // OPSI: Jika ingin merk tetap terfilter berdasarkan kategori yang dipilih, 
-        // aktifkan baris di bawah ini. Jika ingin semua merk tampil terus, biarkan saja.
-        /*
-        $merk = Merk::whereHas('produk', function($q) use ($kd_kat) {
-            $q->where('kd_kategori', $kd_kat);
-        })->get();
-        */
-    }
-
-    // 6. Filter Merk
-    if ($request->has('merk')) {
-        $query->where('kd_merk', $request->merk);
-    }
-
-    $produk = $query->get();
-
-    // 7. Memproses Harga Dinamis
-    foreach ($produk as $item) {
-        $this->setHargaTampil($item);
-    }
-
-    return view('katalog', compact('produk', 'kategori', 'merk'));
+        // PENTING: Ganti 'katalog' menjadi 'beranda' karena file katalog.blade.php tidak ada
+        return view('beranda', compact('settings', 'produk_terbaru', 'produk_terpopuler', 'kategori', 'merk'));
     }
 
     /**
@@ -85,9 +81,6 @@ class ProdukController extends Controller
         }
     }
 
-    /**
-     * Tambah Produk via Beranda & Admin
-     */
     public function createBeranda() { return $this->createForm('beranda'); }
     public function create() { return $this->createForm('layar_produk'); }
 
@@ -109,20 +102,25 @@ class ProdukController extends Controller
             'stok_tersedia'   => 'required|numeric',
             'kd_kategori'     => 'required',
             'kd_merk'         => 'required',
+            'satuan'          => 'required', 
         ]);
 
+        $satuanFinal = ($request->satuan === 'Lainnya') ? $request->satuan_custom : $request->satuan;
         $imageName = time() . '.' . $request->gambar->extension();  
         $request->gambar->move(public_path('storage'), $imageName);
 
         Produk::create([
-            'nama_produk'     => $request->nama_produk,
-            'deskripsi'       => $request->deskripsi,
-            'kd_kategori'     => $request->kd_kategori,
-            'kd_merk'         => $request->kd_merk,
-            'harga_jual_umum' => $request->harga_jual_umum,
+            'kd_produk'            => 'PRD-' . strtoupper(uniqid()),
+            'nama_produk'          => $request->nama_produk,
+            'deskripsi'            => $request->deskripsi,
+            'kd_kategori'          => $request->kd_kategori,
+            'kd_merk'              => $request->kd_merk,
+            'harga_jual_umum'      => $request->harga_jual_umum,
             'harga_jual_langganan' => $request->harga_jual_langganan ?? $request->harga_jual_umum,
-            'stok_tersedia'   => $request->stok_tersedia,
-            'gambar'          => $imageName,
+            'stok_tersedia'        => $request->stok_tersedia,
+            'satuan'               => $satuanFinal,
+            'status'               => 'aktif', 
+            'gambar'               => $imageName,
         ]);
 
         return redirect()->route($request->origin == 'beranda' ? 'beranda' : 'produk.index')
@@ -131,8 +129,68 @@ class ProdukController extends Controller
 
     public function produkIndex()
     {
-        $produk = Produk::with(['kategori', 'merk'])->get(); 
-        return view('admin.produk_index', compact('produk')); 
+    // Mengambil data yang dibutuhkan oleh file edit_katalog
+    $produk = Produk::with('merk')->get(); 
+    $kategori = Kategori::all();
+    $merk = Merk::all();
+
+    // Pastikan string di sini SAMA dengan nama file di folder (admin/edit_katalog.blade.php)
+    return view('admin.edit_katalog', compact('produk', 'kategori', 'merk'));
+    }
+
+    public function edit($kd_produk)
+    {
+        $produk = Produk::where('kd_produk', $kd_produk)->firstOrFail();
+        $kategoris = Kategori::all();
+        $merks = Merk::all();
+        return view('admin.edit_produk', compact('produk', 'kategoris', 'merks'));
+    }
+
+    public function update(Request $request, $kd_produk)
+    {
+        $request->validate([
+            'nama_produk'     => 'required|string|max:255',
+            'harga_jual_umum' => 'required|numeric',
+            'stok_tersedia'   => 'required|numeric',
+            'kd_kategori'     => 'required',
+            'kd_merk'         => 'required',
+            'satuan'          => 'required',
+        ]);
+
+        $produk = Produk::where('kd_produk', $kd_produk)->firstOrFail();
+        
+        $satuanFinal = ($request->satuan === 'Lainnya') ? $request->satuan_custom : $request->satuan;
+        
+        $updateData = [
+            'nama_produk'          => $request->nama_produk,
+            'deskripsi'            => $request->deskripsi,
+            'kd_kategori'          => $request->kd_kategori,
+            'kd_merk'              => $request->kd_merk,
+            'harga_jual_umum'      => $request->harga_jual_umum,
+            'harga_jual_langganan' => $request->harga_jual_langganan ?? $request->harga_jual_umum,
+            'stok_tersedia'        => $request->stok_tersedia,
+            'satuan'               => $satuanFinal,
+        ];
+
+        if ($request->hasFile('gambar')) {
+            $request->validate([
+                'gambar' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
+            ]);
+            $imageName = time() . '.' . $request->gambar->extension();  
+            $request->gambar->move(public_path('storage'), $imageName);
+            $updateData['gambar'] = $imageName;
+        }
+
+        $produk->update($updateData);
+
+        return redirect()->route('produk.index')->with('success', 'Produk berhasil diperbarui!');
+    }
+
+    public function destroy($kd_produk)
+    {
+        $produk = Produk::where('kd_produk', $kd_produk)->firstOrFail();
+        $produk->delete();
+        return redirect()->route('produk.index')->with('success', 'Produk berhasil dihapus!');
     }
 
     public function show($id)

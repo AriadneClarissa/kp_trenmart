@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Kategori; // Pastikan Model Kategori dipanggil
+use App\Models\Kategori; 
 use Illuminate\Support\Str;
 
 class KategoriController extends Controller

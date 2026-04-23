@@ -4,7 +4,7 @@
 <div class="container mb-5 mt-4">
     <div class="card main-card p-4 border-0 shadow-sm" style="border-radius: 15px;">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="fw-bold m-0">Tambah Produk Baru</h4>
+            <h4 class="fw-bold m-0">Tambah Produk</h4>
         </div>
 
         <form action="{{ route('produk.store') }}" method="POST" enctype="multipart/form-data">
@@ -62,21 +62,30 @@
                     </div>
 
                     <div class="section-card bg-white p-3 border rounded-3">
-                        <h6 class="fw-bold mb-3"><i class="bi bi-tags me-2 text-success"></i>Detail Harga & Stok</h6>
+                        <h6 class="fw-bold mb-3"><i class="bi bi-tags me-2 text-success"></i>Detail Harga, Stok & Satuan</h6>
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label text-muted small">Harga Jual (Umum)</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0">Rp</span>
                                     <input type="number" name="harga_jual_umum" class="form-control border-start-0" placeholder="0" required>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label text-muted small">Jumlah Stok</label>
-                                <div class="input-group">
-                                    <input type="number" name="stok_tersedia" class="form-control border-end-0" placeholder="0" required>
-                                    <span class="input-group-text bg-light border-start-0">Pcs</span>
-                                </div>
+                                <input type="number" name="stok_tersedia" class="form-control" placeholder="0" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label text-muted small">Satuan</label>
+                                <select name="satuan" class="form-select" id="satuan_select" onchange="toggleSatuanManual()" required>
+                                    <option value="" disabled selected>Pilih...</option>
+                                    <option value="Pcs">Pcs</option>
+                                    <option value="Pak">Pak</option>
+                                    <option value="Lusin">Lusin</option>
+                                    <option value="Karton">Karton</option>
+                                    <option value="Lainnya">Lainnya...</option>
+                                </select>
+                                <input type="text" name="satuan_custom" id="satuan_manual" class="form-control mt-2" style="display:none;" placeholder="Ketik satuan...">
                             </div>
                         </div>
                     </div>
@@ -110,6 +119,19 @@
                 placeholder.classList.add('d-none');
             }
             reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function toggleSatuanManual() {
+        var select = document.getElementById('satuan_select');
+        var manualInput = document.getElementById('satuan_manual');
+        if (select.value === 'Lainnya') {
+            manualInput.style.display = 'block';
+            manualInput.required = true;
+            manualInput.focus();
+        } else {
+            manualInput.style.display = 'none';
+            manualInput.required = false;
         }
     }
 </script>

@@ -57,9 +57,10 @@ class User extends \Illuminate\Foundation\Auth\User
      */
 
     // Cek apakah user adalah Admin
-    public function isAdmin(): bool
+    public function isAdmin()
     {
-        return $this->role === 'admin';
+    // Sesuaikan dengan kolom di database kamu (tadi di foto kolomnya bernama 'role')
+    return $this->role === 'admin';
     }
 
     // Cek apakah user adalah Customer Langganan yang sudah disetujui Admin

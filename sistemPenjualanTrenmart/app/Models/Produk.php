@@ -11,24 +11,27 @@ class Produk extends Model
     public $incrementing = false;
     protected $keyType = 'string';
 
-    // 1. LETAKKAN DI SINI (Daftar kolom di tabel produk kamu)
     protected $fillable = [
         'kd_produk', 
         'kd_kategori', 
         'kd_merk', 
         'nama_produk', 
-        'harga', 
-        'stok', 
+        'deskripsi',           
+        'harga_jual_umum',     
+        'harga_jual_langganan', 
+        'stok_tersedia',     
+        'satuan',
+        'status',
         'gambar'
     ];
 
-    // 2. DAN DI SINI (Relasi ke Kategori)
+    // Relasi ke Kategori
     public function kategori()
     {
         return $this->belongsTo(Kategori::class, 'kd_kategori', 'kd_kategori');
     }
 
-    // 3. DAN DI SINI (Relasi ke Merk)
+    // Relasi ke Merk
     public function merk()
     {
         return $this->belongsTo(Merk::class, 'kd_merk', 'kd_merk');
