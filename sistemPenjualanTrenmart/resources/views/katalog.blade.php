@@ -40,6 +40,7 @@
     /* --- CARD PRODUK --- */
     .card-produk { border-radius: 25px !important; transition: 0.3s; border: none; box-shadow: 0 4px 20px rgba(0,0,0,0.06); height: 100%; overflow: hidden; background: white; display: flex; flex-direction: column; }
     .card-produk:hover { transform: translateY(-8px); box-shadow: 0 12px 30px rgba(0,0,0,0.1); }
+    .card-clickable { cursor: pointer; }
     .img-container { background-color: #f8f9fa; border-radius: 20px; padding: 25px; min-height: 190px; display: flex; align-items: center; justify-content: center; position: relative; margin: 10px; }
     
     .badge-stok { position: absolute; top: 10px; left: 10px; font-size: 10px; padding: 4px 10px; border-radius: 8px; }
@@ -127,7 +128,10 @@
             <div class="row row-cols-2 row-cols-md-3 g-4">
                 @forelse($produk as $p)
                 <div class="col">
-                    <div class="card card-produk">
+                    <div class="card card-produk {{ auth()->check() && !auth()->user()->isAdmin() ? 'card-clickable' : '' }}"
+                        @if(auth()->check() && !auth()->user()->isAdmin())
+                            onclick="if(event.target.closest('form') || event.target.closest('button') || event.target.closest('a')) return; window.location.href='{{ route('produk.detail', ['id' => $p->kd_produk, 'from' => 'katalog']) }}'"
+                        @endif>
                         <div class="img-container">
                             @if($p->stok_tersedia > 0)
                                 <span class="badge bg-success badge-stok shadow-sm">Tersedia</span>
