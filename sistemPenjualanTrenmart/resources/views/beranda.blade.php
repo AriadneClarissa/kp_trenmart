@@ -72,12 +72,12 @@
 
     /* 2. Lebar Kartu Produk di HP */
     .card-mobile-width {
-        width: 190px; /* Lebih kecil sedikit agar sisa produk di sebelah kanan terlihat (mengajak swipe) */
+        width: 168px;
     }
 
     @media (min-width: 768px) {
         .card-mobile-width {
-            width: 250px;
+            width: 218px;
         }
     }
 

@@ -14,6 +14,13 @@ class KeranjangController extends Controller
      */
     public function index()
     {
+        $previousUrl = url()->previous();
+        if ($previousUrl && !str_contains($previousUrl, '/keranjang')) {
+            session(['cart_back_url' => $previousUrl]);
+        }
+
+        $backUrl = session('cart_back_url', route('katalog'));
+
         // Gunakan eager loading 'produk.merk' agar tidak error saat memanggil nama merk
         $items = Keranjang::with(['produk.merk'])
                             ->where('user_id', Auth::id())
@@ -32,7 +39,7 @@ class KeranjangController extends Controller
         }
 
         // Variabel dikirim sebagai 'items' agar sesuai dengan @forelse($items as $item) di Blade
-        return view('keranjang', compact('items', 'total'));
+        return view('keranjang', compact('items', 'total', 'backUrl'));
     }
 
     /**

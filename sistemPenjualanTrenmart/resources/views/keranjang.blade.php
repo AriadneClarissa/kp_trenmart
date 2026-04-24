@@ -17,6 +17,9 @@
     .btn-checkout:hover { background: #600000; transform: translateY(-3px); box-shadow: 0 8px 20px rgba(128,0,0,0.2); color: white; }
 
     .text-maroon { color: var(--maroon-trenmart); }
+
+    .btn-kembali { border: 1px solid #ddd; border-radius: 10px; color: #444; text-decoration: none; padding: 8px 12px; font-weight: 600; transition: 0.2s; }
+    .btn-kembali:hover { border-color: var(--maroon-trenmart); color: var(--maroon-trenmart); background: #fff5f5; }
 </style>
 @endpush
 
@@ -25,6 +28,11 @@
     <div class="row g-4">
         {{-- BAGIAN KIRI: DAFTAR BARANG --}}
         <div class="col-lg-8">
+            <div class="mb-3">
+                <a href="{{ $backUrl }}" class="btn-kembali">
+                    <i class="bi bi-arrow-left me-1"></i> Kembali
+                </a>
+            </div>
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h4 class="fw-bold m-0"><i class="bi bi-cart3 me-2"></i>Keranjang Belanja</h4>
                 <span class="text-muted">{{ count($items) }} Barang</span>
