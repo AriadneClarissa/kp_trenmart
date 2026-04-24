@@ -2,36 +2,52 @@
 
 @push('styles')
 <style>
-    :root { --maroon: #800000; --light-bg: #f8f9fa; }
-    body { background-color: var(--light-bg); }
+    :root { --maroon: #800000; --soft-bg: #f8f9fa; }
+    body { background-color: var(--soft-bg); }
 
     /* Sidebar Kategori & Admin Style */
     .sidebar-container { position: sticky; top: 90px; }
     .card-sidebar { border-radius: 15px; background: white; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden; }
     
     /* Search Kategori Style */
-    .search-kategori { background-color: #f1f1f1; border: none; border-radius: 50px; padding: 8px 15px; font-size: 14px; }
+    .search-kategori { background-color: #f1f1f1; border: none; border-radius: 50px; padding: 10px 15px; font-size: 14px; }
     
     /* List Kategori Style (Sesuai Gambar Mockup) */
-    .list-kategori { max-height: 350px; overflow-y: auto; }
-    .kat-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 10px; color: #555; text-decoration: none; border-bottom: 1px solid #f8f9fa; transition: 0.2s; font-size: 14px; }
-    .kat-item:hover, .kat-item.active { color: var(--maroon); background-color: #fff5f5; font-weight: 600; }
+    .list-kategori { max-height: 400px; overflow-y: auto; scrollbar-width: none; }
+    .list-kategori::-webkit-scrollbar { display: none; }
+    .kat-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 12px;
+        color: #555;
+        text-decoration: none;
+        border-bottom: 1px solid #f1f1f1;
+        transition: 0.2s;
+        font-size: 14px;
+        min-height: 44px;
+        border-radius: 10px;
+    }
+    .kat-item:hover, .kat-item.active {
+        color: var(--maroon);
+        background-color: #fff5f5;
+        font-weight: 500;
+    }
     
     /* Tombol Admin Panel */
     .sidebar-header-admin { font-weight: bold; font-size: 0.9rem; border-bottom: 1px solid #eee; padding: 12px 20px; background-color: #fff9e6; color: #333; }
     .btn-admin-panel { width: 100%; border-radius: 12px; font-weight: 600; font-size: 13px; padding: 10px; margin-bottom: 10px; border: none; color: white; display: block; text-align: center; text-decoration: none; }
 
     /* Filter Bar Pill Style (Atas) */
-    .filter-pill { background: white; border-radius: 50px; padding: 5px 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid #eee; display: flex; align-items: center; }
-    .input-filter { border: none; background: transparent; outline: none; padding: 8px 0; width: 100%; font-size: 14px; }
-    .select-filter { border: none; background: white; border-radius: 50px; padding: 10px 20px; cursor: pointer; color: #666; font-size: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); width: 100%; }
+    .filter-pill { background: white; border-radius: 50px; padding: 8px 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid #eee; display: flex; align-items: center; width: 100%; }
+    .input-filter { border: none; background: transparent; outline: none; padding: 8px 0; width: 100%; font-size: 14px; padding-left: 10px; }
+    .select-filter { border: none; background: white; border-radius: 50px; padding: 10px 20px; cursor: pointer; color: #666; font-size: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); width: 100%; border: 1px solid #eee; }
 
     /* Card Produk Style */
-    .card-produk { border-radius: 20px !important; transition: 0.3s; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); height: 100%; }
-    .card-produk:hover { transform: translateY(-8px); box-shadow: 0 12px 25px rgba(0,0,0,0.1); }
-    .card-produk-link { text-decoration: none; color: inherit; display: block; height: 100%; cursor: pointer; }
-    .card-produk-link:hover { color: inherit; }
-    .img-container { background-color: #f8f9fa; border-radius: 15px; padding: 20px; min-height: 180px; display: flex; align-items: center; justify-content: center; position: relative; }
+    .card-produk { border-radius: 25px !important; transition: 0.3s; border: none; box-shadow: 0 4px 20px rgba(0,0,0,0.06); height: 100%; overflow: hidden; background: white; display: flex; flex-direction: column; }
+    .card-produk:hover { transform: translateY(-8px); box-shadow: 0 12px 30px rgba(0,0,0,0.1); }
+    .img-container { background-color: #f8f9fa; border-radius: 20px; padding: 25px; min-height: 190px; display: flex; align-items: center; justify-content: center; position: relative; margin: 10px; }
+    .product-info { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; }
     
     .btn-detail { background-color: var(--maroon); color: white; border-radius: 12px; border: none; font-weight: 600; padding: 10px; width: 100%; transition: 0.2s; display: block; text-align: center; text-decoration: none; }
     .btn-detail:hover { background-color: #600000; color: white; }
@@ -70,11 +86,11 @@
                         <input type="text" id="searchKategori" class="form-control search-kategori" placeholder="Cari kategori...">
                     </div>
                     <div class="list-kategori" id="kategoriList">
-                        <a href="{{ route('katalog') }}" class="kat-item {{ !request('kategori') ? 'active' : '' }}">
+                        <a href="{{ route('produk.index') }}" class="kat-item {{ !request('kategori') ? 'active' : '' }}">
                             Semua Produk <i class="bi bi-chevron-right small"></i>
                         </a>
                         @foreach($kategori as $kat)
-                            <a href="{{ route('katalog', ['kategori' => $kat->kd_kategori]) }}" class="kat-item {{ request('kategori') == $kat->kd_kategori ? 'active' : '' }}">
+                            <a href="{{ route('produk.index', ['kategori' => $kat->kd_kategori]) }}" class="kat-item {{ request('kategori') == $kat->kd_kategori ? 'active' : '' }}">
                                 {{ $kat->nama_kategori }} <i class="bi bi-chevron-right small"></i>
                             </a>
                         @endforeach
@@ -85,7 +101,7 @@
 
         {{-- 2. AREA UTAMA --}}
         <div class="col-md-9">
-            <form action="{{ route('katalog') }}" method="GET" class="row g-3 mb-4 align-items-center">
+            <form action="{{ route('produk.index') }}" method="GET" class="row g-3 mb-4 align-items-center">
                 <div class="col-md-6">
                     <div class="filter-pill">
                         <i class="bi bi-search text-muted me-2"></i>
@@ -105,10 +121,10 @@
                 </div>
             </form>
 
-            <div class="row row-cols-2 row-cols-md-4 g-4">
+            <div class="row row-cols-2 row-cols-md-3 g-4">
                 @forelse($produk as $p)
                 <div class="col">
-                    <a href="{{ route('produk.detail', ['id' => $p->kd_produk, 'from' => 'katalog']) }}" class="card card-produk card-produk-link p-3">
+                    <div class="card card-produk p-3" style="cursor: pointer;" onclick="window.location.href='{{ route('produk.detail', ['id' => $p->kd_produk, 'from' => 'produk.index']) }}'">
                         <div class="img-container mb-3">
                             @if($p->stok_tersedia > 0)
                                 <span class="badge bg-success position-absolute top-0 start-0 m-2 px-2 py-1 shadow-sm" style="font-size: 10px;">Tersedia</span>
@@ -117,7 +133,7 @@
                             @endif
                             <img src="{{ asset('storage/' . $p->gambar) }}" class="img-fluid" style="height: 140px; object-fit: contain;">
                         </div>
-                        <div class="product-info">
+                        <div class="product-info text-center">
                             <p class="text-muted small mb-1">{{ $p->merk->nama_merk ?? 'Tanpa Merk' }}</p>
                             <h6 class="fw-bold text-dark text-truncate mb-2">{{ $p->nama_produk }}</h6>
                             <h5 class="fw-bold mb-3" style="color: var(--maroon);">
@@ -127,7 +143,7 @@
                                 <i class="bi bi-eye me-1"></i> Lihat Detail
                             </span>
                         </div>
-                    </a>
+                    </div>
                 </div>
                 @empty
                 <div class="col-12 text-center py-5">

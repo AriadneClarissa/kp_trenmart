@@ -108,8 +108,9 @@
                 <div class="mb-4">
                     <label class="form-label fw-semibold">Daftar Sebagai</label>
                     <select name="customer_type" class="form-select" required>
-                        <option value="regular">Pelanggan Umum (Eceran)</option>
-                        <option value="langganan">Pelanggan Grosir (Langganan)</option>
+                        <option value="" disabled {{ old('customer_type') ? '' : 'selected' }}>Pilih tipe pelanggan</option>
+                        <option value="regular" {{ old('customer_type') === 'regular' ? 'selected' : '' }}>Pelanggan Umum (Eceran)</option>
+                        <option value="langganan" {{ old('customer_type') === 'langganan' ? 'selected' : '' }}>Pelanggan Grosir (Langganan)</option>
                     </select>
                     <small class="text-muted" style="font-size: 10px;">
                         *Akun Grosir memerlukan verifikasi admin sebelum dapat digunakan.

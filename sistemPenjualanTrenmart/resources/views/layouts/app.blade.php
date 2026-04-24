@@ -96,7 +96,7 @@
 
             <div class="d-flex align-items-center ms-auto">
                 {{-- Form Cari (Hanya muncul di Desktop) --}}
-                <form class="d-flex me-3 d-none d-lg-flex" action="{{ route('katalog') }}" method="GET">
+                <form class="d-flex me-3 d-none d-lg-flex" action="{{ Auth::check() && Auth::user()->isAdmin() ? route('produk.index') : route('katalog') }}" method="GET">
                     <div class="input-group">
                         <input name="search" class="form-control search-bar" type="search" placeholder="Cari barang..." value="{{ request('search') }}">
                         <button class="btn btn-search" type="submit"><i class="bi bi-search"></i></button>

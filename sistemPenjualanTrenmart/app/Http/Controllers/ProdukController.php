@@ -136,10 +136,24 @@ class ProdukController extends Controller
                          ->with('success', 'Produk berhasil ditambahkan!');
     }
 
-    public function produkIndex()
+    public function produkIndex(Request $request)
     {
+        $query = Produk::with(['merk', 'kategori']);
+
+        if ($request->filled('search')) {
+            $query->where('nama_produk', 'like', '%' . $request->search . '%');
+        }
+
+        if ($request->filled('kategori')) {
+            $query->where('kd_kategori', $request->kategori);
+        }
+
+        if ($request->filled('merk')) {
+            $query->where('kd_merk', $request->merk);
+        }
+
         // Untuk halaman tabel manajemen stok admin
-        $produk = Produk::with(['merk', 'kategori'])->latest()->get(); 
+        $produk = $query->latest()->get();
         foreach ($produk as $item) {
             $this->setHargaTampil($item);
         }

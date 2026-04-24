@@ -102,9 +102,9 @@
 
                     {{-- Tombol Kembali --}}
                     <div class="mt-4 text-center">
-                        <a href="{{ request('from') === 'katalog' ? route('katalog') : route('beranda') }}" class="text-decoration-none text-muted small hover-maroon">
+                        <a href="{{ request('from') === 'produk.index' ? route('produk.index') : (request('from') === 'katalog' ? route('katalog') : route('beranda')) }}" class="text-decoration-none text-muted small hover-maroon">
                             <i class="bi bi-arrow-left me-1"></i>
-                            {{ request('from') === 'katalog' ? 'Kembali ke Katalog' : 'Kembali ke Beranda' }}
+                            {{ request('from') === 'produk.index' ? 'Kembali ke Produk' : (request('from') === 'katalog' ? 'Kembali ke Katalog' : 'Kembali ke Beranda') }}
                         </a>
                     </div>
                 </div>

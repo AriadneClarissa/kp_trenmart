@@ -8,8 +8,25 @@
     /* --- SIDEBAR KATEGORI --- */
     .sidebar-katalog { background: white; border-radius: 20px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: sticky; top: 90px; }
     .search-kategori { background-color: #f1f1f1; border: none; border-radius: 50px; padding: 10px 15px; font-size: 14px; }
-    .kat-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 10px; color: #555; text-decoration: none; border-bottom: 1px solid #f1f1f1; transition: 0.2s; font-size: 14px; }
-    .kat-item:hover, .kat-item.active { color: var(--maroon); background-color: #fff5f5; border-radius: 10px; font-weight: 600; }
+    .kat-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 12px;
+        color: #555;
+        text-decoration: none;
+        border-bottom: 1px solid #f1f1f1;
+        transition: 0.2s;
+        font-size: 14px;
+        min-height: 44px;
+        border-radius: 10px;
+    }
+    .kat-item:hover,
+    .kat-item.active {
+        color: var(--maroon);
+        background-color: #fff5f5;
+        font-weight: 500;
+    }
     
     /* Panel Admin Card di Sidebar */
     .panel-admin-card { background-color: #fff9e6; border: 1px solid #ffecb3; border-radius: 15px; margin-bottom: 20px; }
@@ -38,15 +55,18 @@
     /* Custom Scrollbar */
     .list-kategori { max-height: 400px; overflow-y: auto; scrollbar-width: none; }
     .list-kategori::-webkit-scrollbar { display: none; }
+
+    /* Lebihkan kanvas katalog agar tidak terlihat terlalu ke tengah */
+    .katalog-wrap { max-width: 1520px; margin: 0 auto; }
 </style>
 @endpush
 
 @section('content')
-<div class="container mt-4 mb-5">
-    <div class="row">
+<div class="container-fluid px-3 px-lg-4 px-xl-5 mt-4 mb-5 katalog-wrap">
+    <div class="row g-4">
         
         {{-- SIDEBAR KIRI --}}
-        <div class="col-md-3 d-none d-md-block">
+        <div class="col-md-4 col-lg-3 col-xl-3 d-none d-md-block">
             
             @auth
                 @if(auth()->user()->isAdmin())
@@ -81,7 +101,7 @@
         </div>
 
         {{-- AREA UTAMA --}}
-        <div class="col-md-9">
+        <div class="col-md-8 col-lg-9 col-xl-9">
             {{-- Filter Bar --}}
             <form action="{{ route('katalog') }}" method="GET" class="row g-3 mb-4 align-items-center">
                 <div class="col-md-7">
@@ -131,7 +151,7 @@
                             @auth
                                 @if(auth()->user()->isAdmin())
                                     {{-- Jika Admin, tampilkan Lihat Detail (Gak bisa beli sendiri) --}}
-                                    <a href="{{ route('produk.detail', $p->kd_produk) }}" class="btn-action btn-detail shadow-sm">
+                                    <a href="{{ route('produk.detail', ['id' => $p->kd_produk, 'from' => 'katalog']) }}" class="btn-action btn-detail shadow-sm">
                                         <i class="bi bi-eye me-1"></i> Lihat Detail
                                     </a>
                                 @else

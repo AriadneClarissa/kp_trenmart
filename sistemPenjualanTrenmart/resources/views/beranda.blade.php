@@ -40,7 +40,7 @@
 
     {{-- Section Produk (Tetap pakai flex-nowrap) --}}
     <section class="mb-5">
-        <h4 class="fw-bold mb-4 text-center fs-5 fs-md-4"><i class="bi bi-stars text-warning me-2"></i>Produk Terbaru</h4>
+        <h4 class="fw-bold mb-4 text-center fs-5 fs-md-4"><i class="bi bi-stars text-warning me-2"></i>{{ $settings['judul_terbaru'] ?? 'Produk Terbaru' }}</h4>
         <div class="row flex-nowrap overflow-auto g-3 g-md-4 pb-3 custom-scrollbar">
             @forelse($produk_terbaru as $item)
             <div class="col-auto card-mobile-width"> 
@@ -54,7 +54,21 @@
         </div>
     </section>
 
-    {{-- Bagian Terpopuler sama seperti di atas --}}
+    {{-- Section Produk Terpopuler / Promo --}}
+    <section class="mb-5">
+        <h4 class="fw-bold mb-4 text-center fs-5 fs-md-4"><i class="bi bi-fire text-danger me-2"></i>{{ $settings['judul_terpopuler'] ?? 'Produk Terpopuler' }}</h4>
+        <div class="row flex-nowrap overflow-auto g-3 g-md-4 pb-3 custom-scrollbar">
+            @forelse($produk_terpopuler as $item)
+            <div class="col-auto card-mobile-width">
+                @include('partials.item_produk', ['item' => $item])
+            </div>
+            @empty
+                <div class="col-12 text-center py-4">
+                    <p class="text-muted">Belum ada produk promo yang dipilih.</p>
+                </div>
+            @endforelse
+        </div>
+    </section>
 </div>
 
 <style>

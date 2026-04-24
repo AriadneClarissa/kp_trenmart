@@ -1,6 +1,6 @@
 <div class="col">
     <div class="card h-100 border-0 shadow-sm p-2 product-card" style="border-radius: 16px; position: relative; cursor: pointer;"
-         onclick="if(event.target.closest('form')) return; window.location.href='{{ route('produk.detail', $item->kd_produk) }}'">
+             onclick="if(event.target.closest('form')) return; window.location.href='{{ route('produk.detail', ['id' => $item->kd_produk, 'from' => 'beranda']) }}'">
         @if($item->stok_tersedia > 0)
             <div class="position-absolute" style="top: 12px; left: 12px; z-index: 10;">
                 <span class="badge bg-success px-2 py-1" style="border-radius: 7px; font-size: 0.68rem;">
