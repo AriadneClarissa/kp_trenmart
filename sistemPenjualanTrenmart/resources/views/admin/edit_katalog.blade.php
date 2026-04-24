@@ -29,10 +29,12 @@
     /* Card Produk Style */
     .card-produk { border-radius: 20px !important; transition: 0.3s; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); height: 100%; }
     .card-produk:hover { transform: translateY(-8px); box-shadow: 0 12px 25px rgba(0,0,0,0.1); }
+    .card-produk-link { text-decoration: none; color: inherit; display: block; height: 100%; cursor: pointer; }
+    .card-produk-link:hover { color: inherit; }
     .img-container { background-color: #f8f9fa; border-radius: 15px; padding: 20px; min-height: 180px; display: flex; align-items: center; justify-content: center; position: relative; }
     
-    .btn-tambah { background-color: var(--maroon); color: white; border-radius: 12px; border: none; font-weight: 600; padding: 10px; width: 100%; transition: 0.2s; }
-    .btn-tambah:hover { background-color: #600000; }
+    .btn-detail { background-color: var(--maroon); color: white; border-radius: 12px; border: none; font-weight: 600; padding: 10px; width: 100%; transition: 0.2s; display: block; text-align: center; text-decoration: none; }
+    .btn-detail:hover { background-color: #600000; color: white; }
 </style>
 @endpush
 
@@ -106,7 +108,7 @@
             <div class="row row-cols-2 row-cols-md-4 g-4">
                 @forelse($produk as $p)
                 <div class="col">
-                    <div class="card card-produk p-3">
+                    <a href="{{ route('produk.detail', ['id' => $p->kd_produk, 'from' => 'katalog']) }}" class="card card-produk card-produk-link p-3">
                         <div class="img-container mb-3">
                             @if($p->stok_tersedia > 0)
                                 <span class="badge bg-success position-absolute top-0 start-0 m-2 px-2 py-1 shadow-sm" style="font-size: 10px;">Tersedia</span>
@@ -118,12 +120,14 @@
                         <div class="product-info">
                             <p class="text-muted small mb-1">{{ $p->merk->nama_merk ?? 'Tanpa Merk' }}</p>
                             <h6 class="fw-bold text-dark text-truncate mb-2">{{ $p->nama_produk }}</h6>
-                            <h5 class="fw-bold mb-3" style="color: var(--maroon);">Rp {{ number_format($p->harga_tampil, 0, ',', '.') }}</h5>
-                            <button class="btn btn-tambah btn-tambah-cart" data-id="{{ $p->kd_produk }}">
-                                <i class="bi bi-plus-lg me-1"></i> Tambah
-                            </button>
+                            <h5 class="fw-bold mb-3" style="color: var(--maroon);">
+                                Rp {{ number_format(($p->harga_tampil > 0 ? $p->harga_tampil : $p->harga_jual_umum), 0, ',', '.') }}
+                            </h5>
+                            <span class="btn btn-detail">
+                                <i class="bi bi-eye me-1"></i> Lihat Detail
+                            </span>
                         </div>
-                    </div>
+                    </a>
                 </div>
                 @empty
                 <div class="col-12 text-center py-5">
