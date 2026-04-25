@@ -51,6 +51,18 @@
     
     .btn-detail { background-color: var(--maroon); color: white; border-radius: 12px; border: none; font-weight: 600; padding: 10px; width: 100%; transition: 0.2s; display: block; text-align: center; text-decoration: none; }
     .btn-detail:hover { background-color: #600000; color: white; }
+
+    /* Empty state harus selalu full row, tidak ikut row-cols */
+    .empty-produk-state {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        min-height: 260px;
+    }
 </style>
 @endpush
 
@@ -153,7 +165,7 @@
                     </div>
                 </div>
                 @empty
-                <div class="col-12 text-center py-5">
+                <div class="empty-produk-state py-5">
                     <i class="bi bi-box-seam text-muted" style="font-size: 4rem; opacity: 0.3;"></i>
                     <h5 class="mt-3">Produk tidak tersedia</h5>
                 </div>

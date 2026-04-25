@@ -34,9 +34,9 @@
         /* --- SEARCH BAR --- */
         .search-bar { 
             border-radius: 50px 0 0 50px !important; background-color: #f3f4f6 !important; 
-            border: 1px solid #e5e7eb !important; padding-left: 20px; height: 42px; width: 180px; transition: 0.3s;
+            border: 1px solid #e5e7eb !important; padding-left: 20px; height: 42px; width: 220px; flex: 0 0 220px; transition: background-color 0.3s, border-color 0.3s;
         }
-        .search-bar:focus { background-color: #fff !important; border-color: var(--maroon-trenmart) !important; width: 240px; box-shadow: none; outline: none; }
+        .search-bar:focus { background-color: #fff !important; border-color: var(--maroon-trenmart) !important; box-shadow: none; outline: none; }
         .btn-search { border-radius: 0 50px 50px 0 !important; background-color: var(--maroon-trenmart) !important; color: white !important; height: 42px; border: none; padding: 0 18px; }
 
         /* --- ICONS & DROPDOWN --- */
@@ -46,7 +46,7 @@
 
         @media (max-width: 991px) {
             .navbar-nav { margin-left: 0 !important; margin-bottom: 15px; text-align: center; }
-            .search-bar { width: 100%; }
+            .search-bar { width: 100%; flex: 1 1 auto; }
             .nav-link.active::after { display: none; }
         }
     </style>

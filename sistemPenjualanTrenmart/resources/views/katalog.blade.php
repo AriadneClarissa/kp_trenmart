@@ -59,6 +59,18 @@
 
     /* Lebihkan kanvas katalog agar tidak terlihat terlalu ke tengah */
     .katalog-wrap { max-width: 1520px; margin: 0 auto; }
+
+    /* Empty state harus selalu full row, tidak ikut row-cols */
+    .empty-produk-state {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        min-height: 260px;
+    }
 </style>
 @endpush
 
@@ -187,7 +199,7 @@
                     </div>
                 </div>
                 @empty
-                <div class="col-12 text-center py-5">
+                <div class="empty-produk-state py-5">
                     <i class="bi bi-search text-muted" style="font-size: 4rem; opacity: 0.3;"></i>
                     <h5 class="mt-3 text-muted">Produk tidak ditemukan</h5>
                 </div>
