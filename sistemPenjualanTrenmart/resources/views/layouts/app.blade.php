@@ -117,8 +117,19 @@
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         @auth
-                            <li><div class="dropdown-header fw-bold text-dark border-bottom mb-2">Halo, {{ auth()->user()->name }}</div></li>
-                            <li><a class="dropdown-item rounded-3" href="#"><i class="bi bi-person me-2"></i>Profil</a></li>
+                            <li>
+                                <div class="dropdown-header text-dark border-bottom mb-2">
+                                    <div class="fw-bold">Halo, {{ auth()->user()->name }}</div>
+                                    @if(auth()->user()->isAdmin())
+                                        <span class="badge rounded-pill bg-primary-subtle text-primary-emphasis border border-primary-subtle mt-1">Admin</span>
+                                    @elseif(auth()->user()->customer_type === 'langganan')
+                                        <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis border border-warning-subtle mt-1">Pelanggan Langganan</span>
+                                    @else
+                                        <span class="badge rounded-pill bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle mt-1">Pelanggan Umum</span>
+                                    @endif
+                                </div>
+                            </li>
+                            <li><a class="dropdown-item rounded-3" href="{{ route('profile.edit') }}"><i class="bi bi-person me-2"></i>Profil</a></li>
                             
                             @if(auth()->user()->isAdmin())
                                 <li><a class="dropdown-item rounded-3 text-primary" href="{{ route('admin.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard Admin</a></li>

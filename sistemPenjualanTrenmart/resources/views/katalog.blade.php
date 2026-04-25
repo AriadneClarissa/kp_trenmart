@@ -146,10 +146,17 @@
                             <h6 class="fw-bold text-dark text-truncate mb-2" title="{{ $p->nama_produk }}">{{ $p->nama_produk }}</h6>
                             
                             {{-- Perbaikan Harga agar tidak Rp 0 --}}
-                            <h5 class="price-text mb-3">
+                            <h5 class="price-text mb-1">
                                 Rp {{ number_format(($p->harga_tampil > 0 ? $p->harga_tampil : $p->harga_jual_umum), 0, ',', '.') }}
                                 <span class="text-muted small fw-normal" style="font-size: 11px;">/{{ $p->satuan }}</span>
                             </h5>
+                            @auth
+                                @if(auth()->user()->isAdmin())
+                                    <p class="mb-3 fw-semibold" style="color: #f08a24; font-size: 0.95rem;">
+                                        Langganan: Rp {{ number_format($p->harga_jual_langganan ?? $p->harga_jual_umum, 0, ',', '.') }}
+                                    </p>
+                                @endif
+                            @endauth
                             
                             {{-- LOGIKA TOMBOL ADMIN VS USER --}}
                             @auth

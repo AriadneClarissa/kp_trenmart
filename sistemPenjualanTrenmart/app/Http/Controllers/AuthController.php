@@ -99,6 +99,29 @@ class AuthController extends Controller
         return back()->with('success', 'User ' . $user->name . ' telah disetujui.');
     }
 
+    public function profile()
+    {
+        return view('auth.profil', ['user' => Auth::user()]);
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'phone_number' => 'nullable|string|max:20',
+            'home_address' => 'nullable|string|max:500',
+        ]);
+
+        $user = User::findOrFail(Auth::id());
+        $user->update([
+            'name' => $validated['name'],
+            'phone_number' => $validated['phone_number'] ?? null,
+            'home_address' => $validated['home_address'] ?? null,
+        ]);
+
+        return back()->with('success', 'Profil berhasil diperbarui.');
+    }
+
     public function logout(Request $request)
     {
         Auth::logout();

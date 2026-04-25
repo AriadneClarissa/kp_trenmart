@@ -24,6 +24,8 @@ class User extends \Illuminate\Foundation\Auth\User
         'role',               // Role:'admin' atau 'customer'
         'customer_type',      // Jenis Customer: 'regular' atau 'langganan'
         'is_approved',        // Diacc / tidak: true (1) atau false (0)
+        'phone_number',
+        'home_address',
     ];
 
     /**
@@ -48,6 +50,8 @@ class User extends \Illuminate\Foundation\Auth\User
             'password' => 'hashed',
             'is_approved' => 'boolean', // Memastikan data dibaca sebagai true/false
             'customer_type' => 'string',
+            'phone_number' => 'string',
+            'home_address' => 'string',
         ];
     }
 

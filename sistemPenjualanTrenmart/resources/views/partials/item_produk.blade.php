@@ -32,6 +32,14 @@
             </h4>
 
             @auth
+                @if(auth()->user()->isAdmin())
+                    <p class="mb-2 fw-semibold" style="color: #f08a24; font-size: 0.9rem;">
+                        Langganan: Rp {{ number_format($item->harga_jual_langganan ?? $item->harga_jual_umum, 0, ',', '.') }}
+                    </p>
+                @endif
+            @endauth
+
+            @auth
                 @if(!auth()->user()->isAdmin())
                     <form action="{{ route('cart.add', $item->kd_produk) }}" method="POST">
                         @csrf

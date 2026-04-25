@@ -6,6 +6,7 @@ use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\MerkController;
 use App\Http\Controllers\KeranjangController;
 use App\Http\Controllers\KatalogController; 
+use App\Http\Controllers\TentangController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -18,7 +19,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [ProdukController::class, 'index'])->name('beranda');
 Route::get('/katalog', [ProdukController::class, 'katalog'])->name('katalog');
 Route::get('/produk/detail/{id}', [ProdukController::class, 'show'])->name('produk.detail');
-Route::get('/tentang-kami', function () { return view('tentang-kami'); })->name('tentang');
+Route::get('/tentang-kami', [TentangController::class, 'index'])->name('tentang');
 
 
 // --- 2. SISTEM AUTENTIKASI GUEST (Hanya untuk yang BELUM Login) ---
@@ -35,6 +36,8 @@ Route::middleware(['auth'])->group(function () {
     
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/pesanan', function () { return view('pesanan'); })->name('pesanan.index');
+    Route::get('/profil', [AuthController::class, 'profile'])->name('profile.edit');
+    Route::put('/profil', [AuthController::class, 'updateProfile'])->name('profile.update');
 
     // --- FITUR KERANJANG ---
     Route::get('/keranjang', [KeranjangController::class, 'index'])->name('cart.index');
@@ -74,5 +77,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/merk/simpan', [MerkController::class, 'store'])->name('merk.store');
         Route::post('/merk/toggle/{id}', [MerkController::class, 'toggleVisible'])->name('merk.toggle');
         Route::delete('/merk/hapus/{id}', [MerkController::class, 'destroy'])->name('merk.destroy');
+
+        // F. Manajemen Halaman Tentang Kami
+        Route::put('/tentang-kami', [TentangController::class, 'update'])->name('admin.tentang.update');
     });
 });

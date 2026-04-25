@@ -34,6 +34,13 @@
                         Rp {{ number_format($produk->harga_tampil, 0, ',', '.') }}
                         <small class="text-muted fw-normal fs-6">/{{ $produk->satuan }}</small>
                     </h3>
+                    @auth
+                        @if(auth()->user()->isAdmin())
+                            <p class="mb-4 fw-semibold" style="color: #f08a24; font-size: 1rem;">
+                                Langganan: Rp {{ number_format($produk->harga_jual_langganan ?? $produk->harga_jual_umum, 0, ',', '.') }}
+                            </p>
+                        @endif
+                    @endauth
                     
                     {{-- Status Stok --}}
                     @if($produk->stok_tersedia > 0)

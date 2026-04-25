@@ -136,9 +136,16 @@
                         <div class="product-info text-center">
                             <p class="text-muted small mb-1">{{ $p->merk->nama_merk ?? 'Tanpa Merk' }}</p>
                             <h6 class="fw-bold text-dark text-truncate mb-2">{{ $p->nama_produk }}</h6>
-                            <h5 class="fw-bold mb-3" style="color: var(--maroon);">
+                            <h5 class="fw-bold mb-1" style="color: var(--maroon);">
                                 Rp {{ number_format(($p->harga_tampil > 0 ? $p->harga_tampil : $p->harga_jual_umum), 0, ',', '.') }}
                             </h5>
+                            @auth
+                                @if(auth()->user()->isAdmin())
+                                    <p class="mb-3 fw-semibold" style="color: #f08a24; font-size: 0.95rem;">
+                                        Langganan: Rp {{ number_format($p->harga_jual_langganan ?? $p->harga_jual_umum, 0, ',', '.') }}
+                                    </p>
+                                @endif
+                            @endauth
                             <span class="btn btn-detail">
                                 <i class="bi bi-eye me-1"></i> Lihat Detail
                             </span>

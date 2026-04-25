@@ -64,18 +64,28 @@
                     <div class="section-card bg-white p-3 border rounded-3">
                         <h6 class="fw-bold mb-3"><i class="bi bi-tags me-2 text-success"></i>Detail Harga, Stok & Satuan</h6>
                         <div class="row">
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <label class="form-label text-muted small">Harga Jual (Umum)</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0">Rp</span>
                                     <input type="number" name="harga_jual_umum" class="form-control border-start-0" placeholder="0" required>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small">Harga Jual (Langganan)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0">Rp</span>
+                                    <input type="number" name="harga_jual_langganan" class="form-control border-start-0" placeholder="0">
+                                </div>
+                                <small class="text-muted">Kosongkan jika sama dengan harga umum</small>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-6">
                                 <label class="form-label text-muted small">Jumlah Stok</label>
                                 <input type="number" name="stok_tersedia" class="form-control" placeholder="0" required>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <label class="form-label text-muted small">Satuan</label>
                                 <select name="satuan" class="form-select" id="satuan_select" onchange="toggleSatuanManual()" required>
                                     <option value="" disabled selected>Pilih...</option>

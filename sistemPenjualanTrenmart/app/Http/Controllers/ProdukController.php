@@ -106,6 +106,7 @@ class ProdukController extends Controller
             'nama_produk'     => 'required|string|max:255',
             'gambar'          => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
             'harga_jual_umum' => 'required|numeric',
+            'harga_jual_langganan' => 'nullable|numeric',
             'stok_tersedia'   => 'required|numeric',
             'kd_kategori'     => 'required',
             'kd_merk'         => 'required',
@@ -176,6 +177,7 @@ class ProdukController extends Controller
         $request->validate([
             'nama_produk'     => 'required|string|max:255',
             'harga_jual_umum' => 'required|numeric',
+            'harga_jual_langganan' => 'nullable|numeric',
             'stok_tersedia'   => 'required|numeric',
             'kd_kategori'     => 'required',
             'kd_merk'         => 'required',
