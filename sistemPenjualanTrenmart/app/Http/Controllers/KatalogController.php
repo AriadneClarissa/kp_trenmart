@@ -11,60 +11,72 @@ use Illuminate\Support\Facades\Auth;
 
 class KatalogController extends Controller
 {
-    // UNTUK HALAMAN DAFTAR PRODUK (Stok, Tambah, Hapus)
+    // 1. UNTUK HALAMAN DAFTAR PRODUK (Stok, Tambah, Hapus)
     public function edit()
     {
-    // Ambil data untuk tabel produk
-    $produk = Produk::with(['kategori', 'merk'])->get(); 
-    
-    // AMBIL DATA INI supaya dropdown filter tidak error
-    $kategori = Kategori::all(); 
-    $merk = Merk::all(); 
+        $produk = Produk::with(['kategori', 'merk'])->get(); 
+        $kategori = Kategori::all(); 
+        $merk = Merk::all(); 
 
-    // Kirimkan semua variabel ke view
-    return view('admin.edit_katalog', compact('produk', 'kategori', 'merk'));
+        return view('admin.edit_katalog', compact('produk', 'kategori', 'merk'));
     }
 
-    // UNTUK HALAMAN EDIT JUDUL & PROMO (File baru: edit_judul.blade.php)
+    // 2. API UNTUK PENCARIAN PRODUK (Menangani ribuan produk agar tidak lemot)
+    public function searchProduk(Request $request)
+    {
+    // Mengambil keyword dari Select2 (biasanya dikirim lewat parameter 'term')
+    $search = $request->term;
+
+    // Cari produk berdasarkan nama atau kode produk
+    $produk = Produk::where('nama_produk', 'LIKE', "%$search%")
+                    ->orWhere('kd_produk', 'LIKE', "%$search%")
+                    ->take(10) // Ambil 10 saja agar pencarian sangat cepat
+                    ->get(['kd_produk', 'nama_produk']);
+
+    // Kembalikan dalam format JSON yang bisa dibaca Select2
+    return response()->json($produk);
+    }
+
+    // 3. HALAMAN EDIT JUDUL & SECTION CUSTOM
     public function editJudul()
     {
-    $settings = BerandaSetting::all()->pluck('value', 'key');
-    $produk = Produk::with('merk')->get();
+        $settings = BerandaSetting::all()->pluck('value', 'key');
+        
+        // Ambil produk yang SAAT INI sedang terpilih sebagai section 3 (untuk ditampilkan di Select2)
+        $produk_pilihan_custom = Produk::where('is_custom_section', true)->get();
+        
+        // Ambil semua produk hanya untuk section "Terpopuler" (jika datanya masih sedikit)
+        // Jika produk terpopuler juga mencapai ribuan, gunakan sistem search yang sama seperti section 3
+        $produk = Produk::with('merk')->get();
 
-    foreach ($produk as $item) {
-        $item->harga_tampil = $item->harga_jual_umum ?? 0;
-
-        if (Auth::check() && Auth::user()->customer_type === 'langganan') {
-            $item->harga_tampil = $item->harga_jual_langganan ?? $item->harga_jual_umum;
+        foreach ($produk as $item) {
+            $item->harga_tampil = $item->harga_jual_umum ?? 0;
+            if (Auth::check() && Auth::user()->customer_type === 'langganan') {
+                $item->harga_tampil = $item->harga_jual_langganan ?? $item->harga_jual_umum;
+            }
         }
-    }
-    
-    // Pastikan diarahkan ke file blade yang baru saja kamu kirim
-    return view('admin.edit_judul', compact('settings', 'produk')); 
+        
+        return view('admin.edit_judul', compact('settings', 'produk', 'produk_pilihan_custom')); 
     }
 
-    // PROSES UPDATE (Dipakai oleh form di edit_judul.blade.php)
+    // 4. PROSES UPDATE (Menyimpan perubahan nama section dan pilihan produk)
     public function update(Request $request)
     {
-        // 1. Update Judul Section
-        BerandaSetting::updateOrCreate(
-            ['key' => 'judul_terbaru'], 
-            ['value' => $request->judul_terbaru]
-        );
-        
-        BerandaSetting::updateOrCreate(
-            ['key' => 'judul_terpopuler'], 
-            ['value' => $request->judul_terpopuler]
-        );
+    // 1. Simpan Judul Custom
+    \App\Models\BerandaSetting::updateOrCreate(['key' => 'judul_custom'], ['value' => $request->judul_custom]);
 
-        // 2. Update Produk Highlight/Promo
-        Produk::where('is_highlight', true)->update(['is_highlight' => false]);
+    // 2. Tentukan kolom database mana yang akan diupdate berdasarkan dropdown
+    $column = ($request->target_section == 'terpopuler') ? 'is_highlight' : 'is_custom_section';
 
-        if($request->produk_pilihan) {
-            Produk::whereIn('kd_produk', $request->produk_pilihan)->update(['is_highlight' => true]);
-        }
+    // Reset status lama untuk section tersebut
+    \App\Models\Produk::where($column, true)->update([$column => false]);
 
-        return redirect()->route('admin.judul.edit')->with('success', 'Tampilan Beranda berhasil diperbarui!');
+    // Simpan produk yang baru dipilih via Search Bar
+    if ($request->has('produk_pilihan')) {
+        \App\Models\Produk::whereIn('kd_produk', $request->produk_pilihan)
+              ->update([$column => true]);
     }
-    
+
+    return redirect()->back()->with('success', 'Konfigurasi Beranda Berhasil Disimpan!');
+    }
 }

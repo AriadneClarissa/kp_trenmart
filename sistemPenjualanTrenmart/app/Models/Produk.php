@@ -22,7 +22,9 @@ class Produk extends Model
         'stok_tersedia',     
         'satuan',
         'status',
-        'gambar'
+        'gambar',
+        'is_highlight',
+        'is_custom_section'
     ];
 
     // Relasi ke Kategori

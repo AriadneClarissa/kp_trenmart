@@ -33,9 +33,11 @@ Route::middleware(['auth'])->group(function () {
     
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     
-    // REVISI: Perbaiki error View [dashboard] not found
-    // Kita arahkan dashboard ke halaman beranda agar tidak perlu file dashboard.blade baru
-    Route::get('/dashboard', [ProdukController::class, 'index'])->name('dashboard');
+    // PERBAIKAN: Mengatasi View [dashboard] not found
+    // Dialihkan ke beranda agar user langsung melihat produk setelah login
+    Route::get('/dashboard', function () {
+        return redirect()->route('beranda');
+    })->name('dashboard');
 
     Route::get('/pesanan', function () { return view('pesanan'); })->name('pesanan.index');
     Route::get('/profil', [AuthController::class, 'profile'])->name('profile.edit');
@@ -53,10 +55,12 @@ Route::middleware(['auth'])->group(function () {
         
         Route::get('/dashboard', [AuthController::class, 'adminDashboard'])->name('admin.dashboard');
         
-        // REVISI: Perbaiki rute Edit Judul agar tidak error Route Not Found
-        // Sesuaikan nama rute dengan yang dipanggil di beranda.blade.php
+        // --- PENGATURAN TAMPILAN BERANDA ---
         Route::get('/edit-judul', [KatalogController::class, 'editJudul'])->name('admin.judul.edit');
         Route::put('/update-judul', [KatalogController::class, 'update'])->name('admin.judul.update');
+        
+        // Rute AJAX untuk pencarian ribuan produk secara cepat
+        Route::get('/search-produk-ajax', [KatalogController::class, 'searchProduk'])->name('admin.produk.search_ajax');
 
         // Manajemen Produk
         Route::get('/produk', [ProdukController::class, 'produkIndex'])->name('produk.index');
@@ -72,8 +76,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/merk/simpan', [MerkController::class, 'store'])->name('merk.store');
         Route::delete('/merk/hapus/{id}', [MerkController::class, 'destroy'])->name('merk.destroy');
 
-        // REVISI: Perbaiki error Route [admin.tentang.update] not defined
-        // Pastikan URL dan Method sesuai dengan form di tentang-kami.blade.php
+        // PERBAIKAN: Mengatasi Route [admin.tentang.update] not defined
         Route::post('/tentang/update', [TentangController::class, 'update'])->name('admin.tentang.update');
         
         Route::post('/approve/{id}', [AuthController::class, 'approveUser'])->name('admin.approve');

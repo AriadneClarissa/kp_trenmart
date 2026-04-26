@@ -131,7 +131,7 @@
                 {{-- Form Cari (Mobile & Desktop) --}}
                 <form class="d-flex mb-3 mb-lg-0 me-lg-3 w-100" action="{{ Auth::check() && Auth::user()->isAdmin() ? route('produk.index') : route('katalog') }}" method="GET">
                     <div class="input-group w-100">
-                        <input name="search" class="form-control search-bar" type="search" placeholder="Cari barang..." value="{{ request('search') }}">
+                        <input name="search" class="form-control search-bar" type="search" placeholder="Cari produk..." value="{{ request('search') }}">
                         <button class="btn btn-search" type="submit"><i class="bi bi-search"></i></button>
                     </div>
                 </form>
