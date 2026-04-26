@@ -7,7 +7,7 @@
             <div class="card border-0 shadow-sm" style="border-radius: 18px;">
                 <div class="card-body p-4 p-md-5">
                     <h4 class="fw-bold mb-2">Profil Saya</h4>
-                    <p class="text-muted mb-4">Lengkapi data profil agar proses pemesanan lebih mudah.</p>
+                    <p class="text-muted mb-4">Lengkapi data profil Anda</p>
                     @php
                         $startInEditMode = $errors->any();
                     @endphp

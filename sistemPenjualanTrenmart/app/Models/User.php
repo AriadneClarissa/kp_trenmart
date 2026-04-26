@@ -26,6 +26,7 @@ class User extends \Illuminate\Foundation\Auth\User
         'is_approved',        // Diacc / tidak: true (1) atau false (0)
         'phone_number',
         'home_address',
+        'google_id',          // Google OAuth ID
     ];
 
     /**

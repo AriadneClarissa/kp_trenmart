@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Laravel\Socialite\Facades\Socialite; // Tambahkan ini untuk Google Auth
 
 class AuthController extends Controller
 {
@@ -34,29 +35,80 @@ class AuthController extends Controller
     }
 
     /**
-     * Menangani Login
+     * Menangani Login Manual
      */
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'name' => ['required', 'string'],
-            'password' => ['required'],
-        ]);
+    // 1. Validasi menggunakan email
+    $credentials = $request->validate([
+        'email'    => ['required', 'email'],
+        'password' => ['required'],
+    ]);
 
-        if (Auth::attempt($credentials)) {
-            $user = Auth::user();
+    if (Auth::attempt($credentials)) {
+        $user = Auth::user();
 
-            // Proteksi: Langganan yang belum di-approve tidak bisa login
-            if ($user->customer_type === 'langganan' && !$user->is_approved) {
-                Auth::logout();
-                return back()->withErrors(['name' => 'Akun langganan Anda sedang menunggu verifikasi admin.']);
-            }
-
-            $request->session()->regenerate();
-            return redirect()->route('beranda'); 
+        // 2. Proteksi Langganan (Tetap ada)
+        if ($user->customer_type === 'langganan' && !$user->is_approved) {
+            Auth::logout();
+            return back()->withErrors(['email' => 'Akun langganan Anda sedang menunggu verifikasi admin.']);
         }
 
-        return back()->withErrors(['name' => 'Nama atau password tidak sesuai.'])->onlyInput('name');
+        $request->session()->regenerate();
+
+        // 3. LOGIKA REDIRECT: Jika admin, ke dashboard internal
+        if ($user->role === 'admin') {
+            return redirect()->route('admin.dashboard');
+        }
+
+        // Jika user biasa, ke beranda
+        return redirect()->route('beranda'); 
+    }
+
+    // Jika gagal, kembalikan ke input email
+    return back()->withErrors(['email' => 'Email atau password tidak sesuai.'])->onlyInput('email');
+    }
+
+    // Tambahkan fungsi untuk menampilkan halaman login admin
+    public function login_admin()
+    {
+        return view('auth.login_admin'); // Pastikan nama file blade sesuai
+    }
+
+    /**
+     * --- FITUR GOOGLE AUTH ---
+     */
+    public function redirectToGoogle()
+    {
+        return Socialite::driver('google')->redirect();
+    }
+
+    public function handleGoogleCallback()
+    {
+        try {
+            $googleUser = Socialite::driver('google')->user();
+            
+            // Cari user berdasarkan email, jika tidak ada maka buat baru
+            $user = User::where('email', $googleUser->email)->first();
+
+            if (!$user) {
+                $user = User::create([
+                    'name' => $googleUser->name,
+                    'email' => $googleUser->email,
+                    'password' => Hash::make('password_google_default'), // Password dummy
+                    'role' => 'customer',
+                    'customer_type' => 'regular', // User google defaultnya regular
+                    'is_approved' => true,
+                    'google_id' => $googleUser->id,
+                ]);
+            }
+
+            Auth::login($user);
+            return redirect()->route('beranda');
+
+        } catch (\Exception $e) {
+            return redirect()->route('login')->withErrors(['name' => 'Gagal masuk menggunakan Google.']);
+        }
     }
 
     /**
@@ -73,7 +125,7 @@ class AuthController extends Controller
                             ->where('is_approved', false)
                             ->get();
 
-        // 2. Ambil semua user untuk dikelola rolenya (Manajemen Akses)
+        // 2. Ambil semua user untuk dikelola rolenya
         $allUsers = User::all();
 
         return view('admin.dashboard', compact('pendingUsers', 'allUsers'));
@@ -129,4 +181,9 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
         return redirect('/');
     }
+
+    public function editJudul() 
+    {
+    return view('admin.judul_edit'); 
+}
 }

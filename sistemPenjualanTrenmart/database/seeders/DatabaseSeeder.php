@@ -14,9 +14,13 @@ class DatabaseSeeder extends Seeder
      * Seed the application's database.
      */
     public function run(): void
-{
-    $this->call([
-        UserSeeder::class,
+    {
+    \App\Models\User::create([
+        'name' => 'Admin Trenmart',
+        'email' => 'admintrenmart@gmail.com', // Gunakan email ini untuk login
+        'password' => bcrypt('TAS102^&'), // Gunakan password ini
+        'role' => 'admin',
+        'is_approved' => true,
     ]);
-}
+    }
 }

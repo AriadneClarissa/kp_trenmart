@@ -11,19 +11,26 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->string('role')->default('customer'); 
-            $table->string('customer_type')->nullable();
-            $table->boolean('is_approved')->default(true);
-            $table->rememberToken();
-            $table->timestamps();
-            
-        });
+    Schema::create('users', function (Blueprint $table) {
+        $table->id();
+        $table->string('name'); // Nama Lengkap
+        $table->string('email')->unique();
+        $table->timestamp('email_verified_at')->nullable();
+        $table->string('password');
+        
+        // Role: admin, customer
+        $table->string('role')->default('customer'); 
+        
+        // Jenis: umum, langganan (NULL saat baru daftar, diisi setelah pilih kartu)
+        $table->string('customer_type')->nullable();
+        
+        // is_approved: default true untuk UMUM, 
+        // tapi nanti bisa di-set FALSE otomatis jika pilih LANGGANAN (grosir)
+        $table->boolean('is_approved')->default(true);
+        
+        $table->rememberToken();
+        $table->timestamps();
+    });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();

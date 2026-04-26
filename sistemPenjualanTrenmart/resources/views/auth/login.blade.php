@@ -38,9 +38,9 @@
         outline: none;
     }
     
-    /* Tombol Login Sesuai Permintaan (Tegas -> Muda saat Aktif) */
+    /* Tombol Login Utama */
     .btn-masuk-trenmart { 
-        background-color: #800000 !important; /* MERAH MAROON TEGAS (NORMAL) */
+        background-color: #800000 !important; 
         color: white !important; 
         border-radius: 12px; 
         padding: 14px; 
@@ -48,24 +48,62 @@
         font-weight: bold; 
         border: none; 
         margin-top: 10px;
-        margin-bottom: 20px;
         display: block; 
         transition: all 0.2s ease;
-        opacity: 1 !important; /* Paksa agar tidak pucat */
         letter-spacing: 1px;
         cursor: pointer;
     }
     
-    /* Saat Tombol Aktif (Diklik/Ditekan) */
-    .btn-masuk-trenmart:active, 
-    .btn-masuk-trenmart:focus { 
-        background-color: #b52b2b !important; /* MERAH LEBIH MUDA SAAT AKTIF */
-        transform: scale(0.98); /* Efek tekan */
-        outline: none;
+    .btn-masuk-trenmart:active { 
+        background-color: #b52b2b !important; 
+        transform: scale(0.98); 
     }
 
-    .btn-masuk-trenmart:hover {
-        background-color: #950000 !important; /* Sedikit lebih terang saat kursor di atasnya */
+    /* Pembatas ATAU di Tengah */
+    .divider {
+        display: flex;
+        align-items: center;
+        text-align: center;
+        margin: 20px 0;
+        color: #888;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+
+    .divider::before, .divider::after {
+        content: '';
+        flex: 1;
+        border-bottom: 1px solid #eee;
+    }
+
+    .divider:not(:empty)::before { margin-right: .5em; }
+    .divider:not(:empty)::after { margin-left: .5em; }
+
+    /* Tombol Google Bar */
+    .btn-google-login {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: white;
+        color: #444;
+        border: 1.5px solid #eee;
+        border-radius: 12px;
+        padding: 12px;
+        width: 100%;
+        font-weight: 600;
+        text-decoration: none;
+        transition: 0.3s;
+        margin-bottom: 20px;
+    }
+
+    .btn-google-login:hover {
+        background-color: #f8f9fa;
+        border-color: #800000;
+        color: #800000;
+    }
+
+    .btn-google-login img {
+        margin-right: 10px;
     }
 
     .password-wrapper { position: relative; }
@@ -98,7 +136,6 @@
         </div>
         
         <div class="card-body p-4">
-            {{-- Alert Error jika Login Gagal --}}
             @if ($errors->any())
                 <div class="alert alert-danger border-0 small mb-4">
                     <ul class="mb-0 ps-3">
@@ -112,8 +149,8 @@
             <form action="{{ route('login') }}" method="POST">
                 @csrf
                 <div class="mb-3">
-                    <label class="form-label">Nama Pengguna</label>
-                    <input type="text" name="name" class="form-control form-control-custom" placeholder="Masukkan nama Anda" value="{{ old('name') }}" required autofocus>
+                    <label class="form-label">Email Pengguna</label>
+                    <input type="email" name="email" class="form-control form-control-custom" placeholder="Masukkan email Anda" value="{{ old('email') }}" required autofocus>
                 </div>
 
                 <div class="mb-4">
@@ -129,9 +166,17 @@
                     <label class="form-check-label small text-muted" for="remember">Ingat Saya</label>
                 </div>
 
-                {{-- TOMBOL MERAH TEGAS --}}
                 <button type="submit" class="btn-masuk-trenmart shadow">MASUK</button>
             </form>
+
+            {{-- PEMBATAS ATAU DI TENGAH --}}
+            <div class="divider">ATAU</div>
+
+            {{-- TOMBOL GOOGLE BAR --}}
+            <a href="{{ route('auth.google') }}" class="btn-google-login">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" alt="Google Logo">
+                Masuk dengan Google
+            </a>
 
             <div class="register-link">
                 <span class="text-muted">Belum punya akun?</span> 

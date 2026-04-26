@@ -9,15 +9,22 @@ use Symfony\Component\HttpFoundation\Response;
 
 class Admin
 {
-    public function handle(Request $request, Closure $next): Response
-    {
-    /** @var \App\Models\User $user */
-    $user = Auth::user();
+    // File: app/Http/Middleware/Admin.php
 
-    if (Auth::check() && $user->isAdmin()) {
-        return $next($request);
+public function handle(Request $request, Closure $next): Response
+{
+    // Cek apakah user sudah login
+    if (Auth::check()) {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        // Pastikan fungsi isAdmin() ada di Model User
+        if ($user->isAdmin()) {
+            return $next($request);
+        }
     }
 
-    return redirect('/')->with('error', 'Akses ditolak!');
-    }
+    // Jika bukan admin, lempar ke beranda dengan pesan error
+    return redirect('/')->with('error', 'Akses ditolak! Anda bukan Admin.');
+    }   
 }
