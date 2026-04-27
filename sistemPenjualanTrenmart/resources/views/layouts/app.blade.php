@@ -2,7 +2,6 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    {{-- 1. Pastikan Viewport sudah benar untuk HP --}}
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Trenmart - PT Tren Abadi Stationeri</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -10,21 +9,17 @@
     
     <style>
         :root { --maroon-trenmart: #800000; }
+        html, body { height: 100%; }
+        body { display: flex; flex-direction: column; background-color: #f8f9fa; }
         html { overflow-y: scroll; }
 
         /* --- NAVBAR --- */
         .navbar { padding-top: 12px !important; padding-bottom: 12px !important; background-color: #ffffff !important; }
-        .navbar-brand img { height: 40px; transition: 0.3s; } /* Sedikit diperkecil agar pas di HP */
+        .navbar-brand img { height: 40px; transition: 0.3s; }
         .navbar-nav { margin-left: auto !important; margin-right: auto !important; }
-
-        .nav-link { 
-            font-weight: 600; font-size: 1.05rem; color: #444 !important; 
-            padding: 8px 18px !important; transition: 0.2s; position: relative;
-        }
-        
+        .nav-link { font-weight: 600; font-size: 1.05rem; color: #444 !important; padding: 8px 18px !important; transition: 0.2s; position: relative; }
         .nav-link:hover, .nav-link.active { color: var(--maroon-trenmart) !important; }
 
-        /* Efek Garis Bawah Menu Aktif (Hanya Desktop) */
         @media (min-width: 992px) {
             .navbar-brand img { height: 48px; }
             .nav-link.active::after {
@@ -34,16 +29,8 @@
         }
 
         /* --- SEARCH BAR --- */
-        .search-bar { 
-            border-radius: 50px 0 0 50px !important; background-color: #f3f4f6 !important; 
-            border: 1px solid #e5e7eb !important; padding-left: 20px; height: 42px; width: 100%; transition: 0.3s;
-        }
-        
-        /* Desktop Search Width */
-        @media (min-width: 992px) {
-            .search-bar { width: 220px; flex: 0 0 220px; }
-        }
-
+        .search-bar { border-radius: 50px 0 0 50px !important; background-color: #f3f4f6 !important; border: 1px solid #e5e7eb !important; padding-left: 20px; height: 42px; width: 100%; transition: 0.3s; }
+        @media (min-width: 992px) { .search-bar { width: 220px; flex: 0 0 220px; } }
         .search-bar:focus { background-color: #fff !important; border-color: var(--maroon-trenmart) !important; box-shadow: none; outline: none; }
         .btn-search { border-radius: 0 50px 50px 0 !important; background-color: var(--maroon-trenmart) !important; color: white !important; height: 42px; border: none; padding: 0 18px; }
 
@@ -52,27 +39,22 @@
         .icon-nav:hover { color: var(--maroon-trenmart); }
         .dropdown-menu { border-radius: 15px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 10px; margin-top: 15px !important; }
 
-        /* --- RESPONSIVE ADJUSTMENTS --- */
+        /* --- FOOTER STYLE --- */
+        footer { background-color: #ffffff; margin-top: auto; border-top: 1px solid #e9ecef; }
+        .footer-text { color: #6c757d; font-size: 0.9rem; }
+        .footer-brand { color: var(--maroon-trenmart); font-weight: 700; text-decoration: none; }
+        .social-icon { font-size: 1.5rem; color: #333; transition: 0.2s; }
+        .social-icon:hover { color: var(--maroon-trenmart); }
+
+        /* --- RESPONSIVE --- */
         @media (max-width: 991px) {
             .navbar-nav { margin-top: 15px; margin-bottom: 15px; text-align: left; }
             .nav-link { padding: 12px 0 !important; border-bottom: 1px solid #f1f1f1; }
-            .nav-link.active::after { display: none; }
-            
-            /* Agar ikon keranjang dan profil sejajar rapi di sebelah toggler */
             .navbar-collapse { background: white; padding: 15px; border-radius: 10px; }
-            
-            /* Perbaikan jarak konten utama di HP */
             main { padding: 15px 5px; }
         }
 
-        /* Container responsif untuk konten */
-        .main-container {
-            width: 100%;
-            padding-right: var(--bs-gutter-x, .75rem);
-            padding-left: var(--bs-gutter-x, .75rem);
-            margin-right: auto;
-            margin-left: auto;
-        }
+        .main-container { width: 100%; padding-right: .75rem; padding-left: .75rem; margin-right: auto; margin-left: auto; }
         @media (min-width: 576px) { .main-container { max-width: 540px; } }
         @media (min-width: 768px) { .main-container { max-width: 720px; } }
         @media (min-width: 992px) { .main-container { max-width: 960px; } }
@@ -88,7 +70,6 @@
             <img src="{{ asset('images/logotrenmart.png') }}" alt="Logo">
         </a>
         
-        {{-- Ikon Cepat di HP (Muncul sebelum hamburger menu) --}}
         <div class="d-flex d-lg-none ms-auto me-2 align-items-center">
             @if(!Auth::check() || (Auth::check() && !Auth::user()->isAdmin()))
                 <a href="{{ route('cart.index') }}" class="me-3 icon-nav">
@@ -106,7 +87,6 @@
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('/') ? 'active' : '' }}" href="{{ route('dashboard') }}">Beranda</a>
                 </li>
-                
                 <li class="nav-item">
                     @auth
                         @if(auth()->user()->isAdmin())
@@ -118,7 +98,6 @@
                         <a class="nav-link {{ Request::is('katalog*') ? 'active' : '' }}" href="{{ route('katalog') }}">Produk</a>
                     @endauth
                 </li>
-
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('pesanan*') ? 'active' : '' }}" href="{{ route('pesanan.index') }}">Pesanan</a>
                 </li>
@@ -128,7 +107,6 @@
             </ul>
 
             <div class="d-flex flex-column flex-lg-row align-items-lg-center ms-auto">
-                {{-- Form Cari (Mobile & Desktop) --}}
                 <form class="d-flex mb-3 mb-lg-0 me-lg-3 w-100" action="{{ Auth::check() && Auth::user()->isAdmin() ? route('produk.index') : route('katalog') }}" method="GET">
                     <div class="input-group w-100">
                         <input name="search" class="form-control search-bar" type="search" placeholder="Cari produk..." value="{{ request('search') }}">
@@ -137,14 +115,12 @@
                 </form>
 
                 <div class="d-flex align-items-center justify-content-between justify-content-lg-end">
-                    {{-- Ikon Keranjang (Desktop Only, HP dipindah ke samping toggler) --}}
                     @if(!Auth::check() || (Auth::check() && !Auth::user()->isAdmin()))
                         <a href="{{ route('cart.index') }}" class="me-3 position-relative icon-nav d-none d-lg-flex">
                             <i class="bi bi-cart3"></i>
                         </a>
                     @endif
 
-                    {{-- Menu User --}}
                     <div class="dropdown">
                         <a href="#" class="icon-nav" id="userMenu" data-bs-toggle="dropdown">
                             <i class="bi bi-person-circle"></i>
@@ -165,11 +141,9 @@
                                     </div>
                                 </li>
                                 <li><a class="dropdown-item rounded-3" href="{{ route('profile.edit') }}"><i class="bi bi-person me-2"></i>Profil</a></li>
-                                
                                 @if(auth()->user()->isAdmin())
                                     <li><a class="dropdown-item rounded-3 text-primary" href="{{ route('admin.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard Admin</a></li>
                                 @endif
-                                
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <form action="{{ route('logout') }}" method="POST">
@@ -189,13 +163,145 @@
     </div>
 </nav>
 
-{{-- Gunakan main-container agar konten tidak mentok di HP --}}
 <main class="main-container mt-4 mb-5">
     @yield('content')
 </main>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-@stack('scripts')
-</body>
-</html>
+{{-- FOOTER --}}
+<style>
+    .main-footer {
+        background-color: var(--maroon-trenmart);
+        color: #ffffff;
+        padding: 50px 0 20px;
+    }
+    .footer-content h5 {
+        font-weight: 700;
+        margin-bottom: 20px;
+        text-transform: uppercase;
+        font-size: 0.95rem;
+        letter-spacing: 1px;
+    }
+    .footer-info-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 12px;
+    }
+    .footer-info-item i {
+        font-size: 1.1rem;
+        margin-right: 12px;
+        color: rgba(255, 255, 255, 0.8);
+    }
+    
+    /* Sekat Pembatas Vertikal */
+    @media (min-width: 992px) {
+        .footer-divider {
+            border-left: 1px solid rgba(255, 255, 255, 0.2);
+            padding-left: 40px;
+            height: 100%;
+        }
+    }
+
+    /* Styling Tabel Jam Operasional agar Titik Dua Rapi */
+    .table-jam {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.875rem;
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .table-jam td {
+        padding: 2px 0;
+        vertical-align: top;
+    }
+    .td-hari { width: 110px; }
+    .td-pemisah { width: 15px; }
+
+    .social-box {
+        width: 40px;
+        height: 40px;
+        background-color: rgba(255, 255, 255, 0.1);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        color: white;
+        margin-right: 12px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    .social-box:hover {
+        background-color: rgba(255, 255, 255, 0.25);
+        transform: translateY(-3px);
+        color: white;
+    }
+    .border-top-footer {
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding-top: 25px;
+        margin-top: 40px;
+    }
+</style>
+
+<footer class="main-footer mt-auto">
+    <div class="container">
+        <div class="row gy-4">
+            <div class="col-lg-4">
+                <h5>Hubungi Kami</h5>
+                <div class="footer-info-item">
+                    <i class="bi bi-geo-alt"></i>
+                    <span class="small opacity-90">
+                        Jl. Jenderal Ahmad Yani, Tangga Takat, Kec. Seberang Ulu II, Palembang, Sumatera Selatan. 30265
+                    </span>
+                </div>
+                <div class="footer-info-item">
+                    <i class="bi bi-whatsapp"></i>
+                    <span class="small opacity-90">0821-7850-4488</span>
+                </div>
+            </div>
+
+            <div class="col-lg-4 footer-divider">
+                <h5>Jam Operasional</h5>
+                <div class="footer-info-item">
+                    <i class="bi bi-clock"></i>
+                    <table class="table-jam">
+                        <tr>
+                            <td class="td-hari">Senin - Jumat</td>
+                            <td class="td-pemisah">:</td>
+                            <td>08.00 - 21.00</td>
+                        </tr>
+                        <tr>
+                            <td class="td-hari">Sabtu</td>
+                            <td class="td-pemisah">:</td>
+                            <td>08.00 - 20.00</td>
+                        </tr>
+                        <tr>
+                            <td class="td-hari">Minggu</td>
+                            <td class="td-pemisah">:</td>
+                            <td>09.00 - 20.00</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="col-lg-4 footer-divider">
+                <h5>Ikuti Kami</h5>
+                <p class="small opacity-75 mb-3">Tetap terhubung dengan PT Tren Abadi Stationeri melalui media sosial resmi kami.</p>
+                <div class="d-flex">
+                    <a href="https://www.instagram.com/tren.mart?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank" class="social-box">
+                        <i class="bi bi-instagram"></i>
+                    </a>
+                    <a href="https://www.tiktok.com/@trenmart_1?is_from_webapp=1&sender_device=pc" target="_blank" class="social-box">
+                        <i class="bi bi-tiktok"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center border-top-footer">
+            <p class="footer-text mb-0 text-white opacity-75 small">
+                © 2026 PT TREN ABADI STATIONERI. Hak Cipta Dilindungi.
+            </p>
+            <div class="mt-2">
+                <small class="opacity-50" style="font-size: 0.7rem;">v1.0.4-stable</small>
+            </div>
+        </div>
+    </div>
+</footer>
