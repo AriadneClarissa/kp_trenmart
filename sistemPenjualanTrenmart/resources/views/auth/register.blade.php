@@ -13,7 +13,7 @@
         body { background-color: #f8f9fa; font-family: 'Segoe UI', sans-serif; }
         
         .auth-card {
-            max-width: 500px;
+            max-width: 550px;
             margin: 40px auto;
             border: none;
             border-radius: 20px;
@@ -23,7 +23,6 @@
         .text-maroon { color: var(--maroon-trenmart); }
         .form-control, .form-select { border-radius: 10px; padding: 12px; }
         
-        /* Style untuk tombol intip password agar menyatu dengan input */
         .input-group-text {
             border-radius: 0 10px 10px 0;
             background-color: white;
@@ -44,13 +43,34 @@
         .btn-maroon:hover { background-color: #440000; color: white; }
         
         .syarat-text { font-size: 11px; color: #dc3545; margin-top: 4px; }
+
+        /* Style untuk garis pemisah dengan label di tengah */
+        .section-divider { 
+            border-top: 1px solid #e9ecef; 
+            margin: 30px 0 20px 0; 
+            position: relative; 
+            display: flex;
+            justify-content: center;
+        }
+        .section-label { 
+            position: absolute; 
+            top: -12px; 
+            left: 50%;
+            transform: translateX(-50%); 
+            background: #ffffff; 
+            padding: 0 15px; 
+            font-size: 12px; 
+            color: #6c757d; 
+            font-weight: bold; 
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
 
-<div class="container mt-5">
+<div class="container">
     <div class="card auth-card">
-        <div class="card-body p-5">
+        <div class="card-body p-4 p-md-5">
             <div class="text-center mb-4">
                 <img src="{{ asset('images/logotrenmart.png') }}" alt="Logo" style="height: 50px;">
                 <h4 class="fw-bold mt-3 text-maroon">Buat Akun Baru</h4>
@@ -89,9 +109,7 @@
                                 <i class="bi bi-eye" id="icon-pass"></i>
                             </span>
                         </div>
-                        <div class="syarat-text">
-                            *Minimal 8 karakter (Huruf & Angka)
-                        </div>
+                        <div class="syarat-text">*Min. 8 karakter</div>
                     </div>
 
                     <div class="col-md-6 mb-3">
@@ -105,19 +123,59 @@
                     </div>
                 </div>
 
+                <div class="section-divider">
+                    <span class="section-label">DETAIL KONTAK & ALAMAT</span>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Nomor WhatsApp</label>
+                    <input type="text" 
+                    name="phone_number" 
+                    id="phone_number"
+                    class="form-control" 
+                    placeholder="Contoh: 081234567890" 
+                    inputmode="numeric"
+                    maxlength="13" 
+                    oninput="formatPhoneNumber(this)"
+                    required>
+                    <div class="form-text text-muted">Format: 08... (11-13 digit). Jika input +62 otomatis menjadi 08.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Alamat Pengiriman</label>
+                    <textarea name="home_address" class="form-control" rows="2" placeholder="Jl. Nama Jalan No. 123, Kota..." required>{{ old('home_address') }}</textarea>
+                </div>
+
                 <div class="mb-4">
                     <label class="form-label fw-semibold">Daftar Sebagai</label>
-                    <select name="customer_type" class="form-select" required>
-                        <option value="" disabled {{ old('customer_type') ? '' : 'selected' }}>Pilih tipe pelanggan</option>
+                    <select name="customer_type" id="customer_type" class="form-select" onchange="toggleGrosirFields()" required>
                         <option value="regular" {{ old('customer_type') === 'regular' ? 'selected' : '' }}>Pelanggan Umum (Eceran)</option>
                         <option value="langganan" {{ old('customer_type') === 'langganan' ? 'selected' : '' }}>Pelanggan Grosir (Langganan)</option>
                     </select>
-                    <small class="text-muted" style="font-size: 10px;">
-                        *Akun Grosir memerlukan verifikasi admin sebelum dapat digunakan.
-                    </small>
                 </div>
 
-                <button type="submit" class="btn btn-maroon shadow-sm">Daftar Akun</button>
+                <div id="grosir_fields" style="display: {{ old('customer_type') === 'langganan' ? 'block' : 'none' }};">
+                    <div class="section-divider">
+                        <span class="section-label">DATA USAHA / TOKO</span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Nama Toko / Perusahaan / Instansi</label>
+                        <input type="text" name="organization_name" id="organization_name" class="form-control" value="{{ old('organization_name') }}" placeholder="Contoh: Toko Berkah Jaya">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Jenis Organisasi</label>
+                        <select name="organization_type" id="organization_type" class="form-select">
+                            <option value="">Pilih Jenis...</option>
+                            <option value="Toko/UMKM" {{ old('organization_type') === 'Toko/UMKM' ? 'selected' : '' }}>Toko / UMKM</option>
+                            <option value="Perusahaan" {{ old('organization_type') === 'Perusahaan' ? 'selected' : '' }}>Perusahaan (PT/CV)</option>
+                            <option value="Instansi" {{ old('organization_type') === 'Instansi' ? 'selected' : '' }}>Instansi Pemerintah</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-maroon shadow-sm mt-2">Daftar Akun</button>
             </form>
 
             <div class="text-center mt-4">
@@ -128,6 +186,7 @@
 </div>
 
 <script>
+    // Fungsi intip password
     function togglePassword(inputId, iconId) {
         const passwordInput = document.getElementById(inputId);
         const icon = document.getElementById(iconId);
@@ -140,6 +199,30 @@
             icon.classList.replace("bi-eye-slash", "bi-eye");
         }
     }
+
+    // Fungsi menampilkan field organisasi secara dinamis
+    function toggleGrosirFields() {
+        const customerType = document.getElementById('customer_type').value;
+        const grosirSection = document.getElementById('grosir_fields');
+        const orgNameInput = document.getElementById('organization_name');
+        const orgTypeInput = document.getElementById('organization_type');
+
+        if (customerType === 'langganan') {
+            grosirSection.style.display = 'block';
+            orgNameInput.required = true;
+            orgTypeInput.required = true;
+        } else {
+            grosirSection.style.display = 'none';
+            orgNameInput.required = false;
+            orgTypeInput.required = false;
+            // Kosongkan nilai jika tidak jadi memilih langganan
+            orgNameInput.value = "";
+            orgTypeInput.value = "";
+        }
+    }
+
+    // Jalankan pengecekan saat halaman dimuat (untuk old input)
+    window.onload = toggleGrosirFields;
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
