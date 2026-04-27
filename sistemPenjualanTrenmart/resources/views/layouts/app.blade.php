@@ -35,23 +35,34 @@
         .btn-search { border-radius: 0 50px 50px 0 !important; background-color: var(--maroon-trenmart) !important; color: white !important; height: 42px; border: none; padding: 0 18px; }
 
         /* --- ICONS & DROPDOWN --- */
-        .icon-nav { font-size: 1.4rem; color: #333; transition: 0.2s; text-decoration: none; display: flex; align-items: center; }
+        .icon-nav { font-size: 1.4rem; color: #333; transition: 0.2s; text-decoration: none; display: flex; align-items: center; cursor: pointer; }
         .icon-nav:hover { color: var(--maroon-trenmart); }
-        .dropdown-menu { border-radius: 15px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 10px; margin-top: 15px !important; }
+        .dropdown-menu { border-radius: 15px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 10px; margin-top: 15px !important; z-index: 1050; }
 
         /* --- FOOTER STYLE --- */
-        footer { background-color: #ffffff; margin-top: auto; border-top: 1px solid #e9ecef; }
-        .footer-text { color: #6c757d; font-size: 0.9rem; }
-        .footer-brand { color: var(--maroon-trenmart); font-weight: 700; text-decoration: none; }
-        .social-icon { font-size: 1.5rem; color: #333; transition: 0.2s; }
-        .social-icon:hover { color: var(--maroon-trenmart); }
+        .main-footer { background-color: var(--maroon-trenmart); color: #ffffff; padding: 50px 0 20px; margin-top: auto; }
+        .footer-content h5 { font-weight: 700; margin-bottom: 20px; text-transform: uppercase; font-size: 0.95rem; letter-spacing: 1px; }
+        .footer-info-item { display: flex; align-items: flex-start; margin-bottom: 12px; }
+        .footer-info-item i { font-size: 1.1rem; margin-right: 12px; color: rgba(255, 255, 255, 0.8); }
+        
+        @media (min-width: 992px) {
+            .footer-divider { border-left: 1px solid rgba(255, 255, 255, 0.2); padding-left: 40px; height: 100%; }
+        }
+
+        .table-jam { color: rgba(255, 255, 255, 0.9); font-size: 0.875rem; width: 100%; border-collapse: collapse; }
+        .table-jam td { padding: 2px 0; vertical-align: top; }
+        .td-hari { width: 110px; }
+        .td-pemisah { width: 15px; }
+
+        .social-box { width: 40px; height: 40px; background-color: rgba(255, 255, 255, 0.1); display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; color: white; margin-right: 12px; transition: all 0.3s ease; text-decoration: none; }
+        .social-box:hover { background-color: rgba(255, 255, 255, 0.25); transform: translateY(-3px); color: white; }
+        .border-top-footer { border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 25px; margin-top: 40px; }
 
         /* --- RESPONSIVE --- */
         @media (max-width: 991px) {
             .navbar-nav { margin-top: 15px; margin-bottom: 15px; text-align: left; }
             .nav-link { padding: 12px 0 !important; border-bottom: 1px solid #f1f1f1; }
             .navbar-collapse { background: white; padding: 15px; border-radius: 10px; }
-            main { padding: 15px 5px; }
         }
 
         .main-container { width: 100%; padding-right: .75rem; padding-left: .75rem; margin-right: auto; margin-left: auto; }
@@ -122,11 +133,11 @@
                     @endif
 
                     <div class="dropdown">
-                        <a href="#" class="icon-nav" id="userMenu" data-bs-toggle="dropdown">
+                        <a href="#" class="icon-nav" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-person-circle"></i>
                             <span class="ms-2 d-lg-none">Akun Saya</span>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
                             @auth
                                 <li>
                                     <div class="dropdown-header text-dark border-bottom mb-2">
@@ -166,79 +177,6 @@
 <main class="main-container mt-4 mb-5">
     @yield('content')
 </main>
-
-{{-- FOOTER --}}
-<style>
-    .main-footer {
-        background-color: var(--maroon-trenmart);
-        color: #ffffff;
-        padding: 50px 0 20px;
-    }
-    .footer-content h5 {
-        font-weight: 700;
-        margin-bottom: 20px;
-        text-transform: uppercase;
-        font-size: 0.95rem;
-        letter-spacing: 1px;
-    }
-    .footer-info-item {
-        display: flex;
-        align-items: flex-start;
-        margin-bottom: 12px;
-    }
-    .footer-info-item i {
-        font-size: 1.1rem;
-        margin-right: 12px;
-        color: rgba(255, 255, 255, 0.8);
-    }
-    
-    /* Sekat Pembatas Vertikal */
-    @media (min-width: 992px) {
-        .footer-divider {
-            border-left: 1px solid rgba(255, 255, 255, 0.2);
-            padding-left: 40px;
-            height: 100%;
-        }
-    }
-
-    /* Styling Tabel Jam Operasional agar Titik Dua Rapi */
-    .table-jam {
-        color: rgba(255, 255, 255, 0.9);
-        font-size: 0.875rem;
-        width: 100%;
-        border-collapse: collapse;
-    }
-    .table-jam td {
-        padding: 2px 0;
-        vertical-align: top;
-    }
-    .td-hari { width: 110px; }
-    .td-pemisah { width: 15px; }
-
-    .social-box {
-        width: 40px;
-        height: 40px;
-        background-color: rgba(255, 255, 255, 0.1);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        color: white;
-        margin-right: 12px;
-        transition: all 0.3s ease;
-        text-decoration: none;
-    }
-    .social-box:hover {
-        background-color: rgba(255, 255, 255, 0.25);
-        transform: translateY(-3px);
-        color: white;
-    }
-    .border-top-footer {
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        padding-top: 25px;
-        margin-top: 40px;
-    }
-</style>
 
 <footer class="main-footer mt-auto">
     <div class="container">
@@ -305,3 +243,9 @@
         </div>
     </div>
 </footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+@stack('scripts')
+
+</body>
+</html>

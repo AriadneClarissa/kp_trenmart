@@ -4,12 +4,17 @@
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="d-flex align-items-center mb-4">
-                <h4 class="fw-bold m-0">Profil 
-                    <span class="badge bg-secondary ms-2 small" style="font-size: 0.5em; vertical-align: middle;">
-                        {{ strtoupper($user->role == 'admin' ? 'Internal Admin' : $user->customer_type) }}
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex align-items-center gap-2">
+                    <h3 class="fw-bold mb-0">Profil</h3>
+                    <span class="badge rounded-pill bg-secondary text-uppercase py-2 px-3" style="font-size: 0.7rem;">
+                        Internal Admin
                     </span>
-                </h4>
+                </div>
+
+                <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary rounded-pill px-4 shadow-sm border-2">
+                    <i class="bi bi-house-door-fill me-2"></i>Kembali ke Beranda
+                </a>
             </div>
 
             @if(session('success'))
