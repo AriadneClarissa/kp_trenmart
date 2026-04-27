@@ -233,4 +233,16 @@ class ProdukController extends Controller
         $this->setHargaTampil($produk);
         return view('produk.detail', compact('produk'));
     }
+
+    public function searchAjax(Request $request)
+    {
+    $cari = $request->q; // 'q' adalah parameter default dari Select2
+
+    $produk = \App\Models\Produk::where('nama_produk', 'LIKE', "%$cari%")
+                ->select('kd_produk as id', 'nama_produk as text') // SANGAT PENTING: id dan text
+                ->limit(20)
+                ->get();
+
+    return response()->json($produk);
+    }
 }

@@ -6,12 +6,12 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Laravel\Socialite\Facades\Socialite; // Tambahkan ini untuk Google Auth
+use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
     /**
-     * Menangani Pendaftaran (Sign Up)
+     * Menangani Pendaftaran Manual
      */
     public function register(Request $request)
     {
@@ -28,7 +28,7 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
             'role' => 'customer', 
             'customer_type' => $request->customer_type,
-            'is_approved' => ($request->customer_type === 'regular') ? true : false,
+            'is_approved' => ($request->customer_type === 'regular'),
         ]);
 
         return redirect()->route('login')->with('success', 'Pendaftaran berhasil! Silakan masuk.');
@@ -39,40 +39,35 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
-    // 1. Validasi menggunakan email
-    $credentials = $request->validate([
-        'email'    => ['required', 'email'],
-        'password' => ['required'],
-    ]);
+        $credentials = $request->validate([
+            'email'    => ['required', 'email'],
+            'password' => ['required'],
+        ]);
 
-    if (Auth::attempt($credentials)) {
-        $user = Auth::user();
+        if (Auth::attempt($credentials)) {
+            /** @var \App\Models\User $user */
+            $user = Auth::user();
+            $request->session()->regenerate();
 
-        // 2. Proteksi Langganan (Tetap ada)
-        if ($user->customer_type === 'langganan' && !$user->is_approved) {
-            Auth::logout();
-            return back()->withErrors(['email' => 'Akun langganan Anda sedang menunggu verifikasi admin.']);
+            // Prioritas 1: Jika Admin, langsung ke Dashboard
+            if ($user->role === 'admin') {
+                return redirect()->route('admin.dashboard');
+            }
+
+            // Prioritas 2: Cek kelengkapan data Profil (WhatsApp)
+            if (empty($user->phone_number)) {
+                return redirect()->route('pilih.jenis'); 
+            }
+
+            // Prioritas 3: Cek jika status masih pending (Khusus Langganan)
+            if ($user->isPendingMember()) {
+                return redirect()->route('status.tinjau');
+            }
+
+            return redirect()->route('beranda'); 
         }
 
-        $request->session()->regenerate();
-
-        // 3. LOGIKA REDIRECT: Jika admin, ke dashboard internal
-        if ($user->role === 'admin') {
-            return redirect()->route('admin.dashboard');
-        }
-
-        // Jika user biasa, ke beranda
-        return redirect()->route('beranda'); 
-    }
-
-    // Jika gagal, kembalikan ke input email
-    return back()->withErrors(['email' => 'Email atau password tidak sesuai.'])->onlyInput('email');
-    }
-
-    // Tambahkan fungsi untuk menampilkan halaman login admin
-    public function login_admin()
-    {
-        return view('auth.login_admin'); // Pastikan nama file blade sesuai
+        return back()->withErrors(['email' => 'Email atau password tidak sesuai.'])->onlyInput('email');
     }
 
     /**
@@ -87,61 +82,142 @@ class AuthController extends Controller
     {
         try {
             $googleUser = Socialite::driver('google')->user();
-            
-            // Cari user berdasarkan email, jika tidak ada maka buat baru
             $user = User::where('email', $googleUser->email)->first();
 
             if (!$user) {
                 $user = User::create([
                     'name' => $googleUser->name,
                     'email' => $googleUser->email,
-                    'password' => Hash::make('password_google_default'), // Password dummy
+                    'password' => Hash::make(str()->random(16)), 
                     'role' => 'customer',
-                    'customer_type' => 'regular', // User google defaultnya regular
-                    'is_approved' => true,
                     'google_id' => $googleUser->id,
+                    'is_approved' => false, 
                 ]);
             }
 
             Auth::login($user);
+            
+            /** @var \App\Models\User $user */
+            $user = Auth::user();
+
+            if ($user->role === 'admin') {
+                return redirect()->route('admin.dashboard');
+            }
+
+            if (empty($user->phone_number)) {
+                return redirect()->route('pilih.jenis');
+            }
+
+            if ($user->isPendingMember()) {
+                return redirect()->route('status.tinjau');
+            }
+
             return redirect()->route('beranda');
 
         } catch (\Exception $e) {
-            return redirect()->route('login')->withErrors(['name' => 'Gagal masuk menggunakan Google.']);
+            return redirect()->route('login')->withErrors(['email' => 'Gagal masuk menggunakan Google.']);
         }
     }
 
     /**
-     * Dashboard Admin: Menampilkan Persetujuan & Daftar User
+     * Menangani Update Profil Berdasarkan Form (Lengkapi Data)
+     */
+    public function updateProfileAfterGoogle(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if ($request->customer_type === 'langganan') {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'phone_number' => 'required|string|min:10|max:13', // Revisi format Indonesia
+                'home_address' => 'required|string',
+                'organization_name' => 'required|string|max:255',
+                'organization_type' => 'required|string',
+            ]);
+
+            $user->update(array_merge($validated, [
+                'customer_type' => 'langganan',
+                'is_approved' => false, 
+            ]));
+
+            return redirect()->route('status.tinjau');
+        } else {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'phone_number' => 'required|string|min:10|max:13', // Revisi format Indonesia
+                'home_address' => 'required|string',
+            ]);
+
+            $user->update(array_merge($validated, [
+                'customer_type' => 'regular',
+                'is_approved' => true, 
+            ]));
+
+            return redirect()->route('beranda');
+        }
+    }
+
+    /**
+     * Halaman Status Tinjauan 
+     */
+    public function statusTinjau()
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user(); 
+        
+        if (!$user || !$user->isPendingMember()) {
+            return redirect()->route('beranda');
+        }
+        
+        return view('auth.status_tinjau', compact('user'));
+    }
+
+    /**
+     * Alur Pemilihan Jenis & Form
+     */
+    public function showPilihJenis()
+    {
+        return view('auth.pilih_jenis');
+    }
+
+    public function handlePilihJenis(Request $request)
+    {
+        $request->validate(['jenis' => 'required|in:regular,langganan']);
+
+        return ($request->jenis === 'langganan') 
+            ? redirect()->route('form.langganan') 
+            : redirect()->route('form.umum');
+    }
+
+    public function formUmum()
+    {
+        return view('auth.form_umum', ['user' => Auth::user()]);
+    }
+
+    public function formLangganan()
+    {
+        return view('auth.form_langganan', ['user' => Auth::user()]);
+    }
+
+    /**
+     * Fitur Admin Dashboard
      */
     public function adminDashboard()
     {
-        if (Auth::user()->role !== 'admin') {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if (!$user || $user->role !== 'admin') {
             return redirect('/')->with('error', 'Akses ditolak.');
         }
 
-        // 1. Ambil data langganan yang butuh approval
         $pendingUsers = User::where('customer_type', 'langganan')
                             ->where('is_approved', false)
                             ->get();
 
-        // 2. Ambil semua user untuk dikelola rolenya
         $allUsers = User::all();
-
         return view('admin.dashboard', compact('pendingUsers', 'allUsers'));
-    }
-
-    /**
-     * Mengubah User biasa menjadi Admin lewat UI
-     */
-    public function promoteToAdmin($id)
-    {
-        if (Auth::user()->role !== 'admin') { abort(403); }
-
-        $user = User::findOrFail($id);
-        $user->update(['role' => 'admin']);
-
-        return back()->with('success', 'Berhasil! ' . $user->name . ' sekarang memiliki akses Admin.');
     }
 
     public function approveUser($id)
@@ -151,6 +227,20 @@ class AuthController extends Controller
         return back()->with('success', 'User ' . $user->name . ' telah disetujui.');
     }
 
+    public function promoteToAdmin($id)
+    {
+        /** @var \App\Models\User $me */
+        $me = Auth::user();
+        if (!$me || $me->role !== 'admin') { abort(403); }
+
+        $user = User::findOrFail($id);
+        $user->update(['role' => 'admin']);
+        return back()->with('success', 'Berhasil mempromosikan Admin.');
+    }
+
+    /**
+     * Profil & Logout
+     */
     public function profile()
     {
         return view('auth.profil', ['user' => Auth::user()]);
@@ -158,20 +248,28 @@ class AuthController extends Controller
 
     public function updateProfile(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'phone_number' => 'nullable|string|max:20',
-            'home_address' => 'nullable|string|max:500',
-        ]);
+    /** @var \App\Models\User $user */
+    $user = Auth::user();
 
-        $user = User::findOrFail(Auth::id());
-        $user->update([
-            'name' => $validated['name'],
-            'phone_number' => $validated['phone_number'] ?? null,
-            'home_address' => $validated['home_address'] ?? null,
-        ]);
+    // 1. Aturan Dasar untuk SEMUA
+    $rules = ['name' => 'required|string|max:255'];
 
-        return back()->with('success', 'Profil berhasil diperbarui.');
+    // 2. Tambah Aturan jika BUKAN Admin
+    if (!$user->isAdmin()) {
+        $rules['phone_number'] = 'required|string|min:10|max:13';
+        $rules['home_address'] = 'required|string|max:500';
+    }
+
+    // 3. Tambah Aturan khusus LANGGANAN
+    if ($user->customer_type === 'langganan' && !$user->isAdmin()) {
+        $rules['organization_name'] = 'required|string|max:255';
+        $rules['organization_type'] = 'required|string|max:255';
+    }
+
+    $validated = $request->validate($rules);
+    $user->update($validated);
+
+    return back()->with('success', 'Profil berhasil diperbarui!');
     }
 
     public function logout(Request $request)
@@ -181,9 +279,4 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
         return redirect('/');
     }
-
-    public function editJudul() 
-    {
-    return view('admin.judul_edit'); 
-}
 }

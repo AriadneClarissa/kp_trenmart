@@ -92,7 +92,7 @@
             </div>
         @endif
 
-        <form action="{{ route('login.post') }}" method="POST">
+        <form action="{{ route('admin.login') }}" method="POST">
             @csrf
             <div class="mb-3">
                 <label class="form-label">Email</label>

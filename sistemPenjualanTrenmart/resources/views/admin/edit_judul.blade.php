@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container py-5">
-    {{-- Header dengan tombol kembali ikon rumah --}}
+    {{-- Header --}}
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h3 class="fw-bold mb-0">Pengaturan Tampilan</h3>
@@ -13,7 +13,7 @@
         </a>
     </div>
 
-    <form action="{{ route('admin.judul.update') }}" method="POST">
+    <form action="{{ route('admin.judul.update') }}" method="POST" id="mainForm">
         @csrf
         @method('PUT')
 
@@ -28,11 +28,30 @@
                 </div>
                 
                 <div id="judulContainer">
-                    <div class="mb-3 input-group-judul">
-                        <label class="form-label fw-semibold text-muted small">Nama Judul (Contoh: Promo Bundling / Diskon Kilat)</label>
+                    @php
+                        $oldJuduls = old('judul_custom');
+                        if (!$oldJuduls) {
+                            $dbData = $settings['judul_custom'] ?? ['Promo Bundling'];
+                            $oldJuduls = is_string($dbData) ? json_decode($dbData, true) : (array)$dbData;
+                        }
+                    @endphp
+
+                    @foreach($oldJuduls as $index => $judul)
+                    <div class="mb-3 input-group-judul {{ $index > 0 ? 'mt-3 pt-3 border-top' : '' }}">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-semibold text-muted small mb-0">
+                                {{ $index == 0 ? 'Nama Judul (Utama)' : 'Nama Judul Baru' }}
+                            </label>
+                            @if($index > 0)
+                                <span class="btn-remove text-danger small fw-bold" style="cursor:pointer">
+                                    <i class="bi bi-trash me-1"></i>Hapus
+                                </span>
+                            @endif
+                        </div>
                         <input type="text" name="judul_custom[]" class="form-control judul-input rounded-pill px-4 shadow-sm border-0 bg-light" 
-                               value="{{ $settings['judul_custom'] ?? 'Promo Bundling' }}" placeholder="Masukkan nama section...">
+                               value="{{ is_array($judul) ? ($judul[0] ?? '') : $judul }}" placeholder="Ketik judul section...">
                     </div>
+                    @endforeach
                 </div>
             </div>
         </div>
@@ -42,34 +61,55 @@
             <div class="card-body p-4">
                 <h5 class="fw-bold mb-3">2. Pilih Section yang Ingin Diisi</h5>
                 <select name="target_section" id="dropdownTargetSection" class="form-select rounded-pill px-4 shadow-sm border-0 bg-light">
-                    <option value="section_3">Section 3 (Custom)</option>
-                    <option value="terpopuler">Section Terpopuler</option>
-                    <option value="terbaru">Section Terbaru</option>
-                    {{-- Opsi dinamis dari Step 1 akan masuk ke sini --}}
+                    @php $targetOld = old('target_section'); @endphp
+                    <option value="section_3" {{ $targetOld == 'section_3' ? 'selected' : '' }}>Section 3 (Custom)</option>
+                    <option value="terpopuler" {{ $targetOld == 'terpopuler' ? 'selected' : '' }}>Section Terpopuler</option>
+                    <option value="terbaru" {{ $targetOld == 'terbaru' ? 'selected' : '' }}>Section Terbaru</option>
                 </select>
             </div>
         </div>
 
-        {{-- 3. SEARCH BAR RAMPING (Solusi Bar Putih) --}}
+        {{-- 3. SEARCH PRODUK (2 KOLOM) --}}
         <div class="card shadow-sm border-0 rounded-4 mb-4">
             <div class="card-body p-4">
                 <h5 class="fw-bold mb-2">3. Pilih Produk yang Akan Dimasukkan</h5>
-                <p class="text-muted small mb-3">Ketik nama produk untuk mencari secara otomatis.</p>
+                <p class="text-muted small mb-3">Cari produk berdasarkan nama atau merk (min. 3 karakter).</p>
                 
-                <div class="input-group w-100">
-                        <input name="search" class="form-control search-bar" type="search" placeholder="Cari produk..." value="{{ request('search') }}">
-                        <button class="btn btn-search" type="submit"><i class="bi bi-search"></i></button>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                        <input type="text" id="inputNamaProduk" class="form-control rounded-pill px-4 shadow-sm border-0 bg-light" placeholder="Cari Nama Produk...">
                     </div>
-                        {{-- ID harus produkSearch agar sesuai dengan JavaScript di bawah --}}
-                        <select name="produk_pilihan[]" id="produkSearch" class="form-control border-0 bg-transparent" multiple="multiple" style="width: 100%;">
-                            {{-- Produk yang sudah terpilih akan muncul di sini secara otomatis --}}
-                        </select>
+                    <div class="col-md-6">
+                        <input type="text" id="inputMerkProduk" class="form-control rounded-pill px-4 shadow-sm border-0 bg-light" placeholder="Cari Merk...">
+                    </div>
+                </div>
+
+                {{-- Dropdown Hasil Pencarian --}}
+                <div class="position-relative">
+                    <div id="hasilPencarian" class="list-group shadow position-absolute w-100" style="z-index: 1050; display: none; max-height: 250px; overflow-y: auto;">
+                    </div>
+                </div>
+
+                {{-- Badge Produk Terpilih --}}
+                <div class="mt-4">
+                    <label class="form-label fw-semibold text-muted small">Produk Terpilih:</label>
+                    <div id="listProdukTerpilih" class="d-flex flex-wrap gap-2">
+                        @if(old('produk_pilihan'))
+                            @foreach(old('produk_pilihan') as $idTerpilih)
+                                <div class="badge bg-primary rounded-pill px-3 py-2 d-flex align-items-center gap-2 item-tag" data-id="{{ $idTerpilih }}">
+                                    <span>ID: {{ $idTerpilih }}</span>
+                                    <input type="hidden" name="produk_pilihan[]" value="{{ $idTerpilih }}">
+                                    <i class="bi bi-x-circle-fill text-white btn-hapus-produk" style="cursor:pointer"></i>
+                                </div>
+                            @endforeach
+                        @endif
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="text-end">
+        {{-- TOMBOL SIMPAN --}}
+        <div class="text-end mb-5">
             <button type="submit" class="btn btn-primary px-5 py-3 fw-bold rounded-pill shadow-lg">
                 <i class="bi bi-save2 me-2"></i>Simpan Perubahan Tampilan
             </button>
@@ -78,129 +118,134 @@
 </div>
 
 <style>
-    /* Mengatasi bar putih dan merampingkan search bar */
-    .search-wrapper { 
-        height: 48px; 
-        overflow: hidden;
-        border: 1px solid #dee2e6 !important;
-    }
-
-    .select2-container--default .select2-selection--multiple {
-        border: none !important;
-        background: transparent !important;
-        min-height: 40px !important;
-        max-height: 40px !important;
-        display: flex;
-        align-items: center;
-        padding: 0 !important;
-    }
-
-    .select2-selection__rendered {
-        display: flex !important;
-        flex-wrap: nowrap !important;
-        gap: 5px;
-        background: transparent !important;
-    }
-
-    /* Styling Tag Produk */
-    .select2-selection__choice {
-        background-color: #f1f3f5 !important;
-        border: none !important;
-        border-radius: 20px !important;
-        padding: 2px 12px !important;
-        font-size: 0.8rem !important;
-        margin: 0 !important;
-        color: #495057 !important;
-    }
-
-    /* Hilangkan background putih pada area pencarian inline select2 */
-    .select2-search--inline, 
-    .select2-search__field {
-        background: transparent !important;
-        margin-top: 0 !important;
-    }
-
-    .select2-selection__rendered::-webkit-scrollbar { display: none; }
-    .btn-remove { cursor: pointer; color: #dc3545; font-size: 0.8rem; font-weight: bold; }
+    .item-pencarian:hover { background-color: #f8f9fa; cursor: pointer; }
+    #hasilPencarian { border-radius: 15px; border: 1px solid #dee2e6; overflow: hidden; }
+    .item-tag { transition: transform 0.2s; }
+    .item-tag:hover { transform: translateY(-2px); }
 </style>
 
-{{-- Pastikan Library Select2 Terpasang --}}
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
 <script>
-    $(document).ready(function() {
-        // 1. Tambah Section Baru
-        $('#btnAddSection').click(function() {
-            let field = `
-                <div class="mb-3 input-group-judul mt-3 pt-3 border-top">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <label class="form-label fw-semibold text-muted small mb-0">Nama Judul Baru</label>
-                        <span class="btn-remove"><i class="bi bi-trash me-1"></i>Hapus</span>
-                    </div>
-                    <input type="text" name="judul_custom[]" class="form-control judul-input rounded-pill px-4 shadow-sm border-0 bg-light" 
-                           placeholder="Ketik judul di sini...">
-                </div>`;
-            $('#judulContainer').append(field);
-            updateDropdown();
+$(document).ready(function() {
+    const targetOld = "{{ old('target_section') }}";
+
+    // 1. Logika Tambah/Hapus Section Judul
+    $('#btnAddSection').click(function() {
+        let field = `
+            <div class="mb-3 input-group-judul mt-3 pt-3 border-top">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="form-label fw-semibold text-muted small mb-0">Nama Judul Baru</label>
+                    <span class="btn-remove text-danger small fw-bold" style="cursor:pointer"><i class="bi bi-trash me-1"></i>Hapus</span>
+                </div>
+                <input type="text" name="judul_custom[]" class="form-control judul-input rounded-pill px-4 shadow-sm border-0 bg-light" placeholder="Ketik judul di sini...">
+            </div>`;
+        $('#judulContainer').append(field);
+        updateDropdown();
+    });
+
+    $(document).on('click', '.btn-remove', function() {
+        $(this).closest('.input-group-judul').remove();
+        updateDropdown();
+    });
+
+    $(document).on('input', '.judul-input', function() {
+        updateDropdown();
+    });
+
+    function updateDropdown() {
+        let dropdown = $('#dropdownTargetSection');
+        let currentVal = dropdown.val() || targetOld;
+        dropdown.find('option.dynamic').remove();
+
+        $('.judul-input').each(function() {
+            let val = $(this).val().trim();
+            let staticOptions = ['section_3', 'terpopuler', 'terbaru'];
+            if (val !== "" && !staticOptions.includes(val)) {
+                let isSelected = (val === currentVal) ? 'selected' : '';
+                dropdown.append(`<option value="${val}" class="dynamic" ${isSelected}>${val}</option>`);
+            }
         });
+        if(currentVal) dropdown.val(currentVal);
+    }
 
-        // 2. Hapus Section
-        $(document).on('click', '.btn-remove', function() {
-            $(this).closest('.input-group-judul').remove();
-            updateDropdown();
-        });
+    // 2. Logika Live Search (Min 3 Karakter)
+    $('#inputNamaProduk, #inputMerkProduk').on('keyup', function() {
+        let nama = $('#inputNamaProduk').val();
+        let merk = $('#inputMerkProduk').val();
 
-        // 3. Sinkronisasi Dropdown Otomatis
-        $(document).on('input', '.judul-input', function() {
-            updateDropdown();
-        });
-
-        function updateDropdown() {
-            let dropdown = $('#dropdownTargetSection');
-            let currentVal = dropdown.val();
-            dropdown.find('option.dynamic').remove();
-
-            $('.judul-input').each(function() {
-                let val = $(this).val().trim();
-                if (val !== "") {
-                    dropdown.append(`<option value="${val}" class="dynamic">${val}</option>`);
+        if (nama.length >= 3 || merk.length >= 3) {
+            $.ajax({
+                url: "{{ route('admin.produk.search_ajax') }}",
+                method: "GET",
+                data: { q: nama, merk: merk },
+                beforeSend: function() {
+                    $('#hasilPencarian').html('<div class="list-group-item small text-muted">Mencari...</div>').show();
+                },
+                success: function(data) {
+                    let html = '';
+                    if (data.length > 0) {
+                        data.forEach(function(item) {
+                            html += `
+                                <a href="javascript:void(0)" class="list-group-item list-group-item-action item-pencarian" 
+                                   data-id="${item.id}" data-nama="${item.text}">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="fw-bold d-block">${item.text}</span>
+                                            <small class="text-muted">ID: ${item.id}</small>
+                                        </div>
+                                        <i class="bi bi-plus-circle-fill text-success fs-5"></i>
+                                    </div>
+                                </a>`;
+                        });
+                        $('#hasilPencarian').html(html).show();
+                    } else {
+                        $('#hasilPencarian').html('<div class="list-group-item text-danger small">Produk tidak ditemukan.</div>').show();
+                    }
                 }
             });
-            dropdown.val(currentVal);
-        }
-
-        // 4. Inisialisasi Select2 AJAX yang Benar
-        const $selectProduk = $('#produkSearch').select2({
-        placeholder: "Ketik nama produk (contoh: Pena)...",
-        minimumInputLength: 2, // Pencarian dimulai setelah mengetik 2 karakter
-        width: '100%',
-        ajax: {
-            url: "{{ route('admin.produk.search_ajax') }}",
-            dataType: 'json',
-            delay: 250,
-            data: function (params) {
-                return {
-                    q: params.term // Mengirim kata kunci pencarian ke Controller
-                };
-            },
-            processResults: function (data) {
-                return {
-                    results: $.map(data, function (item) {
-                        // Pastikan kd_produk dan nama_produk sesuai dengan kolom di database Anda
-                        return { id: item.kd_produk, text: item.nama_produk }
-                    })
-                };
-            }
+        } else {
+            $('#hasilPencarian').hide();
         }
     });
 
-    // Perbaikan: Agar area bar bisa diklik di mana saja
-    $('#clickableSearchArea').on('click', function() {
-        $selectProduk.select2('open');
+    // Pilih Produk
+    $(document).on('click', '.item-pencarian', function() {
+        let id = $(this).data('id');
+        let nama = $(this).data('nama');
+
+        if ($(`.item-tag[data-id="${id}"]`).length === 0) {
+            let tag = `
+                <div class="badge bg-primary rounded-pill px-3 py-2 d-flex align-items-center gap-2 item-tag" data-id="${id}">
+                    <span>${nama}</span>
+                    <input type="hidden" name="produk_pilihan[]" value="${id}">
+                    <i class="bi bi-x-circle-fill text-white btn-hapus-produk" style="cursor:pointer"></i>
+                </div>`;
+            $('#listProdukTerpilih').append(tag);
+        }
+        $('#hasilPencarian').hide();
+        $('#inputNamaProduk').val('');
+        $('#inputMerkProduk').val('');
     });
 
+    // Hapus Produk
+    $(document).on('click', '.btn-hapus-produk', function() {
+        $(this).parent().remove();
+    });
+
+    // Tutup pencarian jika klik di luar
+    $(document).click(function(e) {
+        if (!$(e.target).closest('#inputNamaProduk, #inputMerkProduk, #hasilPencarian').length) {
+            $('#hasilPencarian').hide();
+        }
+    });
+
+    // Validasi Submit (Mencegah double click & cek data)
+    $('#mainForm').on('submit', function() {
+        let btn = $(this).find('button[type="submit"]');
+        btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan...');
+    });
+
+    // Inisialisasi awal dropdown
     updateDropdown();
 });
 </script>
