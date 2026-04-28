@@ -85,8 +85,8 @@ Route::middleware(['auth'])->group(function () {
 
         Route::post('/tentang/update', [TentangController::class, 'update'])->name('admin.tentang.update');
 
-        // Admin Approval
+        // Admin Approval (Tolak dan Terima Pendaftaran Pelanggan Langganan)
         Route::post('/approve/{id}', [AuthController::class, 'approveUser'])->name('admin.approve');
-        Route::post('/promote/{id}', [AuthController::class, 'promoteToAdmin'])->name('admin.promote');
+        Route::delete('/reject/{id}', [AuthController::class, 'reject'])->name('admin.reject');
     });
 });

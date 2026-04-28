@@ -59,9 +59,13 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
+        // Di logic Login
         if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
-            return $this->handleRedirectAfterLogin(Auth::user());
+            if (Auth::user()->status === 'rejected') {
+                Auth::logout();
+                return redirect()->route('login')->with('error', 'Akun Anda ditolak oleh admin.');
+            }
+            return redirect()->intended('dashboard');
         }
 
         return back()->withErrors(['email' => 'Email atau password tidak sesuai.'])->onlyInput('email');
@@ -72,7 +76,9 @@ class AuthController extends Controller
      */
     public function redirectToGoogle()
     {
-        return Socialite::driver('google')->redirect();
+        return Socialite::driver('google')
+        ->with(['prompt' => 'select_account']) 
+        ->redirect();
     }
 
     public function handleGoogleCallback()
@@ -209,6 +215,22 @@ class AuthController extends Controller
     {
         User::findOrFail($id)->update(['is_approved' => true]);
         return back()->with('success', 'User telah disetujui.');
+    }
+
+    public function reject($id)
+    {
+        $user = \App\Models\User::findOrFail($id);
+        
+        // Hapus permanen agar tidak bisa login Google lagi dengan akun yang sama
+        $user->delete(); 
+
+        return redirect()->back()->with('success', 'Pendaftaran pelanggan telah ditolak.');
+    }
+    
+    public function showUser($id)
+    {
+        $user = User::findOrFail($id);
+        return view('admin.user_detail', compact('user'));
     }
 
     /**

@@ -16,7 +16,7 @@ class User extends \Illuminate\Foundation\Auth\User
         'email',
         'password',
         'role',           
-        'customer_type',  // 'regular' atau 'langganan'
+        'customer_type',  
         'is_approved',    
         'phone_number',
         'home_address',   

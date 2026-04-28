@@ -14,7 +14,7 @@
                         <input type="hidden" name="customer_type" value="regular">
 
                         <div class="mb-3">
-                            <label class="form-label">Nama Penerima</label>
+                            <label class="form-label">Nama Lengkap</label>
                             <input type="text" name="name" class="form-control" value="{{ $user->name }}" required>
                         </div>
 
@@ -24,7 +24,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Alamat Pengiriman</label>
+                            <label class="form-label">Alamat Lengkap</label>
                             <textarea name="home_address" class="form-control" rows="4" placeholder="Jl. Nama Jalan, No. Rumah, Kecamatan, Kota..." required></textarea>
                         </div>
 
