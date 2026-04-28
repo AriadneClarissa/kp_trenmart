@@ -122,7 +122,9 @@
                     <div class="col-6">
                         <form action="{{ route('admin.reject', $user->id) }}" method="POST">
                             @csrf
-                            @method('DELETE') <button type="submit" class="btn btn-outline-danger w-100 rounded-pill fw-bold" onclick="return confirm('Apakah Anda yakin ingin menolak pendaftaran ini?')">
+                            @method('DELETE') 
+                            <button type="submit" class="btn btn-outline-danger w-100 rounded-pill fw-bold" 
+                                    onclick="return confirm('Apakah Anda yakin ingin menolak pendaftaran ini?')">
                                 Tolak
                             </button>
                         </form>
@@ -270,8 +272,6 @@
     </div>
 </div>
 @endforeach
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
 </html>

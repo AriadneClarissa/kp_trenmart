@@ -98,6 +98,17 @@ class AuthController extends Controller
                 ]);
             }
 
+            // PERBAIKAN: Jika tipe pelanggan masih kosong, paksa pilih jenis dlu
+            if (empty($user->customer_type)) {
+                Auth::login($user);
+                return redirect()->route('pilih.jenis');
+            }
+
+            // Jika dia langganan tapi belum disetujui, jangan biarkan login
+            if ($user->customer_type === 'langganan' && !$user->is_approved) {
+                return redirect()->route('status.tinjau')->with('info', 'Akun Anda sedang ditinjau.');
+            }
+
             Auth::login($user);
             return $this->handleRedirectAfterLogin($user);
 
@@ -106,6 +117,30 @@ class AuthController extends Controller
         }
     }
 
+    public function handlePilihJenis(Request $request)
+    {
+        // Sesuaikan validasi dengan name="jenis" dari Blade
+        $request->validate([
+            'jenis' => 'required|in:regular,langganan',
+        ]);
+
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        
+        // Update data user di database
+        $user->update([
+            'customer_type' => $request->jenis,
+            // Regular langsung aktif (true), Langganan butuh persetujuan (false)
+            'is_approved' => ($request->jenis === 'regular')
+        ]);
+
+        // Redirect berdasarkan pilihan
+        if ($request->jenis === 'langganan') {
+            return redirect()->route('form.langganan');
+        }
+
+        return redirect()->route('form.umum');
+    }
     /**
      * 4. CENTRALIZED REDIRECT LOGIC
      * Fungsi kunci untuk menghilangkan layar ganda.
@@ -138,7 +173,9 @@ class AuthController extends Controller
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        $isLangganan = ($request->customer_type === 'langganan');
+        
+        // Sesuaikan pengecekan dengan name input dari form Anda
+        $isLangganan = ($user->customer_type === 'langganan'); 
 
         $rules = [
             'name' => 'required|string|max:255',
@@ -153,12 +190,17 @@ class AuthController extends Controller
 
         $validated = $request->validate($rules);
 
+        // Update profil dan status persetujuan
         $user->update(array_merge($validated, [
-            'customer_type' => $isLangganan ? 'langganan' : 'regular',
-            'is_approved' => !$isLangganan, // Jika regular langsung true
+            'is_approved' => !$isLangganan, 
         ]));
 
-        return $isLangganan ? redirect()->route('status.tinjau') : redirect()->route('beranda');
+        if ($isLangganan) {
+            // JANGAN logout di sini agar data di halaman status.tinjau bisa terbaca
+            return redirect()->route('status.tinjau');
+        }
+
+        return redirect()->route('beranda');
     }
 
     /**
