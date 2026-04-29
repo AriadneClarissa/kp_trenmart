@@ -15,12 +15,14 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-    \App\Models\User::create([
-        'name' => 'Admin Trenmart',
-        'email' => 'admintrenmart@gmail.com', // Gunakan email ini untuk login
-        'password' => bcrypt('TAS102^&'), // Gunakan password ini
-        'role' => 'admin',
-        'is_approved' => true,
-    ]);
+        User::updateOrCreate(
+            ['email' => 'admintrenmart@gmail.com'],
+            [
+                'name' => 'Admin Trenmart',
+                'password' => bcrypt('TAS102^&'), // Gunakan password ini
+                'role' => 'admin',
+                'is_approved' => true,
+            ]
+        );
     }
 }

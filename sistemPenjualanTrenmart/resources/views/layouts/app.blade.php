@@ -37,6 +37,29 @@
         /* --- ICONS & DROPDOWN --- */
         .icon-nav { font-size: 1.4rem; color: #333; transition: 0.2s; text-decoration: none; display: flex; align-items: center; cursor: pointer; }
         .icon-nav:hover { color: var(--maroon-trenmart); }
+        .notification-link { position: relative; }
+        .notification-badge {
+            position: absolute;
+            top: -6px;
+            right: -8px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            border-radius: 999px;
+            background: #d11a1a;
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: 700;
+            line-height: 18px;
+            text-align: center;
+            box-shadow: 0 0 0 2px #fff;
+        }
+        .notification-menu { min-width: 320px; padding: 0; overflow: hidden; }
+        .notification-menu .dropdown-header { background: linear-gradient(135deg, #fff7f7 0%, #ffffff 100%); padding: 16px 18px; }
+        .notification-menu .dropdown-body { padding: 16px 18px 18px; }
+        .notification-menu .notification-title { color: #800000; font-weight: 700; font-size: 0.95rem; }
+        .notification-menu .notification-text { color: #4b5563; font-size: 0.92rem; line-height: 1.5; }
+        .notification-menu .btn-admin-dashboard { background: var(--maroon-trenmart); border-color: var(--maroon-trenmart); }
         .dropdown-menu { border-radius: 15px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 10px; margin-top: 15px !important; z-index: 1050; }
 
         /* --- FOOTER STYLE --- */
@@ -131,6 +154,41 @@
                             <i class="bi bi-cart3"></i>
                         </a>
                     @endif
+
+                    @auth
+                        @if(auth()->user()->isAdmin())
+                            <div class="dropdown me-3 d-none d-lg-flex">
+                                <a href="#" class="icon-nav notification-link" id="notificationMenu" data-bs-toggle="dropdown" aria-expanded="false" title="Notifikasi pendaftaran baru">
+                                    <i class="bi bi-bell"></i>
+                                    @if(($pendingReviewCount ?? 0) > 0)
+                                        <span class="notification-badge">{{ $pendingReviewCount > 9 ? '9+' : $pendingReviewCount }}</span>
+                                    @endif
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-end notification-menu" aria-labelledby="notificationMenu">
+                                    <div class="dropdown-header border-bottom">
+                                        <div class="notification-title">Notifikasi Pendaftaran Baru</div>
+                                    </div>
+                                    <div class="dropdown-body">
+                                        @if(($pendingReviewCount ?? 0) > 0 && !empty($latestPendingReviewUser))
+                                            <p class="notification-text mb-3">
+                                                Pelanggan dengan user <strong>{{ $latestPendingReviewUser->name }}</strong> melakukan pendaftaran akun, lakukan tinjau!
+                                            </p>
+                                            <a href="{{ route('admin.dashboard') }}" class="btn btn-admin-dashboard btn-sm text-white w-100">
+                                                Ke Dashboard Admin
+                                            </a>
+                                        @else
+                                            <p class="notification-text mb-0 text-center">
+                                                Tidak ada pendaftaran akun yang perlu ditinjau.
+                                            </p>
+                                            <a href="{{ route('admin.dashboard') }}" class="btn btn-admin-dashboard btn-sm text-white w-100 mt-3">
+                                                Buka Dashboard Admin
+                                            </a>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                    @endauth
 
                     <div class="dropdown">
                         <a href="#" class="icon-nav" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">

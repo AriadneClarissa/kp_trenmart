@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
@@ -33,7 +34,7 @@ class AuthController extends Controller
 
         $validated = $request->validate($rules);
 
-        User::create([
+        $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
@@ -45,6 +46,13 @@ class AuthController extends Controller
             'organization_type' => $validated['organization_type'] ?? null,
             'is_approved' => ($validated['customer_type'] === 'regular'), // Regular langsung aktif
         ]);
+
+        if ($user->customer_type === 'langganan') {
+            Auth::login($user);
+
+            return redirect()->route('status.tinjau')
+                ->with('info', 'Pendaftaran berhasil. Akun Anda sedang ditinjau oleh admin.');
+        }
 
         return redirect()->route('login')->with('success', 'Pendaftaran berhasil! Silakan masuk.');
     }
@@ -61,10 +69,19 @@ class AuthController extends Controller
 
         // Di logic Login
         if (Auth::attempt($credentials)) {
-            if (Auth::user()->status === 'rejected') {
+            $user = Auth::user();
+
+            if ($user->status === 'rejected') {
                 Auth::logout();
                 return redirect()->route('login')->with('error', 'Akun Anda ditolak oleh admin.');
             }
+
+            if ($user->isPendingMember()) {
+                Auth::logout();
+                return redirect()->route('login')
+                    ->with('error', 'Akun Anda sedang ditinjau oleh admin.');
+            }
+
             return redirect()->intended('dashboard');
         }
 
@@ -255,13 +272,19 @@ class AuthController extends Controller
 
     public function approveUser($id)
     {
-        User::findOrFail($id)->update(['is_approved' => true]);
+        $user = User::findOrFail($id);
+        $user->update(['is_approved' => true]);
+
+        $this->sendReviewStatusEmail($user, 'accepted');
+
         return back()->with('success', 'User telah disetujui.');
     }
 
     public function reject($id)
     {
         $user = \App\Models\User::findOrFail($id);
+
+        $this->sendReviewStatusEmail($user, 'rejected');
         
         // Hapus permanen agar tidak bisa login Google lagi dengan akun yang sama
         $user->delete(); 
@@ -294,7 +317,31 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/');
+        return redirect()->route('login');
+    }
+
+    private function sendReviewStatusEmail(User $user, string $status): void
+    {
+        $isAccepted = $status === 'accepted';
+
+        $subject = $isAccepted
+            ? 'Admin Trenmart: Akun Anda Diterima'
+            : 'Admin Trenmart: Akun Anda Ditolak';
+
+        $loginUrl = url('/login');
+
+        $message = $isAccepted
+            ? "Halo {$user->name},\n\nPendaftaran akun pelanggan langganan Anda telah kami tinjau dan dinyatakan DITERIMA.\nAkun Anda sekarang sudah aktif dan dapat digunakan untuk login ke sistem Trenmart.\n\nSilakan masuk melalui tautan berikut:\n{$loginUrl}\n\nTerima kasih telah bergabung bersama Trenmart.\n\nSalam,\nAdmin Trenmart"
+            : "Halo {$user->name},\n\nPendaftaran akun pelanggan langganan Anda telah kami tinjau dan untuk saat ini dinyatakan DITOLAK.\nJika Anda ingin mengajukan ulang, silakan cek informasi akun atau hubungi CS Trenmart.\n\nAnda dapat mengunjungi halaman login di:\n{$loginUrl}\n\nSalam,\nAdmin Trenmart";
+
+        try {
+            Mail::raw($message, function ($mail) use ($user, $subject) {
+                $mail->to($user->email)
+                    ->subject($subject);
+            });
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     // Alur penunjang view pilih jenis

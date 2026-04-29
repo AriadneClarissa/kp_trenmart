@@ -106,6 +106,28 @@
         margin-right: 10px;
     }
 
+    .btn-status-login {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #fff7f7;
+        color: #800000;
+        border: 1.5px solid rgba(128, 0, 0, 0.18);
+        border-radius: 12px;
+        padding: 12px;
+        width: 100%;
+        font-weight: 600;
+        text-decoration: none;
+        transition: 0.3s;
+        margin-bottom: 14px;
+    }
+
+    .btn-status-login:hover {
+        background-color: #fff0f0;
+        border-color: #800000;
+        color: #800000;
+    }
+
     .password-wrapper { position: relative; }
     .password-toggle { 
         position: absolute; 
@@ -176,6 +198,10 @@
             <a href="{{ route('auth.google') }}" class="btn-google-login">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" alt="Google Logo">
                 Masuk dengan Google
+            </a>
+
+            <a href="https://mail.google.com/" target="_blank" rel="noopener noreferrer" class="btn-status-login">
+                Cek Status di Gmail
             </a>
 
             <div class="register-link">

@@ -276,6 +276,7 @@ $(document).ready(function() {
         $.post("{{ route('kategori.store') }}", $(this).serialize(), function(res) {
             if(res.success) {
                 $('#containerListKategori').prepend(`<div class="list-group-item d-flex justify-content-between align-items-center bg-light"><span>${res.data.nama_kategori}</span><i class="bi bi-eye-fill text-primary"></i></div>`);
+                $('#kategoriList').append(`<div class="kat-item" data-kategori="${res.data.kd_kategori}"><span>${res.data.nama_kategori}</span><i class="bi bi-chevron-right small"></i></div>`);
                 $('#inputNamaKategori').val('');
             }
         });
@@ -287,6 +288,7 @@ $(document).ready(function() {
         $.post("{{ route('merk.store') }}", $(this).serialize(), function(res) {
             if(res.success) {
                 $('#containerListMerk').prepend(`<div class="list-group-item d-flex justify-content-between align-items-center bg-light"><span>${res.data.nama_merk}</span><i class="bi bi-eye-fill text-primary"></i></div>`);
+                $('select[name="merk"]').append(`<option value="${res.data.kd_merk}">${res.data.nama_merk}</option>`);
                 $('#inputNamaMerk').val('');
             }
         });
