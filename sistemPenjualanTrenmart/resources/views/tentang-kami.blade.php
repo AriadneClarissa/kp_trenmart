@@ -103,7 +103,8 @@
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">Jam Operasional</label>
-                            <input type="text" name="tentang_jam_operasional" class="form-control @error('tentang_jam_operasional') is-invalid @enderror" value="{{ old('tentang_jam_operasional', $data['tentang_jam_operasional']) }}">
+                            <textarea name="tentang_jam_operasional" rows="3" class="form-control @error('tentang_jam_operasional') is-invalid @enderror">{{ old('tentang_jam_operasional', $data['tentang_jam_operasional']) }}</textarea>
+                            
                             @error('tentang_jam_operasional')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror

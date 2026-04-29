@@ -1,21 +1,19 @@
-@extends('layouts.app')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container mt-3 mt-md-4 mb-5">
     
-    {{-- 1. Banner Utama --}}
+    
     <div class="banner-wrapper mb-4 position-relative overflow-hidden" style="border-radius: 1rem;">
         <img id="bannerPreview" 
-            src="{{ ($admin && $admin->tentang_banner) ? asset('storage/' . $admin->tentang_banner) : asset('images/spanduktoko.png') }}" 
+            src="<?php echo e(($admin && $admin->tentang_banner) ? asset('storage/' . $admin->tentang_banner) : asset('images/spanduktoko.png')); ?>" 
             class="w-100 shadow-sm img-banner-responsive object-fit-cover" 
             style="height: 300px;" 
             alt="Banner Trenmart">
 
-        {{-- Tombol ini hanya muncul jika yang login adalah Admin --}}
-        @if(Auth::check() && Auth::user()->role == 'admin')
-            <form action="{{ route('admin.banner.update') }}" method="POST" enctype="multipart/form-data" id="bannerForm">
-                @csrf
-                {{-- BARIS @method('PUT') DI SINI SUDAH DIHAPUS --}}
+        
+        <?php if(Auth::check() && Auth::user()->role == 'admin'): ?>
+            <form action="<?php echo e(route('admin.banner.update')); ?>" method="POST" enctype="multipart/form-data" id="bannerForm">
+                <?php echo csrf_field(); ?>
+                
                 
                 <input type="file" name="tentang_banner" id="bannerInput" class="d-none" accept="image/*">
 
@@ -28,7 +26,7 @@
                     </div>
                 </label>
             </form>
-        @endif
+        <?php endif; ?>
     </div>
 
     <script>
@@ -53,9 +51,9 @@
         }
     </style>
 
-    {{-- 2. Panel Kontrol Admin (Hanya muncul jika login sebagai Admin) --}}
-    @auth
-        @if(auth()->user()->isAdmin())
+    
+    <?php if(auth()->guard()->check()): ?>
+        <?php if(auth()->user()->isAdmin()): ?>
         <div class="card shadow-sm mb-5 admin-panel-card border-0 bg-light">
             <div class="card-body p-4">
                 <div class="row align-items-center">
@@ -67,12 +65,12 @@
                     </div>
                     <div class="col-md-6 text-center text-md-end mt-3 mt-md-0">
                         <div class="d-grid d-md-inline-block gap-2">
-                            {{-- Route untuk Tambah Produk --}}
-                            <a href="{{ route('produk.create') }}" class="btn btn-success rounded-pill px-4 shadow-sm">
+                            
+                            <a href="<?php echo e(route('produk.create')); ?>" class="btn btn-success rounded-pill px-4 shadow-sm">
                                 <i class="bi bi-plus-lg me-1"></i> Tambah Produk
                             </a>
-                            {{-- FIX: Route admin.judul.edit agar tidak error Route Not Found --}}
-                            <a href="{{ route('admin.judul.edit') }}" class="btn btn-warning rounded-pill px-4 shadow-sm">
+                            
+                            <a href="<?php echo e(route('admin.judul.edit')); ?>" class="btn btn-warning rounded-pill px-4 shadow-sm">
                                 <i class="bi bi-pencil-square me-1"></i> Edit Judul
                             </a>
                         </div>
@@ -80,44 +78,46 @@
                 </div>
             </div>
         </div>
-        @endif
-    @endauth
+        <?php endif; ?>
+    <?php endif; ?>
 
-    {{-- 3. Section Produk Terbaru --}}
+    
     <section class="mb-5">
         <h4 class="fw-bold mb-4 text-center fs-5 fs-md-4">
             <i class="bi bi-stars text-warning me-2"></i>
-            {{ $settings['judul_terbaru'] ?? 'Produk Terbaru' }}
+            <?php echo e($settings['judul_terbaru'] ?? 'Produk Terbaru'); ?>
+
         </h4>
         <div class="row flex-nowrap overflow-auto g-3 g-md-4 pb-3 custom-scrollbar">
-            @forelse($produk_terbaru as $item)
+            <?php $__empty_1 = true; $__currentLoopData = $produk_terbaru; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
             <div class="col-auto card-mobile-width"> 
-                @include('partials.item_produk', ['item' => $item])
+                <?php echo $__env->make('partials.item_produk', ['item' => $item], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
             </div>
-            @empty
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                 <div class="col-12 text-center py-4">
                     <p class="text-muted">Belum ada produk untuk ditampilkan.</p>
                 </div>
-            @endforelse
+            <?php endif; ?>
         </div>
     </section>
 
-    {{-- 4. Section Produk Terpopuler --}}
+    
     <section class="mb-5">
         <h4 class="fw-bold mb-4 text-center fs-5 fs-md-4">
             <i class="bi bi-fire text-danger me-2"></i>
-            {{ $settings['judul_terpopuler'] ?? 'Produk Terpopuler' }}
+            <?php echo e($settings['judul_terpopuler'] ?? 'Produk Terpopuler'); ?>
+
         </h4>
         <div class="row flex-nowrap overflow-auto g-3 g-md-4 pb-3 custom-scrollbar">
-            @forelse($produk_terpopuler as $item)
+            <?php $__empty_1 = true; $__currentLoopData = $produk_terpopuler; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
             <div class="col-auto card-mobile-width">
-                @include('partials.item_produk', ['item' => $item])
+                <?php echo $__env->make('partials.item_produk', ['item' => $item], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
             </div>
-            @empty
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                 <div class="col-12 text-center py-4">
                     <p class="text-muted">Produk populer akan segera hadir.</p>
                 </div>
-            @endforelse
+            <?php endif; ?>
         </div>
     </section>
 </div>
@@ -162,4 +162,5 @@
         scroll-snap-align: start; 
     }
 </style>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\Lenovo LOQ\Documents\GitHub\kp_trenmart\sistemPenjualanTrenmart\resources\views/beranda.blade.php ENDPATH**/ ?>

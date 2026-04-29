@@ -166,15 +166,16 @@
                             <td colspan="5" class="small py-2"><i class="bi bi-star-fill me-1"></i> ADMINISTRATOR</td>
                         </tr>
                         @foreach($allUsers->where('role', 'admin') as $u)
-                        <tr>
-                            <td class="fw-semibold">{{ $u->name }}</td>
-                            <td>{{ $u->email }}</td>
-                            <td><span class="badge badge-admin px-3">ADMIN</span></td>
-                            <td><span class="text-success small fw-bold"><i class="bi bi-patch-check-fill me-1"></i> Admin Aktif</span></td>
-                            <td class="text-center">
-                                <a href="#" data-bs-toggle="modal" data-bs-target="#detailModal{{ $u->id }}" class="text-primary small fw-bold text-decoration-none">Lihat Detail ></a>
-                            </td>
-                        </tr>
+                            <tr>
+                                <td class="fw-semibold">{{ $u->name }}</td>
+                                <td>{{ $u->email }}</td>
+                                <td><span class="badge badge-admin px-3">ADMIN</span></td>
+                                <td><span class="text-success small fw-bold"><i class="bi bi-patch-check-fill me-1"></i> Admin Aktif</span></td>
+                                <td class="text-center">
+                                    {{-- Link ini dihapus atau dikosongkan untuk admin --}}
+                                    <span class="text-muted small">-</span>
+                                </td>
+                            </tr>
                         @endforeach
 
                         <tr class="table-info text-dark fw-bold">
@@ -193,13 +194,13 @@
                         @endforeach
 
                         <tr class="table-warning text-dark fw-bold">
-                            <td colspan="5" class="small py-2"><i class="bi bi-person-fill me-1"></i> PELANGGAN UMUM (ECERAN)</td>
+                            <td colspan="5" class="small py-2"><i class="bi bi-person-fill me-1"></i> PELANGGAN REGULAR (ECERAN)</td>
                         </tr>
                         @foreach($allUsers->where('role', 'customer')->where('customer_type', 'regular') as $u)
                         <tr>
                             <td class="fw-semibold">{{ $u->name }}</td>
                             <td>{{ $u->email }}</td>
-                            <td><span class="badge bg-warning text-dark px-3"> UMUM</span></td>
+                            <td><span class="badge bg-warning text-dark px-3">REGULAR</span></td>
                             <td><span class="text-muted small italic">Akses Terbatas</span></td>
                             <td class="text-center">
                                 <a href="#" data-bs-toggle="modal" data-bs-target="#detailModal{{ $u->id }}" class="text-primary small fw-bold text-decoration-none">Lihat Detail ></a>

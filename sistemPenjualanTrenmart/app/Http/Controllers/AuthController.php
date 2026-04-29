@@ -16,36 +16,38 @@ class AuthController extends Controller
      * Langsung meminta data lengkap agar tidak muncul layar 'Pilih Jenis' lagi.
      */
     public function register(Request $request)
-    {
-        $rules = [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'customer_type' => 'required|in:regular,langganan',
-            'phone_number' => 'required|string|min:10|max:15',
-            'home_address' => 'required|string|max:500',
-        ];
+{
+    $rules = [
+        'name' => 'required|string|max:255',
+        'email' => 'required|string|email|max:255|unique:users',
+        'password' => 'required|string|min:8|confirmed',
+        'customer_type' => 'required|in:regular,langganan',
+        // Tambahkan regex: wajib angka dan diawali 08
+        'phone_number' => ['required', 'string', 'min:10', 'max:13', 'regex:/^08[0-9]{8,11}$/'],
+        'home_address' => 'required|string|max:500',
+    ];
 
-        // Jika memilih langganan, wajib isi data organisasi
-        if ($request->customer_type === 'langganan') {
-            $rules['organization_name'] = 'required|string|max:255';
-            $rules['organization_type'] = 'required|string|max:255';
-        }
+    if ($request->customer_type === 'langganan') {
+        $rules['organization_name'] = 'required|string|max:255';
+        $rules['organization_type'] = 'required|string|max:255';
+    }
 
-        $validated = $request->validate($rules);
+    $validated = $request->validate($rules, [
+        'phone_number.regex' => 'Nomor WhatsApp harus diawali dengan 08.',
+    ]);
 
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'role' => 'customer',
-            'customer_type' => $validated['customer_type'],
-            'phone_number' => $validated['phone_number'],
-            'home_address' => $validated['home_address'],
-            'organization_name' => $validated['organization_name'] ?? null,
-            'organization_type' => $validated['organization_type'] ?? null,
-            'is_approved' => ($validated['customer_type'] === 'regular'), // Regular langsung aktif
-        ]);
+    $user = User::create([
+        'name' => $validated['name'],
+        'email' => $validated['email'],
+        'password' => Hash::make($validated['password']),
+        'role' => 'customer',
+        'customer_type' => $validated['customer_type'],
+        'phone_number' => $validated['phone_number'],
+        'home_address' => $validated['home_address'],
+        'organization_name' => $validated['organization_name'] ?? null,
+        'organization_type' => $validated['organization_type'] ?? null,
+        'is_approved' => ($validated['customer_type'] === 'regular' ? true : false),
+    ]);
 
         if ($user->customer_type === 'langganan') {
             Auth::login($user);
@@ -353,6 +355,25 @@ class AuthController extends Controller
         } catch (\Throwable $e) {
             report($e);
         }
+    }
+
+    public function updateBanner(Request $request)
+    {
+        $request->validate([
+            'tentang_banner' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        $user = Auth::user();
+
+        if ($request->hasFile('tentang_banner')) {
+            $path = $request->file('tentang_banner')->store('banners', 'public');
+            $user->tentang_banner = $path;
+            $user->save();
+
+            return back()->with('success', 'Banner berhasil diperbarui!');
+        }
+
+        return back()->with('error', 'Gagal upload.');
     }
 
     // Alur penunjang view pilih jenis

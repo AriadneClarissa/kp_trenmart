@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'admintrenmart@gmail.com'],
             [
                 'name' => 'Admin Trenmart',
-                'password' => bcrypt('TAS102^&'), // Gunakan password ini
+                'password' => bcrypt('TAS102^&'), // bcrypt berfungsi untuk mengamankan password dengan hashing
                 'role' => 'admin',
                 'is_approved' => true,
             ]

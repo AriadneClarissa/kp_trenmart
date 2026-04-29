@@ -6,6 +6,7 @@ use App\Models\Produk;
 use App\Models\Kategori;
 use App\Models\Merk;
 use App\Models\BerandaSetting;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
@@ -34,7 +35,10 @@ class ProdukController extends Controller
         $kategori = Kategori::all();
         $merk = Merk::all();
 
-        return view('beranda', compact('settings', 'produk_terbaru', 'produk_terpopuler', 'kategori', 'merk'));
+        // Mengambil data admin untuk banner
+        $admin = User::where('email', 'admintrenmart@gmail.com')->first();
+
+        return view('beranda', compact('settings', 'produk_terbaru', 'produk_terpopuler', 'kategori', 'merk', 'admin'));
     }
 
     /**

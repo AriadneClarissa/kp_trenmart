@@ -71,4 +71,6 @@ class User extends \Illuminate\Foundation\Auth\User
     {
         $this->notify(new TrenmartResetPasswordNotification($token));
     }
+
+    
 }

@@ -96,8 +96,17 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Alamat Email</label>
-                    <input type="email" name="email" class="form-control" value="{{ old('email') }}" placeholder="name@example.com" required>
+                    <label class="form-label fw-bold">Alamat Email</label>
+                    <input type="email" 
+                        name="email" 
+                        id="email"
+                        class="form-control" 
+                        placeholder="nama@email.com" 
+                        oninput="validateEmail(this)"
+                        required>
+                    <div id="email-error" class="text-danger small mt-1" style="display: none;">
+                        Format email tidak valid (contoh: user@gmail.com)
+                    </div>
                 </div>
 
                 <div class="row">
@@ -128,17 +137,20 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Nomor WhatsApp</label>
+                    <label class="form-label fw-bold">Nomor WhatsApp</label>
                     <input type="text" 
-                    name="phone_number" 
-                    id="phone_number"
-                    class="form-control" 
-                    placeholder="Contoh: 081234567890" 
-                    inputmode="numeric"
-                    maxlength="13" 
-                    oninput="formatPhoneNumber(this)"
-                    required>
-                    <div class="form-text text-muted">Format: 08... (11-13 digit). Jika input +62 otomatis menjadi 08.</div>
+                        name="phone_number" 
+                        id="phone_number"
+                        class="form-control" 
+                        placeholder="Contoh: 081234567890" 
+                        inputmode="numeric"
+                        maxlength="13" 
+                        oninput="validateWA(this)"
+                        required>
+                    <div id="phone-error" class="text-danger small mt-1" style="display: none;">
+                        Nomor telepon tidak valid! Harus diawali 08.
+                    </div>
+                    <div class="form-text text-muted">Format: 08... (11-13 digit). Input +62 otomatis menjadi 08.</div>
                 </div>
 
                 <div class="mb-3">
@@ -225,7 +237,76 @@
     window.onload = toggleGrosirFields;
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+@push('scripts')
+<script>
+function validateEmail(input) {
+    const val = input.value;
+    const errorElement = document.getElementById('email-error');
+    
+    // Regex standar untuk validasi format email
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-</body>
-</html>
+    if (val.length > 0) {
+        if (!emailPattern.test(val)) {
+            // Jika format salah
+            errorElement.style.display = 'block';
+            input.classList.add('is-invalid');
+            input.classList.remove('is-valid');
+        } else {
+            // Jika format sudah benar
+            errorElement.style.display = 'none';
+            input.classList.remove('is-invalid');
+            input.classList.add('is-valid');
+        }
+    } else {
+        // Jika kosong
+        errorElement.style.display = 'none';
+        input.classList.remove('is-invalid', 'is-valid');
+    }
+}
+function validateWA(input) {
+    let val = input.value;
+    const errorElement = document.getElementById('phone-error');
+
+    // 1. Tangani +62 atau 62 di awal secara instan
+    if (val.startsWith('+62')) {
+        val = '08' + val.substring(3);
+    } else if (val.startsWith('62')) {
+        val = '08' + val.substring(2);
+    }
+
+    // 2. Hapus semua karakter yang bukan angka
+    val = val.replace(/\D/g, '');
+
+    // 3. Paksa limit 13 karakter
+    val = val.substring(0, 13);
+
+    // 4. Update nilai input sebelum validasi visual
+    input.value = val;
+
+    // 5. Validasi Aturan "Wajib 08"
+    if (val.length >= 2) {
+        if (!val.startsWith('08')) {
+            // Jika sudah ngetik tapi bukan 08, kasih tanda merah
+            errorElement.style.display = 'block';
+            input.classList.add('is-invalid');
+            input.classList.remove('is-valid');
+        } else {
+            // Jika sudah benar 08
+            errorElement.style.display = 'none';
+            input.classList.remove('is-invalid');
+            input.classList.add('is-valid');
+        }
+    } else if (val.length === 1) {
+        // Jika baru ngetik 1 angka dan bukan 0, langsung error
+        if (val !== '0') {
+            errorElement.style.display = 'block';
+            input.classList.add('is-invalid');
+        }
+    } else {
+        // Jika kosong, bersihkan semua tanda
+        errorElement.style.display = 'none';
+        input.classList.remove('is-invalid', 'is-valid');
+    }
+}
+</script>

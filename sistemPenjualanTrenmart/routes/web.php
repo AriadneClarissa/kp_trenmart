@@ -1,5 +1,5 @@
 <?php
-
+use App\Models\User;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\KategoriController;
@@ -91,10 +91,13 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/merk/simpan', [MerkController::class, 'store'])->name('merk.store');
         Route::delete('/merk/hapus/{id}', [MerkController::class, 'destroy'])->name('merk.destroy');
 
-        Route::post('/tentang/update', [TentangController::class, 'update'])->name('admin.tentang.update');
+        Route::put('/tentang/update', [TentangController::class, 'update'])->name('admin.tentang.update');
 
         // Admin Approval (Tolak dan Terima Pendaftaran Pelanggan Langganan)
         Route::post('/approve/{id}', [AuthController::class, 'approveUser'])->name('admin.approve');
         Route::delete('/reject/{id}', [AuthController::class, 'reject'])->name('admin.reject');
+
+        // Ubah Banner
+        Route::post('/banner/update', [AuthController::class, 'updateBanner'])->name('admin.banner.update');
     });
 });
