@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Notifications\TrenmartResetPasswordNotification;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\Notifiable;
@@ -64,5 +65,10 @@ class User extends \Illuminate\Foundation\Auth\User
         }
 
         return $this->customer_type === 'langganan' && $this->is_approved === false;
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new TrenmartResetPasswordNotification($token));
     }
 }

@@ -74,6 +74,10 @@
         font-size: 1.2rem;
         z-index: 10;
     }
+
+    .remember-row, .auth-links { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .forgot-link { font-size: 0.88rem; color: #800000; text-decoration: none; font-weight: 600; }
+    .forgot-link:hover { text-decoration: underline; }
 </style>
 
 <div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
@@ -105,6 +109,14 @@
                     <input type="password" name="password" id="password" class="form-control-custom" placeholder="Masukkan kata sandi" required>
                     <i class="bi bi-eye password-toggle" onclick="togglePassword()"></i>
                 </div>
+            </div>
+
+            <div class="remember-row mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="remember" id="remember">
+                    <label class="form-check-label small text-muted" for="remember">Ingat Saya</label>
+                </div>
+                <a href="{{ Route::has('password.request') ? route('password.request') : url('/forgot-password') }}" class="forgot-link">Lupa password?</a>
             </div>
 
             <button type="submit" class="btn-masuk-trenmart">MASUK KE DASHBOARD</button>

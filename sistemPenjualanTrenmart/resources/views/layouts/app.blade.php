@@ -81,6 +81,82 @@
         .social-box:hover { background-color: rgba(255, 255, 255, 0.25); transform: translateY(-3px); color: white; }
         .border-top-footer { border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 25px; margin-top: 40px; }
 
+        /* --- MODERN FLASH TOAST --- */
+        .flash-toast-shell {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 3000;
+            width: min(420px, calc(100vw - 2rem));
+            pointer-events: none;
+            animation: flashToastIn 320ms cubic-bezier(.2,.9,.2,1.1) both;
+        }
+        .flash-toast-card {
+            pointer-events: auto;
+            border: 1px solid rgba(255,255,255,0.22);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 18px 50px rgba(0,0,0,0.24);
+            border-radius: 22px;
+            overflow: hidden;
+        }
+        .flash-toast-card.success {
+            background: linear-gradient(135deg, rgba(20, 184, 106, 0.96) 0%, rgba(16, 163, 91, 0.96) 100%);
+        }
+        .flash-toast-card.error {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.96) 0%, rgba(190, 24, 93, 0.96) 100%);
+        }
+        .flash-toast-badge {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.16);
+            flex: 0 0 44px;
+        }
+        .flash-toast-title {
+            font-size: 0.72rem;
+            letter-spacing: 0.12em;
+        }
+        .flash-toast-body {
+            font-size: 0.95rem;
+            line-height: 1.45;
+        }
+        .flash-toast-progress {
+            height: 3px;
+            width: 100%;
+            background: rgba(255,255,255,0.18);
+            overflow: hidden;
+        }
+        .flash-toast-progress::before {
+            content: "";
+            display: block;
+            height: 100%;
+            width: 100%;
+            background: rgba(255,255,255,0.9);
+            transform-origin: left;
+            animation: flashToastProgress 2500ms linear forwards;
+        }
+        @keyframes flashToastIn {
+            from { opacity: 0; transform: translate(-50%, -42%) scale(0.94); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+        @keyframes flashToastOut {
+            from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            to { opacity: 0; transform: translate(-50%, -56%) scale(0.96); }
+        }
+        @keyframes flashToastProgress {
+            from { transform: scaleX(1); }
+            to { transform: scaleX(0); }
+        }
+
+        @media (max-width: 576px) {
+            .flash-toast-shell { top: 42%; }
+        }
+
         /* --- RESPONSIVE --- */
         @media (max-width: 991px) {
             .navbar-nav { margin-top: 15px; margin-bottom: 15px; text-align: left; }
@@ -232,6 +308,31 @@
     </div>
 </nav>
 
+@if(session('success') || session('error'))
+    <div class="flash-toast-shell" id="floatingFlashMessage">
+        <div class="flash-toast-card {{ session('error') ? 'error' : 'success' }} text-white">
+            <div class="p-3 p-sm-4">
+                <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="flash-toast-badge">
+                            <i class="bi {{ session('error') ? 'bi-exclamation-triangle-fill' : 'bi-check-circle-fill' }} fs-5"></i>
+                        </div>
+                        <div>
+                            <div class="flash-toast-title fw-semibold text-uppercase opacity-75">
+                                {{ session('error') ? 'Gagal' : 'Berhasil' }}
+                            </div>
+                            <div class="flash-toast-body fw-medium">{{ session('error') ?? session('success') }}</div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white ms-2" aria-label="Close" id="closeFloatingFlash"></button>
+                </div>
+            </div>
+            <div class="flash-toast-progress"></div>
+            </div>
+        </div>
+    </div>
+@endif
+
 <main class="main-container mt-4 mb-5">
     @yield('content')
 </main>
@@ -302,8 +403,33 @@
     </div>
 </footer>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 @stack('scripts')
+@if(session('success') || session('error'))
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const flash = document.getElementById('floatingFlashMessage');
+        const closeButton = document.getElementById('closeFloatingFlash');
+
+        if (closeButton) {
+            closeButton.addEventListener('click', function () {
+                if (flash) flash.remove();
+            });
+        }
+
+        if (flash) {
+            setTimeout(function () {
+                flash.style.animation = 'flashToastOut 260ms ease forwards';
+
+                setTimeout(function () {
+                    flash.remove();
+                }, 260);
+            }, 2500);
+        }
+    });
+</script>
+@endif
 
 </body>
 </html>

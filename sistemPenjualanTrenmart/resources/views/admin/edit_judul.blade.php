@@ -17,41 +17,25 @@
         @csrf
         @method('PUT')
 
-        {{-- 1. TAMBAH JUDUL SECTION --}}
+        {{-- 1. EDIT JUDUL SECTION BERANDA --}}
         <div class="card shadow-sm border-0 rounded-4 mb-4">
             <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-bold mb-0">1. Judul Section</h5>
-                    <button type="button" id="btnAddSection" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm">
-                        <i class="bi bi-plus-lg me-1"></i>Tambah Section
-                    </button>
-                </div>
-                
-                <div id="judulContainer">
-                    @php
-                        $oldJuduls = old('judul_custom');
-                        if (!$oldJuduls) {
-                            $dbData = $settings['judul_custom'] ?? ['Promo Bundling'];
-                            $oldJuduls = is_string($dbData) ? json_decode($dbData, true) : (array)$dbData;
-                        }
-                    @endphp
+                <h5 class="fw-bold mb-3">1. Judul Section Beranda</h5>
 
-                    @foreach($oldJuduls as $index => $judul)
-                    <div class="mb-3 input-group-judul {{ $index > 0 ? 'mt-3 pt-3 border-top' : '' }}">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label class="form-label fw-semibold text-muted small mb-0">
-                                {{ $index == 0 ? 'Nama Judul (Utama)' : 'Nama Judul Baru' }}
-                            </label>
-                            @if($index > 0)
-                                <span class="btn-remove text-danger small fw-bold" style="cursor:pointer">
-                                    <i class="bi bi-trash me-1"></i>Hapus
-                                </span>
-                            @endif
-                        </div>
-                        <input type="text" name="judul_custom[]" class="form-control judul-input rounded-pill px-4 shadow-sm border-0 bg-light" 
-                               value="{{ is_array($judul) ? ($judul[0] ?? '') : $judul }}" placeholder="Ketik judul section...">
+                @php
+                    $judulTerbaru = old('judul_terbaru', $settings['judul_terbaru'] ?? 'Produk Terbaru');
+                    $judulTerpopuler = old('judul_terpopuler', $settings['judul_terpopuler'] ?? 'Produk Terpopuler');
+                @endphp
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small">Judul 1</label>
+                        <input type="text" name="judul_terbaru" class="form-control rounded-pill px-4 shadow-sm border-0 bg-light" value="{{ $judulTerbaru }}" placeholder="Contoh: Produk Terbaru">
                     </div>
-                    @endforeach
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small">Judul 2</label>
+                        <input type="text" name="judul_terpopuler" class="form-control rounded-pill px-4 shadow-sm border-0 bg-light" value="{{ $judulTerpopuler }}" placeholder="Contoh: Produk Terpopuler">
+                    </div>
                 </div>
             </div>
         </div>
@@ -61,7 +45,7 @@
             <div class="card-body p-4">
                 <h5 class="fw-bold mb-3">2. Pilih Section yang Ingin Diisi</h5>
                 <select name="target_section" id="dropdownTargetSection" class="form-select rounded-pill px-4 shadow-sm border-0 bg-light">
-                    @php $targetOld = old('target_section'); @endphp
+                    @php $targetOld = old('target_section', $selectedSection ?? 'section_3'); @endphp
                     <option value="section_3" {{ $targetOld == 'section_3' ? 'selected' : '' }}>Section 3 (Custom)</option>
                     <option value="terpopuler" {{ $targetOld == 'terpopuler' ? 'selected' : '' }}>Section Terpopuler</option>
                     <option value="terbaru" {{ $targetOld == 'terbaru' ? 'selected' : '' }}>Section Terbaru</option>
@@ -94,15 +78,19 @@
                 <div class="mt-4">
                     <label class="form-label fw-semibold text-muted small">Produk Terpilih:</label>
                     <div id="listProdukTerpilih" class="d-flex flex-wrap gap-2">
-                        @if(old('produk_pilihan'))
-                            @foreach(old('produk_pilihan') as $idTerpilih)
-                                <div class="badge bg-primary rounded-pill px-3 py-2 d-flex align-items-center gap-2 item-tag" data-id="{{ $idTerpilih }}">
-                                    <span>ID: {{ $idTerpilih }}</span>
-                                    <input type="hidden" name="produk_pilihan[]" value="{{ $idTerpilih }}">
-                                    <i class="bi bi-x-circle-fill text-white btn-hapus-produk" style="cursor:pointer"></i>
-                                </div>
-                            @endforeach
-                        @endif
+                        @php
+                            $produkTerpilih = old('produk_pilihan')
+                                ? $produk->whereIn('kd_produk', old('produk_pilihan'))
+                                : ($sectionProdukMap[$targetOld] ?? collect());
+                        @endphp
+
+                        @foreach($produkTerpilih as $item)
+                            <div class="badge bg-primary rounded-pill px-3 py-2 d-flex align-items-center gap-2 item-tag" data-id="{{ $item->kd_produk }}">
+                                <span>{{ $item->nama_produk }}</span>
+                                <input type="hidden" name="produk_pilihan[]" value="{{ $item->kd_produk }}">
+                                <i class="bi bi-x-circle-fill text-white btn-hapus-produk" style="cursor:pointer"></i>
+                            </div>
+                        @endforeach
                     </div>
                 </div>
             </div>
@@ -127,45 +115,30 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 $(document).ready(function() {
-    const targetOld = "{{ old('target_section') }}";
+    const targetOld = "{{ old('target_section', $selectedSection ?? 'section_3') }}";
+    const sectionProducts = @json(collect($sectionProdukMap)->map(fn ($items) => $items->map(fn ($item) => [
+        'id' => $item->kd_produk,
+        'name' => $item->nama_produk,
+    ])->values())->toArray());
+    const initialSelectedProducts = @json($produkTerpilih->map(fn ($item) => [
+        'id' => $item->kd_produk,
+        'name' => $item->nama_produk,
+    ])->values());
 
-    // 1. Logika Tambah/Hapus Section Judul
-    $('#btnAddSection').click(function() {
-        let field = `
-            <div class="mb-3 input-group-judul mt-3 pt-3 border-top">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <label class="form-label fw-semibold text-muted small mb-0">Nama Judul Baru</label>
-                    <span class="btn-remove text-danger small fw-bold" style="cursor:pointer"><i class="bi bi-trash me-1"></i>Hapus</span>
+    function renderSelectedProducts(items) {
+        const list = $('#listProdukTerpilih');
+
+        list.empty();
+
+        items.forEach(function(item) {
+            list.append(`
+                <div class="badge bg-primary rounded-pill px-3 py-2 d-flex align-items-center gap-2 item-tag" data-id="${item.id}">
+                    <span>${item.name}</span>
+                    <input type="hidden" name="produk_pilihan[]" value="${item.id}">
+                    <i class="bi bi-x-circle-fill text-white btn-hapus-produk" style="cursor:pointer"></i>
                 </div>
-                <input type="text" name="judul_custom[]" class="form-control judul-input rounded-pill px-4 shadow-sm border-0 bg-light" placeholder="Ketik judul di sini...">
-            </div>`;
-        $('#judulContainer').append(field);
-        updateDropdown();
-    });
-
-    $(document).on('click', '.btn-remove', function() {
-        $(this).closest('.input-group-judul').remove();
-        updateDropdown();
-    });
-
-    $(document).on('input', '.judul-input', function() {
-        updateDropdown();
-    });
-
-    function updateDropdown() {
-        let dropdown = $('#dropdownTargetSection');
-        let currentVal = dropdown.val() || targetOld;
-        dropdown.find('option.dynamic').remove();
-
-        $('.judul-input').each(function() {
-            let val = $(this).val().trim();
-            let staticOptions = ['section_3', 'terpopuler', 'terbaru'];
-            if (val !== "" && !staticOptions.includes(val)) {
-                let isSelected = (val === currentVal) ? 'selected' : '';
-                dropdown.append(`<option value="${val}" class="dynamic" ${isSelected}>${val}</option>`);
-            }
+            `);
         });
-        if(currentVal) dropdown.val(currentVal);
     }
 
     // 2. Logika Live Search (Min 3 Karakter)
@@ -232,6 +205,10 @@ $(document).ready(function() {
         $(this).parent().remove();
     });
 
+    $('#dropdownTargetSection').on('change', function() {
+        renderSelectedProducts(sectionProducts[$(this).val()] || []);
+    });
+
     // Tutup pencarian jika klik di luar
     $(document).click(function(e) {
         if (!$(e.target).closest('#inputNamaProduk, #inputMerkProduk, #hasilPencarian').length) {
@@ -246,7 +223,11 @@ $(document).ready(function() {
     });
 
     // Inisialisasi awal dropdown
-    updateDropdown();
+    if (targetOld) {
+        $('#dropdownTargetSection').val(targetOld);
+    }
+
+    renderSelectedProducts(initialSelectedProducts.length > 0 ? initialSelectedProducts : (sectionProducts[$('#dropdownTargetSection').val()] || []));
 });
 </script>
 @endsection

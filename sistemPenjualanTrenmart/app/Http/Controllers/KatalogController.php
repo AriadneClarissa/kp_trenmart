@@ -41,9 +41,13 @@ class KatalogController extends Controller
     public function editJudul()
     {
         $settings = BerandaSetting::all()->pluck('value', 'key');
+        $selectedSection = request('target_section', 'section_3');
         
-        // Ambil produk yang SAAT INI sedang terpilih sebagai section 3 (untuk ditampilkan di Select2)
-        $produk_pilihan_custom = Produk::where('is_custom_section', true)->get();
+        $sectionProdukMap = [
+            'section_3' => Produk::where('is_custom_section', true)->get(),
+            'terpopuler' => Produk::where('is_highlight', true)->get(),
+            'terbaru' => Produk::where('is_custom_section', true)->get(),
+        ];
         
         // Ambil semua produk hanya untuk section "Terpopuler" (jika datanya masih sedikit)
         // Jika produk terpopuler juga mencapai ribuan, gunakan sistem search yang sama seperti section 3
@@ -56,27 +60,43 @@ class KatalogController extends Controller
             }
         }
         
-        return view('admin.edit_judul', compact('settings', 'produk', 'produk_pilihan_custom')); 
+        return view('admin.edit_judul', compact('settings', 'produk', 'sectionProdukMap', 'selectedSection')); 
     }
 
     // 4. PROSES UPDATE (Menyimpan perubahan nama section dan pilihan produk)
     public function update(Request $request)
     {
-    // 1. Simpan Judul Custom
-    \App\Models\BerandaSetting::updateOrCreate(['key' => 'judul_custom'], ['value' => $request->judul_custom]);
+        $request->validate([
+            'judul_terbaru' => 'required|string|max:255',
+            'judul_terpopuler' => 'required|string|max:255',
+            'target_section' => 'required|in:section_3,terpopuler,terbaru',
+            'produk_pilihan' => 'nullable|array',
+            'produk_pilihan.*' => 'string',
+        ]);
 
-    // 2. Tentukan kolom database mana yang akan diupdate berdasarkan dropdown
-    $column = ($request->target_section == 'terpopuler') ? 'is_highlight' : 'is_custom_section';
+        // 1. Simpan judul yang benar-benar dipakai di beranda
+        BerandaSetting::updateOrCreate(
+            ['key' => 'judul_terbaru'],
+            ['value' => trim($request->judul_terbaru)]
+        );
 
-    // Reset status lama untuk section tersebut
-    \App\Models\Produk::where($column, true)->update([$column => false]);
+        BerandaSetting::updateOrCreate(
+            ['key' => 'judul_terpopuler'],
+            ['value' => trim($request->judul_terpopuler)]
+        );
 
-    // Simpan produk yang baru dipilih via Search Bar
-    if ($request->has('produk_pilihan')) {
-        \App\Models\Produk::whereIn('kd_produk', $request->produk_pilihan)
-              ->update([$column => true]);
-    }
+        // 2. Tentukan kolom database mana yang akan diupdate berdasarkan dropdown
+        $column = ($request->target_section == 'terpopuler') ? 'is_highlight' : 'is_custom_section';
 
-    return redirect()->back()->with('success', 'Konfigurasi Beranda Berhasil Disimpan!');
+        // Reset status lama untuk section tersebut
+        \App\Models\Produk::where($column, true)->update([$column => false]);
+
+        // Simpan produk yang baru dipilih via Search Bar
+        if ($request->filled('produk_pilihan')) {
+            \App\Models\Produk::whereIn('kd_produk', $request->produk_pilihan)
+                ->update([$column => true]);
+        }
+
+        return redirect()->back()->with('success', 'Konfigurasi Beranda berhasil disimpan!');
     }
 }

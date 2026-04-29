@@ -68,7 +68,7 @@ class AuthController extends Controller
         ]);
 
         // Di logic Login
-        if (Auth::attempt($credentials)) {
+        if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $user = Auth::user();
 
             if ($user->status === 'rejected') {
@@ -93,15 +93,26 @@ class AuthController extends Controller
      */
     public function redirectToGoogle()
     {
+        if (empty(config('services.google.client_id')) || empty(config('services.google.client_secret'))) {
+            return redirect()->route('login')->with('error', 'Login Google belum dikonfigurasi. Isi GOOGLE_CLIENT_ID dan GOOGLE_CLIENT_SECRET terlebih dahulu.');
+        }
+
         return Socialite::driver('google')
-        ->with(['prompt' => 'select_account']) 
-        ->redirect();
+            ->redirectUrl(url('/auth/google/callback'))
+            ->with(['prompt' => 'select_account'])
+            ->redirect();
     }
 
     public function handleGoogleCallback()
     {
         try {
-            $googleUser = Socialite::driver('google')->user();
+            if (empty(config('services.google.client_id')) || empty(config('services.google.client_secret'))) {
+                return redirect()->route('login')->with('error', 'Login Google belum dikonfigurasi. Silakan lengkapi kredensial Google di file .env.');
+            }
+
+            $googleUser = Socialite::driver('google')
+                ->redirectUrl(url('/auth/google/callback'))
+                ->user();
             $user = User::where('email', $googleUser->email)->first();
 
             if (!$user) {

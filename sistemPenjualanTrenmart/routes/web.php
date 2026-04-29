@@ -7,6 +7,8 @@ use App\Http\Controllers\MerkController;
 use App\Http\Controllers\KeranjangController;
 use App\Http\Controllers\KatalogController; 
 use App\Http\Controllers\TentangController;
+use App\Http\Controllers\Auth\PasswordResetLinkController;
+use App\Http\Controllers\Auth\NewPasswordController;
 use Illuminate\Support\Facades\Route;
 
 // --- 1. HALAMAN PUBLIK ---
@@ -22,6 +24,12 @@ Route::middleware(['guest'])->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::get('/login', function () { return view('auth.login'); })->name('login');
     Route::post('/login', [AuthController::class, 'login']);
+
+    // Lupa Password untuk customer umum/langganan
+    Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
+    Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
+    Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
+    Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('password.store');
 
     // JALUR KHUSUS ADMIN (Link Login Terpisah)
     Route::get('/internal-trenmart-admin', function () { return view('auth.login_admin'); })->name('admin.login');

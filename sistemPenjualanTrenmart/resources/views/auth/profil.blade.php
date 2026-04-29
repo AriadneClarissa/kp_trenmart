@@ -7,8 +7,16 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div class="d-flex align-items-center gap-2">
                     <h3 class="fw-bold mb-0">Profil</h3>
-                    <span class="badge rounded-pill bg-secondary text-uppercase py-2 px-3" style="font-size: 0.7rem;">
-                        Internal Admin
+                    @php
+                        $statusLabel = $user->isAdmin()
+                            ? 'Administrator'
+                            : ($user->customer_type === 'langganan' ? 'Pelanggan Langganan' : 'Pelanggan Umum');
+                        $statusClass = $user->isAdmin()
+                            ? 'bg-dark'
+                            : ($user->customer_type === 'langganan' ? 'bg-warning text-dark' : 'bg-secondary');
+                    @endphp
+                    <span class="badge rounded-pill {{ $statusClass }} text-uppercase py-2 px-3 shadow-sm" style="font-size: 0.7rem; letter-spacing: 0.04em;">
+                        {{ $statusLabel }}
                     </span>
                 </div>
 

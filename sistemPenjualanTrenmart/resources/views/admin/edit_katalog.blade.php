@@ -98,11 +98,11 @@
                         <input type="text" id="searchKategori" class="form-control search-kategori" placeholder="Cari kategori...">
                     </div>
                     <div class="list-kategori" id="kategoriList">
-                        <a href="{{ route('produk.index') }}" class="kat-item {{ !request('kategori') ? 'active' : '' }}">
+                        <a href="{{ route('produk.index', ['search' => request('search'), 'merk' => request('merk')]) }}" class="kat-item {{ !request('kategori') ? 'active' : '' }}">
                             Semua Produk <i class="bi bi-chevron-right small"></i>
                         </a>
                         @foreach($kategori as $kat)
-                            <a href="{{ route('produk.index', ['kategori' => $kat->kd_kategori]) }}" class="kat-item {{ request('kategori') == $kat->kd_kategori ? 'active' : '' }}">
+                            <a href="{{ route('produk.index', ['kategori' => $kat->kd_kategori, 'search' => request('search'), 'merk' => request('merk')]) }}" class="kat-item {{ request('kategori') == $kat->kd_kategori ? 'active' : '' }}">
                                 {{ $kat->nama_kategori }} <i class="bi bi-chevron-right small"></i>
                             </a>
                         @endforeach
@@ -121,6 +121,7 @@
                     </div>
                 </div>
                 <div class="col-md-3">
+                    <input type="hidden" name="kategori" value="{{ request('kategori') }}">
                     <select name="merk" class="select-filter" onchange="this.form.submit()">
                         <option value="">Semua Merek</option>
                         @foreach($merk as $m)
@@ -186,18 +187,25 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body px-4">
-                    <form id="formTambahKategori">
+                    <form id="formTambahKategori" action="{{ route('kategori.store') }}" method="POST">
                         @csrf
                         <div class="input-group mb-4 shadow-sm border rounded-pill overflow-hidden">
                             <input type="text" id="inputNamaKategori" name="nama_kategori" class="form-control border-0 px-3" placeholder="Nama kategori baru..." required>
                             <button class="btn btn-success border-0 px-4" type="submit"><i class="bi bi-plus-lg"></i></button>
                         </div>
                     </form>
+                    <div class="input-group mb-2 shadow-sm border rounded-pill overflow-hidden bg-light">
+                        <input type="text" id="searchKategoriModal" class="form-control border-0 bg-transparent ps-3" placeholder="Cari kategori...">
+                        <button type="button" id="btnSearchKategoriModal" class="btn btn-light border-0 px-4"><i class="bi bi-search text-muted"></i></button>
+                    </div>
+                    <div id="searchKategoriRekomendasi" class="list-group shadow-sm rounded-3 overflow-hidden mb-3 d-none" style="max-height: 180px; overflow-y: auto;"></div>
+                    <div class="small text-muted mb-2 d-none" id="kategoriNoResult">Tidak ada kategori yang cocok.</div>
+                    <div class="small text-muted mb-2 d-none" id="kategoriHint">Ketik nama kategori untuk melihat rekomendasi.</div>
                     <div class="list-group border shadow-sm rounded-3 overflow-hidden" id="containerListKategori" style="max-height: 250px; overflow-y: auto;">
                         @foreach($kategori as $kat)
-                            <div class="list-group-item d-flex justify-content-between align-items-center bg-light">
-                                <span>{{ $kat->nama_kategori }}</span>
-                                <button class="btn btn-sm btn-white border btn-toggle-visible-kat" data-id="{{ $kat->kd_kategori }}">
+                            <div class="list-group-item d-flex justify-content-between align-items-center bg-light item-kategori" data-search="{{ strtolower($kat->nama_kategori) }}">
+                                <span class="nama-kategori-text">{{ $kat->nama_kategori }}</span>
+                                <button type="button" class="btn btn-sm btn-white border btn-toggle-visible-kat" data-id="{{ $kat->kd_kategori }}">
                                     <i class="bi {{ $kat->is_hidden ? 'bi-eye-slash-fill text-danger' : 'bi-eye-fill text-primary' }}"></i>
                                 </button>
                             </div>
@@ -226,15 +234,18 @@
                             <button class="btn btn-success border-0 px-4" type="submit"><i class="bi bi-plus-lg"></i></button>
                         </div>
                     </form>
-                    <div class="input-group mb-3 shadow-sm border rounded-pill overflow-hidden bg-light">
-                        <span class="input-group-text bg-transparent border-0 ps-3"><i class="bi bi-search text-muted"></i></span>
-                        <input type="text" id="searchMerk" class="form-control border-0 bg-transparent" placeholder="Cari merk...">
+                    <div class="input-group mb-2 shadow-sm border rounded-pill overflow-hidden bg-light">
+                        <input type="text" id="searchMerk" class="form-control border-0 bg-transparent ps-3" placeholder="Cari merk...">
+                        <button type="button" id="btnSearchMerk" class="btn btn-light border-0 px-4"><i class="bi bi-search text-muted"></i></button>
                     </div>
+                    <div id="searchMerkRekomendasi" class="list-group shadow-sm rounded-3 overflow-hidden mb-3 d-none" style="max-height: 180px; overflow-y: auto;"></div>
+                    <div class="small text-muted mb-2 d-none" id="merkNoResult">Tidak ada merk yang cocok.</div>
+                    <div class="small text-muted mb-2 d-none" id="merkHint">Ketik nama merk untuk melihat rekomendasi.</div>
                     <div class="list-group border shadow-sm rounded-3 overflow-hidden" id="containerListMerk" style="max-height: 250px; overflow-y: auto;">
                         @foreach($merk as $m)
-                            <div class="list-group-item d-flex justify-content-between align-items-center bg-light item-merk">
+                            <div class="list-group-item d-flex justify-content-between align-items-center bg-light item-merk" data-search="{{ strtolower($m->nama_merk) }}">
                                 <span class="nama-merk-text">{{ $m->nama_merk }}</span>
-                                <button class="btn btn-sm btn-white border btn-toggle-visible" data-id="{{ $m->kd_merk }}">
+                                <button type="button" class="btn btn-sm btn-white border btn-toggle-visible" data-id="{{ $m->kd_merk }}">
                                     <i class="bi {{ $m->is_hidden ? 'bi-eye-slash-fill text-danger' : 'bi-eye-fill text-primary' }}"></i>
                                 </button>
                             </div>
@@ -254,6 +265,91 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
+    const kategoriIndexUrl = "{{ route('produk.index') }}";
+
+    function setupSearchRecommendation(inputSelector, buttonSelector, listSelector, itemSelector, textSelector, recommendationSelector, noResultSelector, hintSelector) {
+        const input = $(inputSelector);
+        const button = $(buttonSelector);
+        const list = $(listSelector);
+        const recommendation = $(recommendationSelector);
+        const noResult = $(noResultSelector);
+        const hint = $(hintSelector);
+
+        list.find(itemSelector).each(function(index) {
+            $(this).attr('data-order', index);
+        });
+
+        function sortList(allItems, matchedItems) {
+            const matchedIds = new Set(matchedItems.map(function() {
+                return $(this).attr('data-order');
+            }).get());
+
+            const orderedItems = allItems.get().sort(function(a, b) {
+                const aOrder = parseInt($(a).attr('data-order') || 0, 10);
+                const bOrder = parseInt($(b).attr('data-order') || 0, 10);
+                const aMatched = matchedIds.has(String(aOrder));
+                const bMatched = matchedIds.has(String(bOrder));
+
+                if (aMatched !== bMatched) {
+                    return aMatched ? -1 : 1;
+                }
+
+                return aOrder - bOrder;
+            });
+
+            list.append(orderedItems);
+        }
+
+        function runSearch() {
+            const value = input.val().trim().toLowerCase();
+
+            if (!value) {
+                list.find(itemSelector).show();
+                recommendation.addClass('d-none').empty();
+                noResult.addClass('d-none');
+                hint.removeClass('d-none');
+                sortList(list.find(itemSelector), list.find(itemSelector));
+                return;
+            }
+
+            hint.addClass('d-none');
+
+            const matched = list.find(itemSelector).filter(function() {
+                const text = $(this).find(textSelector).text().toLowerCase();
+                const dataSearch = ($(this).data('search') || text).toString().toLowerCase();
+                return text.includes(value) || dataSearch.includes(value);
+            });
+
+            list.find(itemSelector).show();
+            sortList(list.find(itemSelector), matched);
+
+            recommendation.empty();
+
+            if (matched.length > 0) {
+                matched.each(function() {
+                    const item = $(this).clone();
+                    item.removeClass('item-kategori item-merk bg-light').addClass('list-group-item-action');
+                    item.find('button').remove();
+                    item.on('click', function() {
+                        $(inputSelector).val($(this).find(textSelector).text());
+                        runSearch();
+                        $(inputSelector).trigger('focus');
+                    });
+                    recommendation.append(item);
+                });
+                recommendation.removeClass('d-none');
+                noResult.addClass('d-none');
+            } else {
+                recommendation.addClass('d-none');
+                noResult.removeClass('d-none');
+            }
+        }
+
+        input.on('input', runSearch);
+        button.on('click', runSearch);
+        input.on('focus', runSearch);
+    }
+
     // Live Search Kategori Sidebar
     $("#searchKategori").on("keyup", function() {
         var value = $(this).val().toLowerCase();
@@ -262,24 +358,62 @@ $(document).ready(function() {
         });
     });
 
-    // Fitur Pencarian Merk di Modal
-    $('#searchMerk').on('keyup', function() {
-        let value = $(this).val().toLowerCase();
-        $("#containerListMerk .item-merk").filter(function() {
-            $(this).toggle($(this).find('.nama-merk-text').text().toLowerCase().indexOf(value) > -1)
-        });
-    });
+    setupSearchRecommendation(
+        '#searchKategoriModal',
+        '#btnSearchKategoriModal',
+        '#containerListKategori',
+        '.item-kategori',
+        '.nama-kategori-text',
+        '#searchKategoriRekomendasi',
+        '#kategoriNoResult',
+        '#kategoriHint'
+    );
+
+    setupSearchRecommendation(
+        '#searchMerk',
+        '#btnSearchMerk',
+        '#containerListMerk',
+        '.item-merk',
+        '.nama-merk-text',
+        '#searchMerkRekomendasi',
+        '#merkNoResult',
+        '#merkHint'
+    );
 
     // AJAX Tambah Kategori
     $('#formTambahKategori').on('submit', function(e) {
         e.preventDefault();
-        $.post("{{ route('kategori.store') }}", $(this).serialize(), function(res) {
+        $.post("{{ route('kategori.store') }}", $(this).serialize())
+            .done(function(res) {
             if(res.success) {
-                $('#containerListKategori').prepend(`<div class="list-group-item d-flex justify-content-between align-items-center bg-light"><span>${res.data.nama_kategori}</span><i class="bi bi-eye-fill text-primary"></i></div>`);
-                $('#kategoriList').append(`<div class="kat-item" data-kategori="${res.data.kd_kategori}"><span>${res.data.nama_kategori}</span><i class="bi bi-chevron-right small"></i></div>`);
+                const kategoriItem = $('<div>', {
+                    class: 'list-group-item d-flex justify-content-between align-items-center bg-light item-kategori'
+                });
+                $('<span>', { class: 'nama-kategori-text' }).text(res.data.nama_kategori).appendTo(kategoriItem);
+
+                const tombolVisibilitas = $('<button>', {
+                    type: 'button',
+                    class: 'btn btn-sm btn-white border btn-toggle-visible-kat',
+                    'data-id': res.data.kd_kategori
+                });
+                $('<i>', { class: 'bi bi-eye-fill text-primary' }).appendTo(tombolVisibilitas);
+                kategoriItem.append(tombolVisibilitas);
+                $('#containerListKategori').prepend(kategoriItem);
+
+                const sidebarItem = $('<a>', {
+                    href: kategoriIndexUrl + '?kategori=' + encodeURIComponent(res.data.kd_kategori),
+                    class: 'kat-item'
+                });
+                sidebarItem.append(document.createTextNode(res.data.nama_kategori + ' '));
+                sidebarItem.append($('<i>', { class: 'bi bi-chevron-right small' }));
+                $('#kategoriList').append(sidebarItem);
                 $('#inputNamaKategori').val('');
             }
-        });
+        })
+            .fail(function(xhr) {
+                const pesan = xhr.responseJSON?.message || 'Kategori gagal ditambahkan. Coba lagi.';
+                alert(pesan);
+            });
     });
 
     // AJAX Tambah Merk
@@ -287,7 +421,7 @@ $(document).ready(function() {
         e.preventDefault();
         $.post("{{ route('merk.store') }}", $(this).serialize(), function(res) {
             if(res.success) {
-                $('#containerListMerk').prepend(`<div class="list-group-item d-flex justify-content-between align-items-center bg-light"><span>${res.data.nama_merk}</span><i class="bi bi-eye-fill text-primary"></i></div>`);
+                $('#containerListMerk').prepend(`<div class="list-group-item d-flex justify-content-between align-items-center bg-light item-merk" data-search="${res.data.nama_merk.toLowerCase()}"><span class="nama-merk-text">${res.data.nama_merk}</span><i class="bi bi-eye-fill text-primary"></i></div>`);
                 $('select[name="merk"]').append(`<option value="${res.data.kd_merk}">${res.data.nama_merk}</option>`);
                 $('#inputNamaMerk').val('');
             }

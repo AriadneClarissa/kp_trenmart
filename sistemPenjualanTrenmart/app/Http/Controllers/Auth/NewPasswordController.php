@@ -10,7 +10,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -34,7 +33,7 @@ class NewPasswordController extends Controller
         $request->validate([
             'token' => ['required'],
             'email' => ['required', 'email'],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
         // Here we will attempt to reset the user's password. If it is successful we
@@ -52,12 +51,17 @@ class NewPasswordController extends Controller
             }
         );
 
-        // If the password was successfully reset, we will redirect the user back to
-        // the application's home authenticated view. If there is an error we can
-        // redirect them back to where they came from with their error message.
-        return $status == Password::PASSWORD_RESET
-                    ? redirect()->route('login')->with('status', __($status))
-                    : back()->withInput($request->only('email'))
-                        ->withErrors(['email' => __($status)]);
+        if ($status === Password::PASSWORD_RESET) {
+            return redirect()->route('login')->with('status', 'Password berhasil diperbarui. Silakan login dengan password baru Anda.');
+        }
+
+        $pesanError = match ($status) {
+            Password::INVALID_TOKEN => 'Link reset password tidak valid atau sudah kedaluwarsa. Silakan minta link baru.',
+            Password::INVALID_USER => 'Email tidak ditemukan. Pastikan email yang dimasukkan sudah terdaftar.',
+            default => 'Reset password gagal diproses. Silakan coba lagi.',
+        };
+
+        return back()->withInput($request->only('email'))
+            ->withErrors(['email' => $pesanError]);
     }
 }

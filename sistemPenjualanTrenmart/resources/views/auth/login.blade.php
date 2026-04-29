@@ -102,6 +102,12 @@
         color: #800000;
     }
 
+    .btn-google-login.disabled-login {
+        opacity: 0.6;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
     .btn-google-login img {
         margin-right: 10px;
     }
@@ -140,6 +146,10 @@
     }
 
     .register-link { text-align: center; font-size: 0.9rem; padding-bottom: 10px; }
+    .auth-links { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: -6px; }
+    .forgot-link { font-size: 0.88rem; color: #800000; text-decoration: none; font-weight: 600; }
+    .forgot-link:hover { text-decoration: underline; }
+    .google-help { font-size: 0.85rem; color: #6b7280; margin-top: -8px; margin-bottom: 14px; }
 </style>
 
 <div class="container mt-4">
@@ -158,6 +168,12 @@
         </div>
         
         <div class="card-body p-4">
+            @if (session('status'))
+                <div class="alert alert-success border-0 small mb-4">
+                    {{ session('status') }}
+                </div>
+            @endif
+
             @if ($errors->any())
                 <div class="alert alert-danger border-0 small mb-4">
                     <ul class="mb-0 ps-3">
@@ -188,6 +204,10 @@
                     <label class="form-check-label small text-muted" for="remember">Ingat Saya</label>
                 </div>
 
+                <div class="auth-links mb-3">
+                    <a href="{{ Route::has('password.request') ? route('password.request') : url('/forgot-password') }}" class="forgot-link">Lupa password?</a>
+                </div>
+
                 <button type="submit" class="btn-masuk-trenmart shadow">MASUK</button>
             </form>
 
@@ -195,10 +215,24 @@
             <div class="divider">ATAU</div>
 
             {{-- TOMBOL GOOGLE BAR --}}
-            <a href="{{ route('auth.google') }}" class="btn-google-login">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" alt="Google Logo">
-                Masuk dengan Google
-            </a>
+            @php
+                $googleReady = filled(config('services.google.client_id')) && filled(config('services.google.client_secret'));
+            @endphp
+
+            @if($googleReady)
+                <a href="{{ route('auth.google') }}" class="btn-google-login">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" alt="Google Logo">
+                    Masuk dengan Google
+                </a>
+            @else
+                <div class="btn-google-login disabled-login">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" alt="Google Logo">
+                    Masuk dengan Google
+                </div>
+                <div class="google-help text-center">
+                    Fitur Google belum aktif karena kredensial belum diisi.
+                </div>
+            @endif
 
             <a href="https://mail.google.com/" target="_blank" rel="noopener noreferrer" class="btn-status-login">
                 Cek Status di Gmail
