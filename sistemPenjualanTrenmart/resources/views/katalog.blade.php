@@ -101,11 +101,11 @@
                     <input type="text" id="inputSearchKat" class="form-control search-kategori" placeholder="Cari kategori...">
                 </div>
                 <div class="list-kategori" id="listKatSide">
-                    <a href="{{ route('katalog') }}" class="kat-item {{ !request('kategori') ? 'active' : '' }}">
+                    <a href="{{ route('katalog', ['search' => request('search'), 'merk' => request('merk')]) }}" class="kat-item {{ !request('kategori') ? 'active' : '' }}">
                         <span>Semua Produk</span> <i class="bi bi-chevron-right"></i>
                     </a>
                     @foreach($kategori as $kat)
-                        <a href="{{ route('katalog', ['kategori' => $kat->kd_kategori]) }}" class="kat-item {{ request('kategori') == $kat->kd_kategori ? 'active' : '' }}">
+                        <a href="{{ route('katalog', ['kategori' => $kat->kd_kategori, 'search' => request('search'), 'merk' => request('merk')]) }}" class="kat-item {{ request('kategori') == $kat->kd_kategori ? 'active' : '' }}">
                             <span class="nama-kat">{{ $kat->nama_kategori }}</span> <i class="bi bi-chevron-right"></i>
                         </a>
                     @endforeach
@@ -124,6 +124,7 @@
                     </div>
                 </div>
                 <div class="col-md-3">
+                    <input type="hidden" name="kategori" value="{{ request('kategori') }}">
                     <select name="merk" class="top-select-filter" onchange="this.form.submit()">
                         <option value="">Semua Merek</option>
                         @foreach($merk as $m)
