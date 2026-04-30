@@ -15,7 +15,6 @@
         @if(Auth::check() && Auth::user()->role == 'admin')
             <form action="{{ route('admin.banner.update') }}" method="POST" enctype="multipart/form-data" id="bannerForm">
                 @csrf
-                {{-- BARIS @method('PUT') DI SINI SUDAH DIHAPUS --}}
                 
                 <input type="file" name="tentang_banner" id="bannerInput" class="d-none" accept="image/*">
 
