@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Notifications\OrderActivityNotification;
 
 class AdminOrderController extends Controller
@@ -35,7 +36,7 @@ class AdminOrderController extends Controller
                 url: route('pesanan.show', $order->id),
                 type: 'payment_confirmed',
                 orderNumber: $order->order_number,
-                actorName: auth()->user()->name ?? 'Admin',
+                actorName: Auth::user()->name ?? 'Admin',
             ));
         }
 
@@ -57,7 +58,7 @@ class AdminOrderController extends Controller
                 url: route('pesanan.show', $order->id),
                 type: 'payment_rejected',
                 orderNumber: $order->order_number,
-                actorName: auth()->user()->name ?? 'Admin',
+                actorName: Auth::user()->name ?? 'Admin',
             ));
         }
 

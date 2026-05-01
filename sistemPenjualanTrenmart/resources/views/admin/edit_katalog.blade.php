@@ -27,8 +27,9 @@
     .table thead th:nth-child(6) { width: 110px; min-width: 110px; }
     .table thead th:nth-child(7) { width: 120px; min-width: 120px; }
     .table thead th:nth-child(8) { width: 70px; min-width: 70px; }
-    .table thead th:nth-child(9) { width: 80px; min-width: 80px; }
-    .table thead th:nth-child(10) { width: 140px; min-width: 140px; text-align: right; }
+    .table thead th:nth-child(9) { width: 110px; min-width: 110px; }
+    .table thead th:nth-child(10) { width: 80px; min-width: 80px; }
+    .table thead th:nth-child(11) { width: 140px; min-width: 140px; text-align: right; }
     
     /* List Kategori Style (Sesuai Gambar Mockup) */
     .list-kategori { max-height: 400px; overflow-y: auto; scrollbar-width: none; }
@@ -157,6 +158,7 @@
                                 <th>Harga Umum</th>
                                 <th>Harga Langganan</th>
                                 <th>Stok</th>
+                                <th>Satuan</th>
                                 <th>Status</th>
                                 <th class="text-end">Aksi</th>
                             </tr>
@@ -192,6 +194,7 @@
                                         <span class="fw-semibold">{{ $p->stok_tersedia }}</span>
                                         <span class="text-muted small d-block">{{ $p->satuan ?? 'pcs' }}</span>
                                     </td>
+                                    <td>{{ $p->satuanModel?->nama_satuan ?? $p->satuan ?? '-' }}</td>
                                     <td>
                                         @if(($p->status ?? 'aktif') === 'aktif')
                                             <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle">Aktif</span>
@@ -207,7 +210,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="10" class="text-center py-5">
+                                    <td colspan="11" class="text-center py-5">
                                         <i class="bi bi-box-seam text-muted" style="font-size: 3rem; opacity: 0.3;"></i>
                                         <div class="mt-2 fw-semibold">Produk tidak tersedia</div>
                                     </td>

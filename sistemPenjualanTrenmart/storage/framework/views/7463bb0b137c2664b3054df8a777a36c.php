@@ -25,8 +25,9 @@
     .table thead th:nth-child(6) { width: 110px; min-width: 110px; }
     .table thead th:nth-child(7) { width: 120px; min-width: 120px; }
     .table thead th:nth-child(8) { width: 70px; min-width: 70px; }
-    .table thead th:nth-child(9) { width: 80px; min-width: 80px; }
-    .table thead th:nth-child(10) { width: 140px; min-width: 140px; text-align: right; }
+    .table thead th:nth-child(9) { width: 110px; min-width: 110px; }
+    .table thead th:nth-child(10) { width: 80px; min-width: 80px; }
+    .table thead th:nth-child(11) { width: 140px; min-width: 140px; text-align: right; }
     
     /* List Kategori Style (Sesuai Gambar Mockup) */
     .list-kategori { max-height: 400px; overflow-y: auto; scrollbar-width: none; }
@@ -89,7 +90,7 @@
         <?php if(auth()->guard()->check()): ?>
             <?php if(auth()->user()->isAdmin()): ?>
             <div class="col-12 mb-4">
-                <div class="card-sidebar p-3 d-flex gap-2" style="border: 1px solid #ffc107;">
+                <div class="card-sidebar p-3 d-flex gap-2 align-items-center flex-wrap" style="border: 1px solid #ffc107;">
                     <div class="sidebar-header-admin flex-grow-1"><i class="bi bi-shield-lock-fill me-2"></i>Panel Admin</div>
                     <button class="btn btn-sm btn-primary" style="background-color: #55bdff; border: none;" data-bs-toggle="modal" data-bs-target="#modalKelolaKategori">
                         <i class="bi bi-plus-circle me-1"></i> Kelola Kategori
@@ -97,6 +98,12 @@
                     <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalKelolaMerk">
                         <i class="bi bi-plus-circle me-1"></i> Kelola Merk
                     </button>
+                    <button class="btn btn-sm btn-warning" style="border: none; color: white;" data-bs-toggle="modal" data-bs-target="#modalKelolaSatuan">
+                        <i class="bi bi-plus-circle me-1"></i> Kelola Satuan
+                    </button>
+                    <a href="<?php echo e(route('produk.create')); ?>" class="btn btn-sm btn-danger">
+                        <i class="bi bi-plus-circle me-1"></i> Tambah Produk
+                    </a>
                 </div>
             </div>
             <?php endif; ?>
@@ -149,6 +156,7 @@
                                 <th>Harga Umum</th>
                                 <th>Harga Langganan</th>
                                 <th>Stok</th>
+                                <th>Satuan</th>
                                 <th>Status</th>
                                 <th class="text-end">Aksi</th>
                             </tr>
@@ -186,6 +194,7 @@
                                         <span class="fw-semibold"><?php echo e($p->stok_tersedia); ?></span>
                                         <span class="text-muted small d-block"><?php echo e($p->satuan ?? 'pcs'); ?></span>
                                     </td>
+                                    <td><?php echo e($p->satuanModel?->nama_satuan ?? $p->satuan ?? '-'); ?></td>
                                     <td>
                                         <?php if(($p->status ?? 'aktif') === 'aktif'): ?>
                                             <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle">Aktif</span>
@@ -201,7 +210,7 @@
                                 </tr>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                 <tr>
-                                    <td colspan="10" class="text-center py-5">
+                                    <td colspan="11" class="text-center py-5">
                                         <i class="bi bi-box-seam text-muted" style="font-size: 3rem; opacity: 0.3;"></i>
                                         <div class="mt-2 fw-semibold">Produk tidak tersedia</div>
                                     </td>
@@ -286,6 +295,46 @@
                                 <span class="nama-merk-text"><?php echo e($m->nama_merk); ?></span>
                                 <button type="button" class="btn btn-sm btn-white border btn-toggle-visible" data-id="<?php echo e($m->kd_merk); ?>">
                                     <i class="bi <?php echo e($m->is_hidden ? 'bi-eye-slash-fill text-danger' : 'bi-eye-fill text-primary'); ?>"></i>
+                                </button>
+                            </div>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pb-4">
+                    <button class="btn btn-danger w-100 py-2 fw-bold rounded-pill" onclick="window.location.reload();">Selesai</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalKelolaSatuan" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow" style="border-radius: 20px;">
+                <div class="modal-header border-0 pt-4 px-4">
+                    <h5 class="fw-bold">Kelola Satuan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-4">
+                    <form id="formTambahSatuan">
+                        <?php echo csrf_field(); ?>
+                        <div class="input-group mb-3 shadow-sm border rounded-pill overflow-hidden">
+                            <input type="text" id="inputNamaSatuan" name="nama_satuan" class="form-control border-0 px-3" placeholder="Tambah satuan baru (pcs, box, rim, lusin, dll)..." required>
+                            <button class="btn btn-success border-0 px-4" type="submit"><i class="bi bi-plus-lg"></i></button>
+                        </div>
+                    </form>
+                    <div class="input-group mb-2 shadow-sm border rounded-pill overflow-hidden bg-light">
+                        <input type="text" id="searchSatuan" class="form-control border-0 bg-transparent ps-3" placeholder="Cari satuan...">
+                        <button type="button" id="btnSearchSatuan" class="btn btn-light border-0 px-4"><i class="bi bi-search text-muted"></i></button>
+                    </div>
+                    <div id="searchSatuanRekomendasi" class="list-group shadow-sm rounded-3 overflow-hidden mb-3 d-none" style="max-height: 180px; overflow-y: auto;"></div>
+                    <div class="small text-muted mb-2 d-none" id="satuanNoResult">Tidak ada satuan yang cocok.</div>
+                    <div class="small text-muted mb-2 d-none" id="satuanHint">Ketik nama satuan untuk melihat rekomendasi.</div>
+                    <div class="list-group border shadow-sm rounded-3 overflow-hidden" id="containerListSatuan" style="max-height: 250px; overflow-y: auto;">
+                        <?php $__currentLoopData = $satuan; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $sat): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <div class="list-group-item d-flex justify-content-between align-items-center bg-light item-satuan" data-search="<?php echo e(strtolower($sat->nama_satuan)); ?>">
+                                <span class="nama-satuan-text"><?php echo e($sat->nama_satuan); ?></span>
+                                <button type="button" class="btn btn-sm btn-white border btn-toggle-visible-satuan" data-id="<?php echo e($sat->kd_satuan); ?>">
+                                    <i class="bi <?php echo e($sat->is_hidden ? 'bi-eye-slash-fill text-danger' : 'bi-eye-fill text-primary'); ?>"></i>
                                 </button>
                             </div>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -419,6 +468,17 @@ $(document).ready(function() {
         '#merkHint'
     );
 
+    setupSearchRecommendation(
+        '#searchSatuan',
+        '#btnSearchSatuan',
+        '#containerListSatuan',
+        '.item-satuan',
+        '.nama-satuan-text',
+        '#searchSatuanRekomendasi',
+        '#satuanNoResult',
+        '#satuanHint'
+    );
+
     // AJAX Tambah Kategori
     $('#formTambahKategori').on('submit', function(e) {
         e.preventDefault();
@@ -464,6 +524,21 @@ $(document).ready(function() {
                 $('select[name="merk"]').append(`<option value="${res.data.kd_merk}">${res.data.nama_merk}</option>`);
                 $('#inputNamaMerk').val('');
             }
+        });
+    });
+
+    // AJAX Tambah Satuan
+    $('#formTambahSatuan').on('submit', function(e) {
+        e.preventDefault();
+        $.post("<?php echo e(route('satuan.store')); ?>", $(this).serialize(), function(res) {
+            if(res.success) {
+                $('#containerListSatuan').prepend(`<div class="list-group-item d-flex justify-content-between align-items-center bg-light item-satuan" data-search="${res.data.nama_satuan.toLowerCase()}"><span class="nama-satuan-text">${res.data.nama_satuan}</span><button type="button" class="btn btn-sm btn-white border btn-toggle-visible-satuan" data-id="${res.data.kd_satuan}"><i class="bi bi-eye-fill text-primary"></i></button></div>`);
+                $('select[name="kd_satuan"]').append(`<option value="${res.data.kd_satuan}">${res.data.nama_satuan}</option>`);
+                $('#inputNamaSatuan').val('');
+            }
+        }).fail(function(xhr) {
+            const pesan = xhr.responseJSON?.message || 'Satuan gagal ditambahkan. Coba lagi.';
+            alert(pesan);
         });
     });
 });
