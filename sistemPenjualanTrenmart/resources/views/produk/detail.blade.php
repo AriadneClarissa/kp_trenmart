@@ -87,7 +87,7 @@
                             @else
                                 {{-- Jika Login sebagai CUSTOMER --}}
                                 @if($produk->stok_tersedia > 0)
-                                    <form action="{{ route('cart.add', $produk->kd_produk) }}" method="POST">
+                                        <form action="{{ route('cart.add', $produk->kd_produk) }}" method="POST" class="add-to-cart-form">
                                         @csrf
                                         <button type="submit" class="btn btn-buy w-100 py-3 shadow-sm">
                                             <i class="bi bi-cart-plus fs-5 me-2"></i> Tambah ke Keranjang

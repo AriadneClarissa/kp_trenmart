@@ -41,7 +41,7 @@
 
             @auth
                 @if(!auth()->user()->isAdmin())
-                    <form action="{{ route('cart.add', $item->kd_produk) }}" method="POST">
+                    <form action="{{ route('cart.add', $item->kd_produk) }}" method="POST" class="add-to-cart-form">
                         @csrf
                         <button type="submit" class="btn w-100 py-2 d-flex align-items-center justify-content-center gap-1"
                                 style="background-color: #800000; color: white; border-radius: 10px; font-weight: 600; font-size: 0.9rem;">

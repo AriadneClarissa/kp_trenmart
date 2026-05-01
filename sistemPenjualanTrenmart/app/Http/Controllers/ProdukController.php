@@ -100,7 +100,8 @@ class ProdukController extends Controller
         return view('admin.tambah_produk', [
             'source' => $source,
             'kategoris' => Kategori::all(),
-            'merks' => Merk::all()
+            'merks' => Merk::all(),
+            'satuan' => \App\Models\Satuan::all()
         ]);
     }
 
@@ -114,11 +115,9 @@ class ProdukController extends Controller
             'stok_tersedia'   => 'required|numeric',
             'kd_kategori'     => 'required',
             'kd_merk'         => 'required',
-            'satuan'          => 'required', 
+            'kd_satuan'       => 'required',
         ]);
 
-        $satuanFinal = ($request->satuan === 'Lainnya') ? $request->satuan_custom : $request->satuan;
-        
         // Simpan gambar dengan nama unik
         $imageName = time() . '_' . uniqid() . '.' . $request->gambar->extension();  
         $request->gambar->move(public_path('storage'), $imageName);
@@ -129,10 +128,10 @@ class ProdukController extends Controller
             'deskripsi'            => $request->deskripsi,
             'kd_kategori'          => $request->kd_kategori,
             'kd_merk'              => $request->kd_merk,
+            'kd_satuan'            => $request->kd_satuan,
             'harga_jual_umum'      => $request->harga_jual_umum,
             'harga_jual_langganan' => $request->harga_jual_langganan ?? $request->harga_jual_umum,
             'stok_tersedia'        => $request->stok_tersedia,
-            'satuan'               => $satuanFinal,
             'status'               => 'aktif', 
             'gambar'               => $imageName,
         ]);
@@ -143,7 +142,7 @@ class ProdukController extends Controller
 
     public function produkIndex(Request $request)
     {
-        $query = Produk::with(['merk', 'kategori']);
+        $query = Produk::with(['merk', 'kategori', 'satuanModel']);
 
         if ($request->filled('search')) {
             $query->where('nama_produk', 'like', '%' . $request->search . '%');
@@ -164,8 +163,9 @@ class ProdukController extends Controller
         }
         $kategori = Kategori::all();
         $merk = Merk::all();
+        $satuan = \App\Models\Satuan::all();
 
-        return view('admin.edit_katalog', compact('produk', 'kategori', 'merk'));
+        return view('admin.edit_katalog', compact('produk', 'kategori', 'merk', 'satuan'));
     }
 
     public function edit($kd_produk)
@@ -173,7 +173,8 @@ class ProdukController extends Controller
         $produk = Produk::where('kd_produk', $kd_produk)->firstOrFail();
         $kategoris = Kategori::all();
         $merks = Merk::all();
-        return view('admin.edit_produk', compact('produk', 'kategoris', 'merks'));
+        $satuan = \App\Models\Satuan::all();
+        return view('admin.edit_produk', compact('produk', 'kategoris', 'merks', 'satuan'));
     }
 
     public function update(Request $request, $kd_produk)
@@ -185,21 +186,20 @@ class ProdukController extends Controller
             'stok_tersedia'   => 'required|numeric',
             'kd_kategori'     => 'required',
             'kd_merk'         => 'required',
-            'satuan'          => 'required',
+            'kd_satuan'       => 'required',
         ]);
 
         $produk = Produk::where('kd_produk', $kd_produk)->firstOrFail();
-        $satuanFinal = ($request->satuan === 'Lainnya') ? $request->satuan_custom : $request->satuan;
         
         $updateData = [
             'nama_produk'          => $request->nama_produk,
             'deskripsi'            => $request->deskripsi,
             'kd_kategori'          => $request->kd_kategori,
             'kd_merk'              => $request->kd_merk,
+            'kd_satuan'            => $request->kd_satuan,
             'harga_jual_umum'      => $request->harga_jual_umum,
             'harga_jual_langganan' => $request->harga_jual_langganan ?? $request->harga_jual_umum,
             'stok_tersedia'        => $request->stok_tersedia,
-            'satuan'               => $satuanFinal,
         ];
 
         if ($request->hasFile('gambar')) {

@@ -109,9 +109,9 @@
                     <span class="fw-bold fs-5 text-maroon">Rp {{ number_format($total, 0, ',', '.') }}</span>
                 </div>
 
-                <button class="btn-checkout">
+                <a href="{{ route('checkout.index') }}" class="btn-checkout d-inline-block text-center text-decoration-none">
                     Checkout Sekarang <i class="bi bi-arrow-right ms-2"></i>
-                </button>
+                </a>
 
                 <div class="mt-3 text-center">
                     <p class="small text-muted"><i class="bi bi-shield-check me-1"></i> Pembayaran Aman & Terverifikasi</p>

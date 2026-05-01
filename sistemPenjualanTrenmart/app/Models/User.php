@@ -60,11 +60,10 @@ class User extends \Illuminate\Foundation\Auth\User
     // Tambahkan pengecekan !isAdmin agar admin tidak dianggap pending member
     public function isPendingMember(): bool
     {
-        if ($this->isAdmin()) {
-            return false;
-        }
-
-        return $this->customer_type === 'langganan' && $this->is_approved === false;
+        // Sistem sekarang tidak menggunakan mekanisme persetujuan manual.
+        // Semua akun (terutama yang dibuat oleh admin atau pendaftaran mandiri)
+        // dianggap langsung aktif, jadi tidak ada lagi status 'pending'.
+        return false;
     }
 
     public function sendPasswordResetNotification($token): void

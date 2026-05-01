@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Trenmart - PT Tren Abadi Stationeri</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
@@ -197,8 +198,14 @@
         
         <div class="d-flex d-lg-none ms-auto me-2 align-items-center">
             @if(!Auth::check() || (Auth::check() && !Auth::user()->isAdmin()))
-                <a href="{{ route('cart.index') }}" class="me-3 icon-nav">
+                <?php $cartCount = Auth::check() ? \App\Models\Keranjang::where('user_id', Auth::id())->sum('jumlah') : 0; ?>
+                <a href="{{ route('cart.index') }}" class="me-3 icon-nav position-relative">
                     <i class="bi bi-cart3"></i>
+                    @if($cartCount > 0)
+                        <span id="cart-count" class="notification-badge">{{ $cartCount > 99 ? '99+' : $cartCount }}</span>
+                    @else
+                        <span id="cart-count" class="notification-badge" style="display:none">0</span>
+                    @endif
                 </a>
             @endif
         </div>
@@ -224,7 +231,10 @@
                     @endauth
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::is('pesanan*') ? 'active' : '' }}" href="{{ route('pesanan.index') }}">Pesanan</a>
+                    <a class="nav-link {{ auth()->check() && auth()->user()->isAdmin() ? (Request::is('admin/orders*') ? 'active' : '') : (Request::is('pesanan*') ? 'active' : '') }}"
+                       href="{{ auth()->check() && auth()->user()->isAdmin() ? route('admin.orders.index') : route('pesanan.index') }}">
+                        Pesanan
+                    </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('tentang*') ? 'active' : '' }}" href="{{ route('tentang') }}">Tentang Kami</a>
@@ -243,42 +253,60 @@
                     @if(!Auth::check() || (Auth::check() && !Auth::user()->isAdmin()))
                         <a href="{{ route('cart.index') }}" class="me-3 position-relative icon-nav d-none d-lg-flex">
                             <i class="bi bi-cart3"></i>
+                            @if(isset($cartCount) && $cartCount > 0)
+                                <span id="cart-count" class="notification-badge">{{ $cartCount > 99 ? '99+' : $cartCount }}</span>
+                            @else
+                                <span id="cart-count" class="notification-badge" style="display:none">0</span>
+                            @endif
                         </a>
                     @endif
 
                     @auth
-                        @if(auth()->user()->isAdmin())
-                            <div class="dropdown me-3 d-none d-lg-flex">
-                                <a href="#" class="icon-nav notification-link" id="notificationMenu" data-bs-toggle="dropdown" aria-expanded="false" title="Notifikasi pendaftaran baru">
-                                    <i class="bi bi-bell"></i>
-                                    @if(($pendingReviewCount ?? 0) > 0)
-                                        <span class="notification-badge">{{ $pendingReviewCount > 9 ? '9+' : $pendingReviewCount }}</span>
+                        <div class="dropdown me-3 d-none d-lg-flex">
+                            <a href="#" class="icon-nav notification-link" id="notificationMenu" data-bs-toggle="dropdown" aria-expanded="false" title="Notifikasi">
+                                <i class="bi bi-bell"></i>
+                                @if(($notificationUnreadCount ?? 0) > 0)
+                                    <span class="notification-badge">{{ $notificationUnreadCount > 9 ? '9+' : $notificationUnreadCount }}</span>
+                                @endif
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-end notification-menu" aria-labelledby="notificationMenu" style="min-width: 340px;">
+                                <div class="dropdown-header border-bottom d-flex justify-content-between align-items-center">
+                                    <div class="notification-title">Notifikasi</div>
+                                    @if(($notificationUnreadCount ?? 0) > 0)
+                                        <form action="{{ route('notifications.mark_all_read') }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="btn btn-link p-0 text-decoration-none small text-primary">Tandai semua dibaca</button>
+                                        </form>
                                     @endif
-                                </a>
-                                <div class="dropdown-menu dropdown-menu-end notification-menu" aria-labelledby="notificationMenu">
-                                    <div class="dropdown-header border-bottom">
-                                        <div class="notification-title">Notifikasi Pendaftaran Baru</div>
-                                    </div>
-                                    <div class="dropdown-body">
-                                        @if(($pendingReviewCount ?? 0) > 0 && !empty($latestPendingReviewUser))
-                                            <p class="notification-text mb-3">
-                                                Pelanggan dengan user <strong>{{ $latestPendingReviewUser->name }}</strong> melakukan pendaftaran akun, lakukan tinjau!
-                                            </p>
-                                            <a href="{{ route('admin.dashboard') }}" class="btn btn-admin-dashboard btn-sm text-white w-100">
-                                                Ke Dashboard Admin
-                                            </a>
-                                        @else
-                                            <p class="notification-text mb-0 text-center">
-                                                Tidak ada pendaftaran akun yang perlu ditinjau.
-                                            </p>
-                                            <a href="{{ route('admin.dashboard') }}" class="btn btn-admin-dashboard btn-sm text-white w-100 mt-3">
-                                                Buka Dashboard Admin
-                                            </a>
-                                        @endif
-                                    </div>
+                                </div>
+                                <div class="dropdown-body p-2" style="max-height: 340px; overflow-y: auto;">
+                                    @forelse(($recentNotifications ?? collect()) as $notification)
+                                        @php
+                                            $payload = $notification->data ?? [];
+                                            $isUnread = is_null($notification->read_at);
+                                        @endphp
+                                        <a href="{{ $payload['url'] ?? '#' }}" class="d-block text-decoration-none mb-2">
+                                            <div class="p-2 rounded-3 border {{ $isUnread ? 'border-primary bg-primary-subtle' : 'border-light bg-white' }}">
+                                                <div class="d-flex align-items-start justify-content-between gap-2">
+                                                    <div>
+                                                        <div class="fw-semibold text-dark small">{{ $payload['title'] ?? 'Notifikasi' }}</div>
+                                                        <div class="text-muted small">{{ $payload['body'] ?? '' }}</div>
+                                                    </div>
+                                                    @if($isUnread)
+                                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Baru</span>
+                                                    @endif
+                                                </div>
+                                                <div class="small text-muted mt-1">{{ $notification->created_at?->diffForHumans() }}</div>
+                                            </div>
+                                        </a>
+                                    @empty
+                                        <div class="text-center text-muted small py-3">
+                                            Belum ada notifikasi.
+                                        </div>
+                                    @endforelse
                                 </div>
                             </div>
-                        @endif
+                        </div>
                     @endauth
 
                     <div class="dropdown">
@@ -332,8 +360,8 @@
                         <div class="flash-toast-badge">
                             <i class="bi {{ session('error') ? 'bi-exclamation-triangle-fill' : 'bi-check-circle-fill' }} fs-5"></i>
                         </div>
-                        <div>
-                            <div class="flash-toast-title fw-semibold text-uppercase opacity-75">
+                                        </div>
+                                    </ul>
                                 {{ session('error') ? 'Gagal' : 'Berhasil' }}
                             </div>
                             <div class="flash-toast-body fw-medium">{{ session('error') ?? session('success') }}</div>
@@ -446,4 +474,65 @@
 </script>
 @endif
 </body>
+@stack('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function showBadge(count) {
+        const el = document.getElementById('cart-count');
+        if (!el) return;
+        if (count > 0) {
+            el.style.display = 'inline-block';
+            el.textContent = count > 99 ? '99+' : count;
+        } else {
+            el.style.display = 'none';
+        }
+    }
+
+    // Attach to all add-to-cart forms
+    document.querySelectorAll('form.add-to-cart-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const action = form.getAttribute('action');
+            const formData = new FormData(form);
+
+            fetch(action, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : document.querySelector('input[name="_token"]').value
+                },
+                body: formData,
+                credentials: 'same-origin'
+            }).then(async response => {
+                const contentType = response.headers.get('content-type') || '';
+                if (contentType.indexOf('application/json') !== -1) {
+                    const data = await response.json();
+                    if (data.success) {
+                        showBadge(data.cartCount || 0);
+                        // Optional: small toast
+                        const toast = document.createElement('div');
+                        toast.className = 'flash-toast-shell';
+                        toast.innerHTML = `<div class="flash-toast-card success p-3"><div class="d-flex align-items-center"><div class="flash-toast-badge me-3">✓</div><div><div class="flash-toast-title">Berhasil</div><div class="flash-toast-body">Produk ditambahkan ke keranjang.</div></div></div><div class="flash-toast-progress mt-3"></div></div>`;
+                        document.body.appendChild(toast);
+                        setTimeout(()=>{ toast.remove(); }, 2000);
+                    } else if (data.message) {
+                        alert(data.message);
+                    }
+                } else {
+                    // Jika menerima halaman login (redirect), pindah ke halaman tersebut
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                        return;
+                    }
+                    // Fallback: reload untuk menampilkan perubahan
+                    window.location.reload();
+                }
+            }).catch(err => {
+                console.error(err);
+                window.location.reload();
+            });
+        });
+    });
+});
+</script>
 </html>

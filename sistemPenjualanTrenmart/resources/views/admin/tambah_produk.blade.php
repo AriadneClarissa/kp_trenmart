@@ -38,10 +38,18 @@
                         </select>
 
                         <label class="form-label mt-2">Merk</label>
-                        <select class="form-select" name="kd_merk" required>
+                        <select class="form-select mb-3" name="kd_merk" required>
                             <option value="" selected disabled>Pilih Merk</option>
                             @foreach($merks as $m)
                                 <option value="{{ $m->kd_merk }}">{{ $m->nama_merk }}</option>
+                            @endforeach
+                        </select>
+
+                        <label class="form-label mt-2">Satuan</label>
+                        <select class="form-select" name="kd_satuan" required>
+                            <option value="" selected disabled>Pilih Satuan</option>
+                            @foreach($satuan as $sat)
+                                <option value="{{ $sat->kd_satuan }}">{{ $sat->nama_satuan }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -87,15 +95,12 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label text-muted small">Satuan</label>
-                                <select name="satuan" class="form-select" id="satuan_select" onchange="toggleSatuanManual()" required>
-                                    <option value="" disabled selected>Pilih...</option>
-                                    <option value="Pcs">Pcs</option>
-                                    <option value="Pak">Pak</option>
-                                    <option value="Lusin">Lusin</option>
-                                    <option value="Karton">Karton</option>
-                                    <option value="Lainnya">Lainnya...</option>
+                                <select name="kd_satuan" class="form-select" required>
+                                    <option value="" selected disabled>Pilih Satuan</option>
+                                    @foreach($satuan as $sat)
+                                        <option value="{{ $sat->kd_satuan }}">{{ $sat->nama_satuan }}</option>
+                                    @endforeach
                                 </select>
-                                <input type="text" name="satuan_custom" id="satuan_manual" class="form-control mt-2" style="display:none;" placeholder="Ketik satuan...">
                             </div>
                         </div>
                     </div>
@@ -129,19 +134,6 @@
                 placeholder.classList.add('d-none');
             }
             reader.readAsDataURL(input.files[0]);
-        }
-    }
-
-    function toggleSatuanManual() {
-        var select = document.getElementById('satuan_select');
-        var manualInput = document.getElementById('satuan_manual');
-        if (select.value === 'Lainnya') {
-            manualInput.style.display = 'block';
-            manualInput.required = true;
-            manualInput.focus();
-        } else {
-            manualInput.style.display = 'none';
-            manualInput.required = false;
         }
     }
 </script>

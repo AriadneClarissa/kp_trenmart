@@ -15,6 +15,7 @@ class Produk extends Model
         'kd_produk', 
         'kd_kategori', 
         'kd_merk', 
+        'kd_satuan',
         'nama_produk', 
         'deskripsi',           
         'harga_jual_umum',     
@@ -37,5 +38,11 @@ class Produk extends Model
     public function merk()
     {
         return $this->belongsTo(Merk::class, 'kd_merk', 'kd_merk');
+    }
+
+    // Relasi ke Satuan
+    public function satuanModel()
+    {
+        return $this->belongsTo(Satuan::class, 'kd_satuan', 'kd_satuan');
     }
 }

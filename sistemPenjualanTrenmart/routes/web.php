@@ -7,6 +7,7 @@ use App\Http\Controllers\MerkController;
 use App\Http\Controllers\KeranjangController;
 use App\Http\Controllers\KatalogController; 
 use App\Http\Controllers\TentangController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use Illuminate\Support\Facades\Route;
@@ -31,9 +32,9 @@ Route::middleware(['guest'])->group(function () {
     Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
     Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('password.store');
 
-    // JALUR KHUSUS ADMIN (Link Login Terpisah)
-    Route::get('/internal-trenmart-admin', function () { return view('auth.login_admin'); })->name('admin.login');
-    Route::post('/internal-trenmart-admin', [AuthController::class, 'login']); 
+    // JALUR KHUSUS ADMIN (Alias ke login utama)
+    Route::get('/internal-trenmart-admin', function () { return redirect()->route('login'); })->name('admin.login');
+    Route::post('/internal-trenmart-admin', [AuthController::class, 'login']);
 
     // Google Login
     Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->name('auth.google');
@@ -55,9 +56,13 @@ Route::middleware(['auth'])->group(function () {
 
     // --- FITUR PELANGGAN ---
     Route::get('/dashboard', function () { return redirect()->route('beranda'); })->name('dashboard');
-    Route::get('/pesanan', function () { return view('pesanan'); })->name('pesanan.index');
+    Route::get('/pesanan', [\App\Http\Controllers\OrderController::class, 'index'])->name('pesanan.index');
+    Route::get('/pesanan/{order}', [\App\Http\Controllers\OrderController::class, 'show'])->name('pesanan.show');
+    Route::post('/pesanan/{order}/message', [\App\Http\Controllers\OrderMessageController::class, 'store'])->name('orders.messages.store');
+    Route::post('/notifikasi/tandai-semua', [NotificationController::class, 'markAllRead'])->name('notifications.mark_all_read');
     Route::get('/profil', [AuthController::class, 'profile'])->name('profile.edit');
     Route::put('/profil', [AuthController::class, 'updateProfile'])->name('profile.update');
+    Route::put('/profil/password', [AuthController::class, 'updatePassword'])->name('profile.password.update');
     
 
     // --- FITUR KERANJANG ---
@@ -67,10 +72,17 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/keranjang/hapus/{id}', [KeranjangController::class, 'destroy'])->name('cart.remove');
     Route::get('/cart/sidebar-content', [ProdukController::class, 'getSidebarContent'])->name('cart.sidebar.content');
 
+    // --- CHECKOUT & PEMBAYARAN ---
+    Route::get('/checkout', [\App\Http\Controllers\CheckoutController::class, 'index'])->name('checkout.index');
+    Route::post('/checkout/place-order', [\App\Http\Controllers\CheckoutController::class, 'placeOrder'])->name('checkout.place_order');
+    Route::get('/checkout/{order}/upload-proof', [\App\Http\Controllers\CheckoutController::class, 'uploadProof'])->name('checkout.upload_proof');
+    Route::post('/checkout/{order}/store-proof', [\App\Http\Controllers\CheckoutController::class, 'storeProof'])->name('checkout.store_proof');
+    Route::get('/checkout/{order}/waiting', [\App\Http\Controllers\CheckoutController::class, 'waiting'])->name('checkout.waiting');
+
     // --- 4. GRUP KHUSUS ADMIN (Hanya Bisa Diakses Role Admin) ---
     Route::middleware(['admin'])->prefix('admin')->group(function () {
         
-        Route::get('/dashboard', [AuthController::class, 'adminDashboard'])->name('admin.dashboard');
+        Route::get('/dashboard', [\App\Http\Controllers\AdminUserController::class, 'index'])->name('admin.dashboard');
         
         // Pengaturan Tampilan & Search
         Route::get('/edit-judul', [KatalogController::class, 'editJudul'])->name('admin.judul.edit');
@@ -90,6 +102,8 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/kategori/hapus/{id}', [KategoriController::class, 'destroy'])->name('kategori.destroy');
         Route::post('/merk/simpan', [MerkController::class, 'store'])->name('merk.store');
         Route::delete('/merk/hapus/{id}', [MerkController::class, 'destroy'])->name('merk.destroy');
+        Route::post('/satuan/simpan', [\App\Http\Controllers\SatuanController::class, 'store'])->name('satuan.store');
+        Route::delete('/satuan/hapus/{id}', [\App\Http\Controllers\SatuanController::class, 'destroy'])->name('satuan.destroy');
 
         Route::put('/tentang/update', [TentangController::class, 'update'])->name('admin.tentang.update');
 
@@ -99,5 +113,27 @@ Route::middleware(['auth'])->group(function () {
 
         // Ubah Banner
         Route::post('/banner/update', [AuthController::class, 'updateBanner'])->name('admin.banner.update');
+
+        // Admin - Metode Pembayaran
+        Route::get('/payment-methods', [\App\Http\Controllers\AdminPaymentMethodController::class, 'index'])->name('admin.payment_methods.index');
+        Route::post('/payment-methods', [\App\Http\Controllers\AdminPaymentMethodController::class, 'store'])->name('admin.payment_methods.store');
+        Route::delete('/payment-methods/{id}', [\App\Http\Controllers\AdminPaymentMethodController::class, 'destroy'])->name('admin.payment_methods.destroy');
+
+        // Admin - Orders
+        Route::get('/orders', [\App\Http\Controllers\AdminOrderController::class, 'index'])->name('admin.orders.index');
+        Route::get('/orders/{id}', [\App\Http\Controllers\AdminOrderController::class, 'show'])->name('admin.orders.show');
+        Route::post('/orders/{id}/confirm', [\App\Http\Controllers\AdminOrderController::class, 'confirmPayment'])->name('admin.orders.confirm');
+        Route::post('/orders/{id}/reject', [\App\Http\Controllers\AdminOrderController::class, 'rejectPayment'])->name('admin.orders.reject');
+
+        // Admin - Users & Customers
+        Route::get('/users', [\App\Http\Controllers\AdminUserController::class, 'index'])->name('admin.users.index');
+        Route::get('/users/create', [\App\Http\Controllers\AdminUserController::class, 'create'])->name('admin.users.create');
+        Route::post('/users', [\App\Http\Controllers\AdminUserController::class, 'store'])->name('admin.users.store');
+
+        Route::get('/customers', [\App\Http\Controllers\AdminUserController::class, 'customers'])->name('admin.customers.index');
+
+        // Admin - Create Admin Account
+        Route::get('/admins/create', [\App\Http\Controllers\AdminUserController::class, 'createAdmin'])->name('admin.admins.create');
+        Route::post('/admins', [\App\Http\Controllers\AdminUserController::class, 'storeAdmin'])->name('admin.admins.store');
     });
 });

@@ -12,6 +12,24 @@
     /* Search Kategori Style */
     .search-kategori { background-color: #f1f1f1; border: none; border-radius: 50px; padding: 10px 15px; font-size: 14px; }
     
+    /* Table Responsive & Full Width */
+    .table-responsive { overflow-x: auto; }
+    .table { font-size: 14px; }
+    .table th { background-color: #f8f9fa; font-weight: 600; white-space: nowrap; }
+    .table td { padding: 12px 8px; }
+    
+    /* Column Width Optimization */
+    .table thead th:nth-child(1) { width: 70px; min-width: 70px; }
+    .table thead th:nth-child(2) { width: 100px; min-width: 100px; }
+    .table thead th:nth-child(3) { width: auto; min-width: 150px; }
+    .table thead th:nth-child(4) { width: 90px; min-width: 90px; }
+    .table thead th:nth-child(5) { width: 100px; min-width: 100px; }
+    .table thead th:nth-child(6) { width: 110px; min-width: 110px; }
+    .table thead th:nth-child(7) { width: 120px; min-width: 120px; }
+    .table thead th:nth-child(8) { width: 70px; min-width: 70px; }
+    .table thead th:nth-child(9) { width: 80px; min-width: 80px; }
+    .table thead th:nth-child(10) { width: 140px; min-width: 140px; text-align: right; }
+    
     /* List Kategori Style (Sesuai Gambar Mockup) */
     .list-kategori { max-height: 400px; overflow-y: auto; scrollbar-width: none; }
     .list-kategori::-webkit-scrollbar { display: none; }
@@ -67,61 +85,49 @@
 @endpush
 
 @section('content')
-<div class="container mt-4 mb-5">
+<div class="container-fluid mt-4 mb-5 px-4">
     <div class="row">
-        
-        {{-- 1. SIDEBAR KIRI --}}
-        <div class="col-md-3">
-            <div class="sidebar-container">
-                
-                {{-- KHUSUS ADMIN: Tombol Kelola --}}
-                @auth
-                    @if(auth()->user()->isAdmin())
-                    <div class="card-sidebar mb-4" style="border: 1px solid #ffc107;">
-                        <div class="sidebar-header-admin"><i class="bi bi-shield-lock-fill me-2"></i>Panel Admin</div>
-                        <div class="p-3">
-                            <button class="btn-admin-panel shadow-sm" style="background-color: #55bdff;" data-bs-toggle="modal" data-bs-target="#modalKelolaKategori">
-                                Kelola Kategori
-                            </button>
-                            <button class="btn-admin-panel shadow-sm" style="background-color: #198754;" data-bs-toggle="modal" data-bs-target="#modalKelolaMerk">
-                                Kelola Merk
-                            </button>
-                        </div>
-                    </div>
-                    @endif
-                @endauth
-
-                {{-- SEMUA USER: Sidebar Kategori Sesuai Gambar --}}
-                <div class="card-sidebar p-4">
-                    <h6 class="fw-bold mb-3">Kategori</h6>
-                    <div class="mb-3">
-                        <input type="text" id="searchKategori" class="form-control search-kategori" placeholder="Cari kategori...">
-                    </div>
-                    <div class="list-kategori" id="kategoriList">
-                        <a href="{{ route('produk.index', ['search' => request('search'), 'merk' => request('merk')]) }}" class="kat-item {{ !request('kategori') ? 'active' : '' }}">
-                            Semua Produk <i class="bi bi-chevron-right small"></i>
-                        </a>
-                        @foreach($kategori as $kat)
-                            <a href="{{ route('produk.index', ['kategori' => $kat->kd_kategori, 'search' => request('search'), 'merk' => request('merk')]) }}" class="kat-item {{ request('kategori') == $kat->kd_kategori ? 'active' : '' }}">
-                                {{ $kat->nama_kategori }} <i class="bi bi-chevron-right small"></i>
-                            </a>
-                        @endforeach
-                    </div>
+        {{-- ADMIN PANEL BUTTONS (Full Width) --}}
+        @auth
+            @if(auth()->user()->isAdmin())
+            <div class="col-12 mb-4">
+                <div class="card-sidebar p-3 d-flex gap-2 align-items-center flex-wrap" style="border: 1px solid #ffc107;">
+                    <div class="sidebar-header-admin flex-grow-1"><i class="bi bi-shield-lock-fill me-2"></i>Panel Admin</div>
+                    <button class="btn btn-sm btn-primary" style="background-color: #55bdff; border: none;" data-bs-toggle="modal" data-bs-target="#modalKelolaKategori">
+                        <i class="bi bi-plus-circle me-1"></i> Kelola Kategori
+                    </button>
+                    <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalKelolaMerk">
+                        <i class="bi bi-plus-circle me-1"></i> Kelola Merk
+                    </button>
+                    <button class="btn btn-sm btn-warning" style="border: none; color: white;" data-bs-toggle="modal" data-bs-target="#modalKelolaSatuan">
+                        <i class="bi bi-plus-circle me-1"></i> Kelola Satuan
+                    </button>
+                    <a href="{{ route('produk.create') }}" class="btn btn-sm btn-danger">
+                        <i class="bi bi-plus-circle me-1"></i> Tambah Produk
+                    </a>
                 </div>
             </div>
-        </div>
+            @endif
+        @endauth
 
-        {{-- 2. AREA UTAMA --}}
-        <div class="col-md-9">
-            <form action="{{ route('produk.index') }}" method="GET" class="row g-3 mb-4 align-items-center">
-                <div class="col-md-6">
+        {{-- FILTERS (Full Width) --}}
+        <div class="col-12">
+            <form action="{{ route('produk.index') }}" method="GET" class="row g-2 mb-4 align-items-center">
+                <div class="col-12 col-md-4">
                     <div class="filter-pill">
                         <i class="bi bi-search text-muted me-2"></i>
                         <input type="text" name="search" class="input-filter" placeholder="Cari produk..." value="{{ request('search') }}">
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <input type="hidden" name="kategori" value="{{ request('kategori') }}">
+                <div class="col-12 col-md-3">
+                    <select name="kategori" class="select-filter" onchange="this.form.submit()">
+                        <option value="">Semua Kategori</option>
+                        @foreach($kategori as $kat)
+                            <option value="{{ $kat->kd_kategori }}" {{ request('kategori') == $kat->kd_kategori ? 'selected' : '' }}>{{ $kat->nama_kategori }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-12 col-md-3">
                     <select name="merk" class="select-filter" onchange="this.form.submit()">
                         <option value="">Semua Merek</option>
                         @foreach($merk as $m)
@@ -129,48 +135,87 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-3 text-end text-muted small d-none d-md-block">
+                <div class="col-12 col-md-2 text-end text-muted small">
                     {{ count($produk) }} produk ditemukan
                 </div>
             </form>
+        </div>
 
-            <div class="row row-cols-2 row-cols-md-3 g-4">
-                @forelse($produk as $p)
-                <div class="col">
-                    <div class="card card-produk p-3" style="cursor: pointer;" onclick="window.location.href='{{ route('produk.detail', ['id' => $p->kd_produk, 'from' => 'produk.index']) }}'">
-                        <div class="img-container mb-3">
-                            @if($p->stok_tersedia > 0)
-                                <span class="badge bg-success position-absolute top-0 start-0 m-2 px-2 py-1 shadow-sm" style="font-size: 10px;">Tersedia</span>
-                            @else
-                                <span class="badge bg-danger position-absolute top-0 start-0 m-2 px-2 py-1 shadow-sm" style="font-size: 10px;">Habis</span>
-                            @endif
-                            <img src="{{ asset('storage/' . $p->gambar) }}" class="img-fluid" style="height: 140px; object-fit: contain;">
-                        </div>
-                        <div class="product-info text-center">
-                            <p class="text-muted small mb-1">{{ $p->merk->nama_merk ?? 'Tanpa Merk' }}</p>
-                            <h6 class="fw-bold text-dark text-truncate mb-2">{{ $p->nama_produk }}</h6>
-                            <h5 class="fw-bold mb-1" style="color: var(--maroon);">
-                                Rp {{ number_format(($p->harga_tampil > 0 ? $p->harga_tampil : $p->harga_jual_umum), 0, ',', '.') }}
-                            </h5>
-                            @auth
-                                @if(auth()->user()->isAdmin())
-                                    <p class="mb-3 fw-semibold" style="color: #f08a24; font-size: 0.95rem;">
-                                        Langganan: Rp {{ number_format($p->harga_jual_langganan ?? $p->harga_jual_umum, 0, ',', '.') }}
-                                    </p>
-                                @endif
-                            @endauth
-                            <span class="btn btn-detail">
-                                <i class="bi bi-eye me-1"></i> Lihat Detail
-                            </span>
-                        </div>
-                    </div>
+        {{-- TABLE (Full Width) --}}
+        <div class="col-12">
+
+            <div class="card shadow-sm border-0" style="border-radius: 18px; overflow: hidden;">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 70px;">Foto</th>
+                                <th>Kode</th>
+                                <th>Nama Produk</th>
+                                <th>Merek</th>
+                                <th>Kategori</th>
+                                <th>Harga Umum</th>
+                                <th>Harga Langganan</th>
+                                <th>Stok</th>
+                                <th>Status</th>
+                                <th class="text-end">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($produk as $p)
+                                <tr>
+                                    <td>
+                                        <div class="rounded-3 bg-light d-flex align-items-center justify-content-center" style="width: 52px; height: 52px; overflow: hidden;">
+                                            <img src="{{ asset('storage/' . $p->gambar) }}" alt="{{ $p->nama_produk }}" style="width: 100%; height: 100%; object-fit: contain;">
+                                        </div>
+                                    </td>
+                                    <td class="fw-semibold">{{ $p->kd_produk }}</td>
+                                    <td>
+                                        <div class="fw-semibold text-dark">{{ $p->nama_produk }}</div>
+                                        @if(!empty($p->deskripsi))
+                                            <div class="small text-muted text-truncate" style="max-width: 260px;">{{ $p->deskripsi }}</div>
+                                        @endif
+                                    </td>
+                                    <td>{{ $p->merk->nama_merk ?? 'Tanpa Merk' }}</td>
+                                    <td>{{ $p->kategori->nama_kategori ?? '-' }}</td>
+                                    <td>
+                                        <div class="fw-bold" style="color: var(--maroon);">
+                                            Rp {{ number_format($p->harga_jual_umum ?? 0, 0, ',', '.') }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold" style="color: #f08a24;">
+                                            Rp {{ number_format($p->harga_jual_langganan ?? $p->harga_jual_umum ?? 0, 0, ',', '.') }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="fw-semibold">{{ $p->stok_tersedia }}</span>
+                                        <span class="text-muted small d-block">{{ $p->satuan ?? 'pcs' }}</span>
+                                    </td>
+                                    <td>
+                                        @if(($p->status ?? 'aktif') === 'aktif')
+                                            <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle">Aktif</span>
+                                        @else
+                                            <span class="badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle">Nonaktif</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{{ route('produk.edit', $p->kd_produk) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                            <i class="bi bi-pencil-square me-1"></i> Edit Produk
+                                        </a>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="10" class="text-center py-5">
+                                        <i class="bi bi-box-seam text-muted" style="font-size: 3rem; opacity: 0.3;"></i>
+                                        <div class="mt-2 fw-semibold">Produk tidak tersedia</div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
-                @empty
-                <div class="empty-produk-state py-5">
-                    <i class="bi bi-box-seam text-muted" style="font-size: 4rem; opacity: 0.3;"></i>
-                    <h5 class="mt-3">Produk tidak tersedia</h5>
-                </div>
-                @endforelse
             </div>
         </div>
     </div>
@@ -247,6 +292,46 @@
                                 <span class="nama-merk-text">{{ $m->nama_merk }}</span>
                                 <button type="button" class="btn btn-sm btn-white border btn-toggle-visible" data-id="{{ $m->kd_merk }}">
                                     <i class="bi {{ $m->is_hidden ? 'bi-eye-slash-fill text-danger' : 'bi-eye-fill text-primary' }}"></i>
+                                </button>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pb-4">
+                    <button class="btn btn-danger w-100 py-2 fw-bold rounded-pill" onclick="window.location.reload();">Selesai</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalKelolaSatuan" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow" style="border-radius: 20px;">
+                <div class="modal-header border-0 pt-4 px-4">
+                    <h5 class="fw-bold">Kelola Satuan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-4">
+                    <form id="formTambahSatuan">
+                        @csrf
+                        <div class="input-group mb-3 shadow-sm border rounded-pill overflow-hidden">
+                            <input type="text" id="inputNamaSatuan" name="nama_satuan" class="form-control border-0 px-3" placeholder="Tambah satuan baru (pcs, box, rim, lusin, dll)..." required>
+                            <button class="btn btn-success border-0 px-4" type="submit"><i class="bi bi-plus-lg"></i></button>
+                        </div>
+                    </form>
+                    <div class="input-group mb-2 shadow-sm border rounded-pill overflow-hidden bg-light">
+                        <input type="text" id="searchSatuan" class="form-control border-0 bg-transparent ps-3" placeholder="Cari satuan...">
+                        <button type="button" id="btnSearchSatuan" class="btn btn-light border-0 px-4"><i class="bi bi-search text-muted"></i></button>
+                    </div>
+                    <div id="searchSatuanRekomendasi" class="list-group shadow-sm rounded-3 overflow-hidden mb-3 d-none" style="max-height: 180px; overflow-y: auto;"></div>
+                    <div class="small text-muted mb-2 d-none" id="satuanNoResult">Tidak ada satuan yang cocok.</div>
+                    <div class="small text-muted mb-2 d-none" id="satuanHint">Ketik nama satuan untuk melihat rekomendasi.</div>
+                    <div class="list-group border shadow-sm rounded-3 overflow-hidden" id="containerListSatuan" style="max-height: 250px; overflow-y: auto;">
+                        @foreach($satuan as $sat)
+                            <div class="list-group-item d-flex justify-content-between align-items-center bg-light item-satuan" data-search="{{ strtolower($sat->nama_satuan) }}">
+                                <span class="nama-satuan-text">{{ $sat->nama_satuan }}</span>
+                                <button type="button" class="btn btn-sm btn-white border btn-toggle-visible-satuan" data-id="{{ $sat->kd_satuan }}">
+                                    <i class="bi {{ $sat->is_hidden ? 'bi-eye-slash-fill text-danger' : 'bi-eye-fill text-primary' }}"></i>
                                 </button>
                             </div>
                         @endforeach
@@ -380,6 +465,17 @@ $(document).ready(function() {
         '#merkHint'
     );
 
+    setupSearchRecommendation(
+        '#searchSatuan',
+        '#btnSearchSatuan',
+        '#containerListSatuan',
+        '.item-satuan',
+        '.nama-satuan-text',
+        '#searchSatuanRekomendasi',
+        '#satuanNoResult',
+        '#satuanHint'
+    );
+
     // AJAX Tambah Kategori
     $('#formTambahKategori').on('submit', function(e) {
         e.preventDefault();
@@ -425,6 +521,21 @@ $(document).ready(function() {
                 $('select[name="merk"]').append(`<option value="${res.data.kd_merk}">${res.data.nama_merk}</option>`);
                 $('#inputNamaMerk').val('');
             }
+        });
+    });
+
+    // AJAX Tambah Satuan
+    $('#formTambahSatuan').on('submit', function(e) {
+        e.preventDefault();
+        $.post("{{ route('satuan.store') }}", $(this).serialize(), function(res) {
+            if(res.success) {
+                $('#containerListSatuan').prepend(`<div class="list-group-item d-flex justify-content-between align-items-center bg-light item-satuan" data-search="${res.data.nama_satuan.toLowerCase()}"><span class="nama-satuan-text">${res.data.nama_satuan}</span><button type="button" class="btn btn-sm btn-white border btn-toggle-visible-satuan" data-id="${res.data.kd_satuan}"><i class="bi bi-eye-fill text-primary"></i></button></div>`);
+                $('select[name="kd_satuan"]').append(`<option value="${res.data.kd_satuan}">${res.data.nama_satuan}</option>`);
+                $('#inputNamaSatuan').val('');
+            }
+        }).fail(function(xhr) {
+            const pesan = xhr.responseJSON?.message || 'Satuan gagal ditambahkan. Coba lagi.';
+            alert(pesan);
         });
     });
 });
