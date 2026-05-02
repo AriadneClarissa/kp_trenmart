@@ -180,7 +180,7 @@
                                     </a>
                                 <?php else: ?>
                                     
-                                    <form action="<?php echo e(route('cart.add', $p->kd_produk)); ?>" method="POST" class="mt-2">
+                                    <form action="<?php echo e(route('cart.add', $p->kd_produk)); ?>" method="POST" class="mt-2 add-to-cart-form">
                                         <?php echo csrf_field(); ?>
                                         <button type="submit" class="btn-action btn-tambah shadow-sm">
                                             <i class="bi bi-plus-lg me-1"></i> Tambah
@@ -189,7 +189,7 @@
                                 <?php endif; ?>
                             <?php else: ?>
                                 
-                                <form action="<?php echo e(route('cart.add', $p->kd_produk)); ?>" method="POST" class="mt-2">
+                                <form action="<?php echo e(route('cart.add', $p->kd_produk)); ?>" method="POST" class="mt-2 add-to-cart-form">
                                     <?php echo csrf_field(); ?>
                                     <button type="submit" class="btn-action btn-tambah shadow-sm">
                                         <i class="bi bi-plus-lg me-1"></i> Tambah

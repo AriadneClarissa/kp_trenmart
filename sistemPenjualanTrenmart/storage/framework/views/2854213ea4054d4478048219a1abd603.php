@@ -97,6 +97,35 @@
                     </form>
                 </div>
             </div>
+
+            <div class="card border-0 shadow-sm rounded-3 mt-4">
+                <div class="card-body p-4">
+                    <h5 class="mb-3">Ganti Kata Sandi</h5>
+                    <form action="<?php echo e(route('profile.password.update')); ?>" method="POST">
+                        <?php echo csrf_field(); ?>
+                        <?php echo method_field('PUT'); ?>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Kata Sandi Saat Ini</label>
+                            <input type="password" name="current_password" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Kata Sandi Baru</label>
+                            <input type="password" name="new_password" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Konfirmasi Kata Sandi Baru</label>
+                            <input type="password" name="new_password_confirmation" class="form-control" required>
+                        </div>
+
+                        <div class="text-end">
+                            <button class="btn btn-primary">Simpan Kata Sandi</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>

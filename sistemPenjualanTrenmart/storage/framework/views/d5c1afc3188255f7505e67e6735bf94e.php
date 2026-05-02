@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Trenmart - PT Tren Abadi Stationeri</title>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
@@ -186,28 +186,28 @@
         @media (min-width: 992px) { .main-container { max-width: 960px; } }
         @media (min-width: 1200px) { .main-container { max-width: 1140px; } }
     </style>
-    @stack('styles')
+    <?php echo $__env->yieldPushContent('styles'); ?>
 </head>
 <body>
 
 <nav class="navbar navbar-expand-lg bg-white sticky-top shadow-sm">
     <div class="container">
-        <a class="navbar-brand" href="{{ route('dashboard') }}">
-            <img src="{{ asset('images/logotrenmart.png') }}" alt="Logo">
+        <a class="navbar-brand" href="<?php echo e(route('dashboard')); ?>">
+            <img src="<?php echo e(asset('images/logotrenmart.png')); ?>" alt="Logo">
         </a>
         
         <div class="d-flex d-lg-none ms-auto me-2 align-items-center">
-            @if(!Auth::check() || (Auth::check() && !Auth::user()->isAdmin()))
+            <?php if(!Auth::check() || (Auth::check() && !Auth::user()->isAdmin())): ?>
                 <?php $cartCount = Auth::check() ? \App\Models\Keranjang::where('user_id', Auth::id())->sum('jumlah') : 0; ?>
-                <a href="{{ route('cart.index') }}" class="me-3 icon-nav position-relative">
+                <a href="<?php echo e(route('cart.index')); ?>" class="me-3 icon-nav position-relative">
                     <i class="bi bi-cart3"></i>
-                    @if($cartCount > 0)
-                        <span id="cart-count" class="notification-badge">{{ $cartCount > 99 ? '99+' : $cartCount }}</span>
-                    @else
+                    <?php if($cartCount > 0): ?>
+                        <span id="cart-count" class="notification-badge"><?php echo e($cartCount > 99 ? '99+' : $cartCount); ?></span>
+                    <?php else: ?>
                         <span id="cart-count" class="notification-badge" style="display:none">0</span>
-                    @endif
+                    <?php endif; ?>
                 </a>
-            @endif
+            <?php endif; ?>
         </div>
 
         <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -217,97 +217,97 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::is('/') ? 'active' : '' }}" href="{{ route('dashboard') }}">Beranda</a>
+                    <a class="nav-link <?php echo e(Request::is('/') ? 'active' : ''); ?>" href="<?php echo e(route('dashboard')); ?>">Beranda</a>
                 </li>
                 <li class="nav-item">
-                    @auth
-                        @if(auth()->user()->isAdmin())
-                            <a class="nav-link {{ Request::is('admin/produk*') ? 'active' : '' }}" href="{{ route('produk.index') }}">Produk</a>
-                        @else
-                            <a class="nav-link {{ Request::is('katalog*') ? 'active' : '' }}" href="{{ route('katalog') }}">Produk</a>
-                        @endif
-                    @else
-                        <a class="nav-link {{ Request::is('katalog*') ? 'active' : '' }}" href="{{ route('katalog') }}">Produk</a>
-                    @endauth
+                    <?php if(auth()->guard()->check()): ?>
+                        <?php if(auth()->user()->isAdmin()): ?>
+                            <a class="nav-link <?php echo e(Request::is('admin/produk*') ? 'active' : ''); ?>" href="<?php echo e(route('produk.index')); ?>">Produk</a>
+                        <?php else: ?>
+                            <a class="nav-link <?php echo e(Request::is('katalog*') ? 'active' : ''); ?>" href="<?php echo e(route('katalog')); ?>">Produk</a>
+                        <?php endif; ?>
+                    <?php else: ?>
+                        <a class="nav-link <?php echo e(Request::is('katalog*') ? 'active' : ''); ?>" href="<?php echo e(route('katalog')); ?>">Produk</a>
+                    <?php endif; ?>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ auth()->check() && auth()->user()->isAdmin() ? (Request::is('admin/orders*') ? 'active' : '') : (Request::is('pesanan*') ? 'active' : '') }}"
-                       href="{{ auth()->check() && auth()->user()->isAdmin() ? route('admin.orders.index') : route('pesanan.index') }}">
+                    <a class="nav-link <?php echo e(auth()->check() && auth()->user()->isAdmin() ? (Request::is('admin/orders*') ? 'active' : '') : (Request::is('pesanan*') ? 'active' : '')); ?>"
+                       href="<?php echo e(auth()->check() && auth()->user()->isAdmin() ? route('admin.orders.index') : route('pesanan.index')); ?>">
                         Pesanan
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::is('tentang*') ? 'active' : '' }}" href="{{ route('tentang') }}">Tentang Kami</a>
+                    <a class="nav-link <?php echo e(Request::is('tentang*') ? 'active' : ''); ?>" href="<?php echo e(route('tentang')); ?>">Tentang Kami</a>
                 </li>
             </ul>
 
             <div class="d-flex flex-column flex-lg-row align-items-lg-center ms-auto">
-                <form class="d-flex mb-3 mb-lg-0 me-lg-3 w-100" action="{{ Auth::check() && Auth::user()->isAdmin() ? route('produk.index') : route('katalog') }}" method="GET">
+                <form class="d-flex mb-3 mb-lg-0 me-lg-3 w-100" action="<?php echo e(Auth::check() && Auth::user()->isAdmin() ? route('produk.index') : route('katalog')); ?>" method="GET">
                     <div class="input-group w-100">
-                        <input name="search" class="form-control search-bar" type="search" placeholder="Cari produk..." value="{{ request('search') }}">
+                        <input name="search" class="form-control search-bar" type="search" placeholder="Cari produk..." value="<?php echo e(request('search')); ?>">
                         <button class="btn btn-search" type="submit"><i class="bi bi-search"></i></button>
                     </div>
                 </form>
 
                 <div class="d-flex align-items-center justify-content-between justify-content-lg-end">
-                    @if(!Auth::check() || (Auth::check() && !Auth::user()->isAdmin()))
-                        <a href="{{ route('cart.index') }}" class="me-3 position-relative icon-nav d-none d-lg-flex">
+                    <?php if(!Auth::check() || (Auth::check() && !Auth::user()->isAdmin())): ?>
+                        <a href="<?php echo e(route('cart.index')); ?>" class="me-3 position-relative icon-nav d-none d-lg-flex">
                             <i class="bi bi-cart3"></i>
-                            @if(isset($cartCount) && $cartCount > 0)
-                                <span id="cart-count" class="notification-badge">{{ $cartCount > 99 ? '99+' : $cartCount }}</span>
-                            @else
+                            <?php if(isset($cartCount) && $cartCount > 0): ?>
+                                <span id="cart-count" class="notification-badge"><?php echo e($cartCount > 99 ? '99+' : $cartCount); ?></span>
+                            <?php else: ?>
                                 <span id="cart-count" class="notification-badge" style="display:none">0</span>
-                            @endif
+                            <?php endif; ?>
                         </a>
-                    @endif
+                    <?php endif; ?>
 
-                    @auth
+                    <?php if(auth()->guard()->check()): ?>
                         <div class="dropdown me-3 d-none d-lg-flex">
                             <a href="#" class="icon-nav notification-link" id="notificationMenu" data-bs-toggle="dropdown" aria-expanded="false" title="Notifikasi">
                                 <i class="bi bi-bell"></i>
-                                @if(($notificationUnreadCount ?? 0) > 0)
-                                    <span class="notification-badge">{{ $notificationUnreadCount > 9 ? '9+' : $notificationUnreadCount }}</span>
-                                @endif
+                                <?php if(($notificationUnreadCount ?? 0) > 0): ?>
+                                    <span class="notification-badge"><?php echo e($notificationUnreadCount > 9 ? '9+' : $notificationUnreadCount); ?></span>
+                                <?php endif; ?>
                             </a>
                             <div class="dropdown-menu dropdown-menu-end notification-menu" aria-labelledby="notificationMenu" style="min-width: 340px;">
                                 <div class="dropdown-header border-bottom d-flex justify-content-between align-items-center">
                                     <div class="notification-title">Notifikasi</div>
-                                    @if(($notificationUnreadCount ?? 0) > 0)
-                                        <form action="{{ route('notifications.mark_all_read') }}" method="POST">
-                                            @csrf
+                                    <?php if(($notificationUnreadCount ?? 0) > 0): ?>
+                                        <form action="<?php echo e(route('notifications.mark_all_read')); ?>" method="POST">
+                                            <?php echo csrf_field(); ?>
                                             <button type="submit" class="btn btn-link p-0 text-decoration-none small text-primary">Tandai semua dibaca</button>
                                         </form>
-                                    @endif
+                                    <?php endif; ?>
                                 </div>
                                 <div class="dropdown-body p-2" style="max-height: 340px; overflow-y: auto;">
-                                    @forelse(($recentNotifications ?? collect()) as $notification)
-                                        @php
+                                    <?php $__empty_1 = true; $__currentLoopData = ($recentNotifications ?? collect()); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $notification): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                        <?php
                                             $payload = $notification->data ?? [];
                                             $isUnread = is_null($notification->read_at);
-                                        @endphp
-                                        <a href="{{ $payload['url'] ?? '#' }}" class="d-block text-decoration-none mb-2">
-                                            <div class="p-2 rounded-3 border {{ $isUnread ? 'border-primary bg-primary-subtle' : 'border-light bg-white' }}">
+                                        ?>
+                                        <a href="<?php echo e($payload['url'] ?? '#'); ?>" class="d-block text-decoration-none mb-2">
+                                            <div class="p-2 rounded-3 border <?php echo e($isUnread ? 'border-primary bg-primary-subtle' : 'border-light bg-white'); ?>">
                                                 <div class="d-flex align-items-start justify-content-between gap-2">
                                                     <div>
-                                                        <div class="fw-semibold text-dark small">{{ $payload['title'] ?? 'Notifikasi' }}</div>
-                                                        <div class="text-muted small">{{ $payload['body'] ?? '' }}</div>
+                                                        <div class="fw-semibold text-dark small"><?php echo e($payload['title'] ?? 'Notifikasi'); ?></div>
+                                                        <div class="text-muted small"><?php echo e($payload['body'] ?? ''); ?></div>
                                                     </div>
-                                                    @if($isUnread)
+                                                    <?php if($isUnread): ?>
                                                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Baru</span>
-                                                    @endif
+                                                    <?php endif; ?>
                                                 </div>
-                                                <div class="small text-muted mt-1">{{ $notification->created_at?->diffForHumans() }}</div>
+                                                <div class="small text-muted mt-1"><?php echo e($notification->created_at?->diffForHumans()); ?></div>
                                             </div>
                                         </a>
-                                    @empty
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                         <div class="text-center text-muted small py-3">
                                             Belum ada notifikasi.
                                         </div>
-                                    @endforelse
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
-                    @endauth
+                    <?php endif; ?>
 
                     <div class="dropdown">
                         <a href="#" class="icon-nav" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
@@ -315,34 +315,34 @@
                             <span class="ms-2 d-lg-none">Akun Saya</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
-                            @auth
+                            <?php if(auth()->guard()->check()): ?>
                                 <li>
                                     <div class="dropdown-header text-dark border-bottom mb-2">
-                                        <div class="fw-bold">Halo, {{ auth()->user()->name }}</div>
-                                        @if(auth()->user()->isAdmin())
+                                        <div class="fw-bold">Halo, <?php echo e(auth()->user()->name); ?></div>
+                                        <?php if(auth()->user()->isAdmin()): ?>
                                             <span class="badge rounded-pill bg-primary-subtle text-primary-emphasis border border-primary-subtle mt-1">Admin</span>
-                                        @elseif(auth()->user()->customer_type === 'langganan')
+                                        <?php elseif(auth()->user()->customer_type === 'langganan'): ?>
                                             <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis border border-warning-subtle mt-1">Pelanggan Langganan</span>
-                                        @else
+                                        <?php else: ?>
                                             <span class="badge rounded-pill bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle mt-1">Pelanggan Umum</span>
-                                        @endif
+                                        <?php endif; ?>
                                     </div>
                                 </li>
-                                <li><a class="dropdown-item rounded-3" href="{{ route('profile.edit') }}"><i class="bi bi-person me-2"></i>Profil</a></li>
-                                @if(auth()->user()->isAdmin())
-                                    <li><a class="dropdown-item rounded-3 text-primary" href="{{ route('admin.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard Admin</a></li>
-                                @endif
+                                <li><a class="dropdown-item rounded-3" href="<?php echo e(route('profile.edit')); ?>"><i class="bi bi-person me-2"></i>Profil</a></li>
+                                <?php if(auth()->user()->isAdmin()): ?>
+                                    <li><a class="dropdown-item rounded-3 text-primary" href="<?php echo e(route('admin.dashboard')); ?>"><i class="bi bi-speedometer2 me-2"></i>Dashboard Admin</a></li>
+                                <?php endif; ?>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
-                                    <form action="{{ route('logout') }}" method="POST">
-                                        @csrf
+                                    <form action="<?php echo e(route('logout')); ?>" method="POST">
+                                        <?php echo csrf_field(); ?>
                                         <button type="submit" class="dropdown-item rounded-3 text-danger"><i class="bi bi-box-arrow-right me-2"></i>Keluar</button>
                                     </form>
                                 </li>
-                            @else
-                                <li><a class="dropdown-item rounded-3" href="{{ route('login') }}">Masuk</a></li>
-                                <li><a class="dropdown-item rounded-3" href="{{ route('register') }}">Daftar Baru</a></li>
-                            @endauth
+                            <?php else: ?>
+                                <li><a class="dropdown-item rounded-3" href="<?php echo e(route('login')); ?>">Masuk</a></li>
+                                <li><a class="dropdown-item rounded-3" href="<?php echo e(route('register')); ?>">Daftar Baru</a></li>
+                            <?php endif; ?>
                         </ul>
                     </div>
                 </div>
@@ -351,20 +351,21 @@
     </div>
 </nav>
 
-@if(session('success') || session('error'))
+<?php if(session('success') || session('error')): ?>
     <div class="flash-toast-shell" id="floatingFlashMessage">
-        <div class="flash-toast-card {{ session('error') ? 'error' : 'success' }} text-white">
+        <div class="flash-toast-card <?php echo e(session('error') ? 'error' : 'success'); ?> text-white">
             <div class="p-3 p-sm-4">
                 <div class="d-flex align-items-start justify-content-between gap-3">
                     <div class="d-flex align-items-center gap-3">
                         <div class="flash-toast-badge">
-                            <i class="bi {{ session('error') ? 'bi-exclamation-triangle-fill' : 'bi-check-circle-fill' }} fs-5"></i>
+                            <i class="bi <?php echo e(session('error') ? 'bi-exclamation-triangle-fill' : 'bi-check-circle-fill'); ?> fs-5"></i>
                         </div>
                                         </div>
                                     </ul>
-                                {{ session('error') ? 'Gagal' : 'Berhasil' }}
+                                <?php echo e(session('error') ? 'Gagal' : 'Berhasil'); ?>
+
                             </div>
-                            <div class="flash-toast-body fw-medium">{{ session('error') ?? session('success') }}</div>
+                            <div class="flash-toast-body fw-medium"><?php echo e(session('error') ?? session('success')); ?></div>
                         </div>
                     </div>
                     <button type="button" class="btn-close btn-close-white ms-2" aria-label="Close" id="closeFloatingFlash"></button>
@@ -373,7 +374,7 @@
             <div class="flash-toast-progress"></div>
         </div>
     </div>
-@endif
+<?php endif; ?>
 <div id="statusToast" class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999; display: none;">
     <div class="toast show align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="d-flex">
@@ -384,7 +385,7 @@
     </div>
 </div>
 <main class="main-container mt-4 mb-5">
-    @yield('content')
+    <?php echo $__env->yieldContent('content'); ?>
 </main>
 
 <footer class="main-footer">
@@ -455,9 +456,9 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-@stack('scripts')
+<?php echo $__env->yieldPushContent('scripts'); ?>
 
-@if(session('success') || session('error'))
+<?php if(session('success') || session('error')): ?>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const flash = document.getElementById('floatingFlashMessage');
@@ -480,9 +481,9 @@
         }
     });
 </script>
-@endif
+<?php endif; ?>
 </body>
-@stack('scripts')
+<?php echo $__env->yieldPushContent('scripts'); ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     function showBadge(count) {
@@ -543,4 +544,4 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-</html>
+</html><?php /**PATH C:\Users\Lenovo LOQ\Documents\GitHub\kp_trenmart\sistemPenjualanTrenmart\resources\views/layouts/app.blade.php ENDPATH**/ ?>

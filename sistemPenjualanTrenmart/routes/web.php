@@ -104,8 +104,8 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/merk/hapus/{id}', [MerkController::class, 'destroy'])->name('merk.destroy');
         Route::post('/satuan/simpan', [\App\Http\Controllers\SatuanController::class, 'store'])->name('satuan.store');
         Route::delete('/satuan/hapus/{id}', [\App\Http\Controllers\SatuanController::class, 'destroy'])->name('satuan.destroy');
-
         Route::put('/tentang/update', [TentangController::class, 'update'])->name('admin.tentang.update');
+        Route::post('/produk/update-status', [ProdukController::class, 'updateStatus'])->name('produk.updateStatus');
 
         // Admin Approval (Tolak dan Terima Pendaftaran Pelanggan Langganan)
         Route::post('/approve/{id}', [AuthController::class, 'approveUser'])->name('admin.approve');
@@ -129,7 +129,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/users', [\App\Http\Controllers\AdminUserController::class, 'index'])->name('admin.users.index');
         Route::get('/users/create', [\App\Http\Controllers\AdminUserController::class, 'create'])->name('admin.users.create');
         Route::post('/users', [\App\Http\Controllers\AdminUserController::class, 'store'])->name('admin.users.store');
-
         Route::get('/customers', [\App\Http\Controllers\AdminUserController::class, 'customers'])->name('admin.customers.index');
 
         // Admin - Create Admin Account

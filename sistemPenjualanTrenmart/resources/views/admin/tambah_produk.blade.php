@@ -93,15 +93,6 @@
                                 <label class="form-label text-muted small">Jumlah Stok</label>
                                 <input type="number" name="stok_tersedia" class="form-control" placeholder="0" required>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label text-muted small">Satuan</label>
-                                <select name="kd_satuan" class="form-select" required>
-                                    <option value="" selected disabled>Pilih Satuan</option>
-                                    @foreach($satuan as $sat)
-                                        <option value="{{ $sat->kd_satuan }}">{{ $sat->nama_satuan }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
                         </div>
                     </div>
 

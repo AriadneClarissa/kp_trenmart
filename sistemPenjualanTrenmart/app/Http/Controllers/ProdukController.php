@@ -26,19 +26,13 @@ class ProdukController extends Controller
             $this->setHargaTampil($item); 
         }
 
-        // Mengambil produk populer (is_highlight)
-        $produk_terpopuler = Produk::where('is_highlight', true)->get();
-        foreach ($produk_terpopuler as $item) { 
-            $this->setHargaTampil($item); 
-        }
-
         $kategori = Kategori::all();
         $merk = Merk::all();
 
         // Mengambil data admin untuk banner
         $admin = User::where('email', 'admintrenmart@gmail.com')->first();
 
-        return view('beranda', compact('settings', 'produk_terbaru', 'produk_terpopuler', 'kategori', 'merk', 'admin'));
+        return view('beranda', compact('settings', 'produk_terbaru', 'kategori', 'merk', 'admin'));
     }
 
     /**
@@ -248,5 +242,35 @@ class ProdukController extends Controller
                 ->get();
 
     return response()->json($produk);
+    }
+
+    public function updateStatus(Request $request)
+    {
+        // 1. Validasi dengan menangkap pesan error agar tidak langsung 500
+        $request->validate([
+            // Sesuaikan 'produk' dengan nama tabel asli di SQL Server Anda
+            'id' => 'required|exists:produk,kd_produk', 
+            'status' => 'required|in:aktif,nonaktif'
+        ]);
+
+        try {
+            // 2. Gunakan where karena primary key Anda adalah kd_produk, bukan id (integer)
+            $produk = \App\Models\Produk::where('kd_produk', $request->id)->firstOrFail();
+            
+            $produk->status = $request->status;
+            $produk->save();
+
+            return response()->json([
+            'success' => true,
+            'message' => 'Status ' . $produk->nama_produk . ' berhasil diperbarui!' 
+        ]);
+
+        } catch (\Exception $e) {
+            // 3. Jika terjadi error database, kirimkan pesan yang jelas ke AJAX
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memperbarui database: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
