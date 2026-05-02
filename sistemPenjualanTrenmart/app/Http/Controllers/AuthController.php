@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\PaymentMethod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -36,7 +37,7 @@ class AuthController extends Controller
         'phone_number.regex' => 'Nomor WhatsApp harus diawali dengan 08.',
     ]);
 
-    $user = User::create([
+        $user = User::create([
         'name' => $validated['name'],
         'email' => $validated['email'],
         'password' => Hash::make($validated['password']),
@@ -46,16 +47,10 @@ class AuthController extends Controller
         'home_address' => $validated['home_address'],
         'organization_name' => $validated['organization_name'] ?? null,
         'organization_type' => $validated['organization_type'] ?? null,
-        'is_approved' => ($validated['customer_type'] === 'regular' ? true : false),
+            // No approval mechanism — accounts are active immediately
+            'is_approved' => true,
     ]);
-
-        if ($user->customer_type === 'langganan') {
-            Auth::login($user);
-
-            return redirect()->route('status.tinjau')
-                ->with('info', 'Pendaftaran berhasil. Akun Anda sedang ditinjau oleh admin.');
-        }
-
+        // Log the user in or redirect to login with success
         return redirect()->route('login')->with('success', 'Pendaftaran berhasil! Silakan masuk.');
     }
 
@@ -78,11 +73,7 @@ class AuthController extends Controller
                 return redirect()->route('login')->with('error', 'Akun Anda ditolak oleh admin.');
             }
 
-            if ($user->isPendingMember()) {
-                Auth::logout();
-                return redirect()->route('login')
-                    ->with('error', 'Akun Anda sedang ditinjau oleh admin.');
-            }
+            // No longer checking pending approval — accounts are active immediately
 
             return redirect()->intended('dashboard');
         }
@@ -135,9 +126,7 @@ class AuthController extends Controller
             }
 
             // Jika dia langganan tapi belum disetujui, jangan biarkan login
-            if ($user->customer_type === 'langganan' && !$user->is_approved) {
-                return redirect()->route('status.tinjau')->with('info', 'Akun Anda sedang ditinjau.');
-            }
+            // No approval required for Google signups either; activate immediately
 
             Auth::login($user);
             return $this->handleRedirectAfterLogin($user);
@@ -157,11 +146,10 @@ class AuthController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
         
-        // Update data user di database
+        // Update data user di database — no approval required
         $user->update([
             'customer_type' => $request->jenis,
-            // Regular langsung aktif (true), Langganan butuh persetujuan (false)
-            'is_approved' => ($request->jenis === 'regular')
+            'is_approved' => true,
         ]);
 
         // Redirect berdasarkan pilihan
@@ -263,6 +251,29 @@ class AuthController extends Controller
     }
 
     /**
+     * Update user's password from profile
+     */
+    public function updatePassword(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        $request->validate([
+            'current_password' => ['required'],
+            'new_password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        if (!\Illuminate\Support\Facades\Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'Kata sandi saat ini tidak cocok.']);
+        }
+
+        $user->password = \Illuminate\Support\Facades\Hash::make($request->new_password);
+        $user->save();
+
+        return back()->with('success', 'Kata sandi berhasil diperbarui.');
+    }
+
+    /**
      * 7. ADMIN FEATURES
      */
     public function adminDashboard()
@@ -279,8 +290,9 @@ class AuthController extends Controller
                             ->where('is_approved', false)
                             ->get();
         $allUsers = User::all();
+        $methods = PaymentMethod::orderBy('created_at', 'desc')->get();
 
-        return view('admin.dashboard', compact('pendingUsers', 'allUsers'));
+        return view('admin.dashboard', compact('pendingUsers', 'allUsers', 'methods'));
     }
 
     public function approveUser($id)

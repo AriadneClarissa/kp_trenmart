@@ -25,28 +25,31 @@ class AppServiceProvider extends ServiceProvider
         View::composer('*', function ($view) {
             $pendingReviewCount = 0;
             $latestPendingReviewUser = null;
+            $notificationUnreadCount = 0;
+            $recentNotifications = collect();
+
+            if (Auth::check()) {
+                $notificationUnreadCount = Auth::user()->unreadNotifications()->count();
+                $recentNotifications = Auth::user()->notifications()->latest()->take(5)->get();
+            }
 
             if (!Auth::check() || !Auth::user()->isAdmin()) {
                 $view->with([
                     'pendingReviewCount' => $pendingReviewCount,
                     'latestPendingReviewUser' => $latestPendingReviewUser,
+                    'notificationUnreadCount' => $notificationUnreadCount,
+                    'recentNotifications' => $recentNotifications,
                 ]);
 
                 return;
             }
 
-            $latestPendingReviewUser = User::where('customer_type', 'langganan')
-                ->where('is_approved', false)
-                ->orderByDesc('created_at')
-                ->first();
-
-            $pendingReviewCount = User::where('customer_type', 'langganan')
-                ->where('is_approved', false)
-                ->count();
-
+            // Approval flow removed — no pending users
             $view->with([
-                'pendingReviewCount' => $pendingReviewCount,
-                'latestPendingReviewUser' => $latestPendingReviewUser,
+                'pendingReviewCount' => 0,
+                'latestPendingReviewUser' => null,
+                'notificationUnreadCount' => $notificationUnreadCount,
+                'recentNotifications' => $recentNotifications,
             ]);
         });
     }

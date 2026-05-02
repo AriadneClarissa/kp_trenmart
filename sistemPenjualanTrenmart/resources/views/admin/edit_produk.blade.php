@@ -39,10 +39,18 @@
                         </select>
 
                         <label class="form-label mt-2">Merk</label>
-                        <select class="form-select" name="kd_merk" required>
+                        <select class="form-select mb-3" name="kd_merk" required>
                             <option value="" disabled>Pilih Merk</option>
                             @foreach($merks as $m)
                                 <option value="{{ $m->kd_merk }}" {{ $produk->kd_merk == $m->kd_merk ? 'selected' : '' }}>{{ $m->nama_merk }}</option>
+                            @endforeach
+                        </select>
+
+                        <label class="form-label mt-2">Satuan</label>
+                        <select class="form-select" name="kd_satuan" required>
+                            <option value="" disabled>Pilih Satuan</option>
+                            @foreach($satuan as $sat)
+                                <option value="{{ $sat->kd_satuan }}" {{ $produk->kd_satuan == $sat->kd_satuan ? 'selected' : '' }}>{{ $sat->nama_satuan }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -88,15 +96,12 @@
                         <div class="row mt-3">
                             <div class="col-md-6">
                                 <label class="form-label text-muted small">Satuan</label>
-                                <select name="satuan" class="form-select" id="satuan_select" onchange="toggleSatuanManual()" required>
-                                    <option value="" disabled>Pilih...</option>
-                                    <option value="Pcs" {{ $produk->satuan == 'Pcs' ? 'selected' : '' }}>Pcs</option>
-                                    <option value="Pak" {{ $produk->satuan == 'Pak' ? 'selected' : '' }}>Pak</option>
-                                    <option value="Lusin" {{ $produk->satuan == 'Lusin' ? 'selected' : '' }}>Lusin</option>
-                                    <option value="Karton" {{ $produk->satuan == 'Karton' ? 'selected' : '' }}>Karton</option>
-                                    <option value="Lainnya" {{ !in_array($produk->satuan, ['Pcs', 'Pak', 'Lusin', 'Karton']) ? 'selected' : '' }}>Lainnya...</option>
+                                <select name="kd_satuan" class="form-select" required>
+                                    <option value="" disabled>Pilih Satuan</option>
+                                    @foreach($satuan as $sat)
+                                        <option value="{{ $sat->kd_satuan }}" {{ $produk->kd_satuan == $sat->kd_satuan ? 'selected' : '' }}>{{ $sat->nama_satuan }}</option>
+                                    @endforeach
                                 </select>
-                                <input type="text" name="satuan_custom" id="satuan_manual" class="form-control mt-2" value="{{ !in_array($produk->satuan, ['Pcs', 'Pak', 'Lusin', 'Karton']) ? $produk->satuan : '' }}" style="display:{{ !in_array($produk->satuan, ['Pcs', 'Pak', 'Lusin', 'Karton']) ? 'block' : 'none' }};" placeholder="Ketik satuan...">
                             </div>
                         </div>
                     </div>
@@ -159,23 +164,5 @@ function previewImage(input) {
     }
 }
 
-function toggleSatuanManual() {
-    const select = document.getElementById('satuan_select');
-    const manual = document.getElementById('satuan_manual');
-    
-    if (select.value === 'Lainnya') {
-        manual.style.display = 'block';
-        manual.required = true;
-    } else {
-        manual.style.display = 'none';
-        manual.required = false;
-        manual.value = '';
-    }
-}
-
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-    toggleSatuanManual();
-});
 </script>
 @endsection

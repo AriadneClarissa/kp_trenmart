@@ -180,7 +180,7 @@
                                     </a>
                                 @else
                                     {{-- Jika Pelanggan, tampilkan Tambah --}}
-                                    <form action="{{ route('cart.add', $p->kd_produk) }}" method="POST" class="mt-2">
+                                    <form action="{{ route('cart.add', $p->kd_produk) }}" method="POST" class="mt-2 add-to-cart-form">
                                         @csrf
                                         <button type="submit" class="btn-action btn-tambah shadow-sm">
                                             <i class="bi bi-plus-lg me-1"></i> Tambah
@@ -189,7 +189,7 @@
                                 @endif
                             @else
                                 {{-- Jika Guest (Belum Login), tampilkan Tambah (Akan diarahkan ke login) --}}
-                                <form action="{{ route('cart.add', $p->kd_produk) }}" method="POST" class="mt-2">
+                                <form action="{{ route('cart.add', $p->kd_produk) }}" method="POST" class="mt-2 add-to-cart-form">
                                     @csrf
                                     <button type="submit" class="btn-action btn-tambah shadow-sm">
                                         <i class="bi bi-plus-lg me-1"></i> Tambah

@@ -45,7 +45,7 @@ class KeranjangController extends Controller
     /**
      * Menambahkan produk ke keranjang atau update jumlah jika sudah ada
      */
-    public function store($id)
+    public function store(Request $request, $id)
     {
         // 1. Cek apakah produk tersebut valid
         $produk = Produk::where('kd_produk', $id)->firstOrFail();
@@ -60,6 +60,10 @@ class KeranjangController extends Controller
             if ($itemExist->jumlah < $produk->stok_tersedia) {
                 $itemExist->increment('jumlah');
             } else {
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json(['success' => false, 'message' => 'Stok produk tidak mencukupi.'], 422);
+                }
+
                 return back()->with('error', 'Stok produk tidak mencukupi.');
             }
         } else {
@@ -71,8 +75,15 @@ class KeranjangController extends Controller
             ]);
         }
 
-        // Redirect ke keranjang agar user bisa langsung melihat hasilnya
-        return redirect()->route('cart.index')->with('success', 'Produk berhasil ditambahkan ke keranjang!');
+        // Hitung kembali jumlah item di keranjang (total jumlah)
+        $cartCount = Keranjang::where('user_id', Auth::id())->sum('jumlah');
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'cartCount' => $cartCount]);
+        }
+
+        // Tidak mengarahkan ke halaman keranjang — kembali ke halaman sebelumnya
+        return back()->with('success', 'Produk berhasil ditambahkan ke keranjang!');
     }
 
     /**

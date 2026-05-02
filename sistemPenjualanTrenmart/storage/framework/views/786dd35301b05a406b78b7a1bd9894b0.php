@@ -1,18 +1,16 @@
-@extends('layouts.app')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container mb-5 mt-4">
     <div class="card main-card p-4 border-0 shadow-sm" style="border-radius: 15px;">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h4 class="fw-bold m-0">Tambah Produk</h4>
         </div>
 
-        <form action="{{ route('produk.store') }}" method="POST" enctype="multipart/form-data">
-            @csrf
-            <input type="hidden" name="origin" value="{{ $source }}">
+        <form action="<?php echo e(route('produk.store')); ?>" method="POST" enctype="multipart/form-data">
+            <?php echo csrf_field(); ?>
+            <input type="hidden" name="origin" value="<?php echo e($source); ?>">
 
             <div class="row">
-                {{-- Kolom Kiri: Upload & Kategori --}}
+                
                 <div class="col-md-4">
                     <div class="section-card bg-white mb-3 p-3 border rounded-3">
                         <label class="form-label mb-3"><i class="bi bi-image me-2"></i> Foto Produk</label>
@@ -32,30 +30,30 @@
                         <label class="form-label">Kategori</label>
                         <select class="form-select mb-3" name="kd_kategori" required>
                             <option value="" selected disabled>Pilih Kategori</option>
-                            @foreach($kategoris as $k)
-                                <option value="{{ $k->kd_kategori }}">{{ $k->nama_kategori }}</option>
-                            @endforeach
+                            <?php $__currentLoopData = $kategoris; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $k): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($k->kd_kategori); ?>"><?php echo e($k->nama_kategori); ?></option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
 
                         <label class="form-label mt-2">Merk</label>
                         <select class="form-select mb-3" name="kd_merk" required>
                             <option value="" selected disabled>Pilih Merk</option>
-                            @foreach($merks as $m)
-                                <option value="{{ $m->kd_merk }}">{{ $m->nama_merk }}</option>
-                            @endforeach
+                            <?php $__currentLoopData = $merks; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $m): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($m->kd_merk); ?>"><?php echo e($m->nama_merk); ?></option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
 
                         <label class="form-label mt-2">Satuan</label>
                         <select class="form-select" name="kd_satuan" required>
                             <option value="" selected disabled>Pilih Satuan</option>
-                            @foreach($satuan as $sat)
-                                <option value="{{ $sat->kd_satuan }}">{{ $sat->nama_satuan }}</option>
-                            @endforeach
+                            <?php $__currentLoopData = $satuan; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $sat): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($sat->kd_satuan); ?>"><?php echo e($sat->nama_satuan); ?></option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                     </div>
                 </div>
 
-                {{-- Kolom Kanan: Detail Informasi --}}
+                
                 <div class="col-md-8">
                     <div class="section-card bg-white mb-3 p-3 border rounded-3">
                         <h6 class="fw-bold mb-3"><i class="bi bi-info-circle me-2 text-primary"></i>Informasi Produk</h6>
@@ -97,16 +95,16 @@
                                 <label class="form-label text-muted small">Satuan</label>
                                 <select name="kd_satuan" class="form-select" required>
                                     <option value="" selected disabled>Pilih Satuan</option>
-                                    @foreach($satuan as $sat)
-                                        <option value="{{ $sat->kd_satuan }}">{{ $sat->nama_satuan }}</option>
-                                    @endforeach
+                                    <?php $__currentLoopData = $satuan; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $sat): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($sat->kd_satuan); ?>"><?php echo e($sat->nama_satuan); ?></option>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </select>
                             </div>
                         </div>
                     </div>
 
                     <div class="d-flex justify-content-end gap-3 mt-4">
-                        <a href="{{ $source == 'beranda' ? route('beranda') : route('produk.index') }}" class="btn btn-outline-secondary px-4 fw-bold">
+                        <a href="<?php echo e($source == 'beranda' ? route('beranda') : route('produk.index')); ?>" class="btn btn-outline-secondary px-4 fw-bold">
                             Batal
                         </a>
                         <button type="submit" class="btn btn-simpan fw-bold shadow-sm px-4" style="background-color: #800000; color: white;">
@@ -118,9 +116,9 @@
         </form> 
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
     function previewImage(input) {
         const preview = document.getElementById('img-preview');
@@ -137,4 +135,5 @@
         }
     }
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\asus\OneDrive\Documents\GitHub\kp_trenmart\sistemPenjualanTrenmart\resources\views/admin/tambah_produk.blade.php ENDPATH**/ ?>

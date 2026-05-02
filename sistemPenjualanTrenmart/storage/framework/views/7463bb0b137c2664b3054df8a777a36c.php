@@ -1,6 +1,4 @@
-@extends('layouts.app')
-
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
     :root { --maroon: #800000; --soft-bg: #f8f9fa; }
     body { background-color: var(--soft-bg); }
@@ -83,14 +81,14 @@
         min-height: 260px;
     }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid mt-4 mb-5 px-4">
     <div class="row">
-        {{-- ADMIN PANEL BUTTONS (Full Width) --}}
-        @auth
-            @if(auth()->user()->isAdmin())
+        
+        <?php if(auth()->guard()->check()): ?>
+            <?php if(auth()->user()->isAdmin()): ?>
             <div class="col-12 mb-4">
                 <div class="card-sidebar p-3 d-flex gap-2 align-items-center flex-wrap" style="border: 1px solid #ffc107;">
                     <div class="sidebar-header-admin flex-grow-1"><i class="bi bi-shield-lock-fill me-2"></i>Panel Admin</div>
@@ -103,46 +101,46 @@
                     <button class="btn btn-sm btn-warning" style="border: none; color: white;" data-bs-toggle="modal" data-bs-target="#modalKelolaSatuan">
                         <i class="bi bi-plus-circle me-1"></i> Kelola Satuan
                     </button>
-                    <a href="{{ route('produk.create') }}" class="btn btn-sm btn-danger">
+                    <a href="<?php echo e(route('produk.create')); ?>" class="btn btn-sm btn-danger">
                         <i class="bi bi-plus-circle me-1"></i> Tambah Produk
                     </a>
                 </div>
             </div>
-            @endif
-        @endauth
+            <?php endif; ?>
+        <?php endif; ?>
 
-        {{-- FILTERS (Full Width) --}}
+        
         <div class="col-12">
-            <form action="{{ route('produk.index') }}" method="GET" class="row g-2 mb-4 align-items-center">
+            <form action="<?php echo e(route('produk.index')); ?>" method="GET" class="row g-2 mb-4 align-items-center">
                 <div class="col-12 col-md-4">
                     <div class="filter-pill">
                         <i class="bi bi-search text-muted me-2"></i>
-                        <input type="text" name="search" class="input-filter" placeholder="Cari produk..." value="{{ request('search') }}">
+                        <input type="text" name="search" class="input-filter" placeholder="Cari produk..." value="<?php echo e(request('search')); ?>">
                     </div>
                 </div>
                 <div class="col-12 col-md-3">
                     <select name="kategori" class="select-filter" onchange="this.form.submit()">
                         <option value="">Semua Kategori</option>
-                        @foreach($kategori as $kat)
-                            <option value="{{ $kat->kd_kategori }}" {{ request('kategori') == $kat->kd_kategori ? 'selected' : '' }}>{{ $kat->nama_kategori }}</option>
-                        @endforeach
+                        <?php $__currentLoopData = $kategori; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $kat): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($kat->kd_kategori); ?>" <?php echo e(request('kategori') == $kat->kd_kategori ? 'selected' : ''); ?>><?php echo e($kat->nama_kategori); ?></option>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </select>
                 </div>
                 <div class="col-12 col-md-3">
                     <select name="merk" class="select-filter" onchange="this.form.submit()">
                         <option value="">Semua Merek</option>
-                        @foreach($merk as $m)
-                            <option value="{{ $m->kd_merk }}" {{ request('merk') == $m->kd_merk ? 'selected' : '' }}>{{ $m->nama_merk }}</option>
-                        @endforeach
+                        <?php $__currentLoopData = $merk; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $m): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($m->kd_merk); ?>" <?php echo e(request('merk') == $m->kd_merk ? 'selected' : ''); ?>><?php echo e($m->nama_merk); ?></option>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </select>
                 </div>
                 <div class="col-12 col-md-2 text-end text-muted small">
-                    {{ count($produk) }} produk ditemukan
+                    <?php echo e(count($produk)); ?> produk ditemukan
                 </div>
             </form>
         </div>
 
-        {{-- TABLE (Full Width) --}}
+        
         <div class="col-12">
 
             <div class="card shadow-sm border-0" style="border-radius: 18px; overflow: hidden;">
@@ -164,58 +162,60 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($produk as $p)
+                            <?php $__empty_1 = true; $__currentLoopData = $produk; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $p): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                 <tr>
                                     <td>
                                         <div class="rounded-3 bg-light d-flex align-items-center justify-content-center" style="width: 52px; height: 52px; overflow: hidden;">
-                                            <img src="{{ asset('storage/' . $p->gambar) }}" alt="{{ $p->nama_produk }}" style="width: 100%; height: 100%; object-fit: contain;">
+                                            <img src="<?php echo e(asset('storage/' . $p->gambar)); ?>" alt="<?php echo e($p->nama_produk); ?>" style="width: 100%; height: 100%; object-fit: contain;">
                                         </div>
                                     </td>
-                                    <td class="fw-semibold">{{ $p->kd_produk }}</td>
+                                    <td class="fw-semibold"><?php echo e($p->kd_produk); ?></td>
                                     <td>
-                                        <div class="fw-semibold text-dark">{{ $p->nama_produk }}</div>
-                                        @if(!empty($p->deskripsi))
-                                            <div class="small text-muted text-truncate" style="max-width: 260px;">{{ $p->deskripsi }}</div>
-                                        @endif
+                                        <div class="fw-semibold text-dark"><?php echo e($p->nama_produk); ?></div>
+                                        <?php if(!empty($p->deskripsi)): ?>
+                                            <div class="small text-muted text-truncate" style="max-width: 260px;"><?php echo e($p->deskripsi); ?></div>
+                                        <?php endif; ?>
                                     </td>
-                                    <td>{{ $p->merk->nama_merk ?? 'Tanpa Merk' }}</td>
-                                    <td>{{ $p->kategori->nama_kategori ?? '-' }}</td>
+                                    <td><?php echo e($p->merk->nama_merk ?? 'Tanpa Merk'); ?></td>
+                                    <td><?php echo e($p->kategori->nama_kategori ?? '-'); ?></td>
                                     <td>
                                         <div class="fw-bold" style="color: var(--maroon);">
-                                            Rp {{ number_format($p->harga_jual_umum ?? 0, 0, ',', '.') }}
+                                            Rp <?php echo e(number_format($p->harga_jual_umum ?? 0, 0, ',', '.')); ?>
+
                                         </div>
                                     </td>
                                     <td>
                                         <div class="fw-bold" style="color: #f08a24;">
-                                            Rp {{ number_format($p->harga_jual_langganan ?? $p->harga_jual_umum ?? 0, 0, ',', '.') }}
+                                            Rp <?php echo e(number_format($p->harga_jual_langganan ?? $p->harga_jual_umum ?? 0, 0, ',', '.')); ?>
+
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="fw-semibold">{{ $p->stok_tersedia }}</span>
-                                        <span class="text-muted small d-block">{{ $p->satuan ?? 'pcs' }}</span>
+                                        <span class="fw-semibold"><?php echo e($p->stok_tersedia); ?></span>
+                                        <span class="text-muted small d-block"><?php echo e($p->satuan ?? 'pcs'); ?></span>
                                     </td>
-                                    <td>{{ $p->satuanModel?->nama_satuan ?? $p->satuan ?? '-' }}</td>
+                                    <td><?php echo e($p->satuanModel?->nama_satuan ?? $p->satuan ?? '-'); ?></td>
                                     <td>
-                                        @if(($p->status ?? 'aktif') === 'aktif')
+                                        <?php if(($p->status ?? 'aktif') === 'aktif'): ?>
                                             <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle">Aktif</span>
-                                        @else
+                                        <?php else: ?>
                                             <span class="badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle">Nonaktif</span>
-                                        @endif
+                                        <?php endif; ?>
                                     </td>
                                     <td class="text-end">
-                                        <a href="{{ route('produk.edit', $p->kd_produk) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                        <a href="<?php echo e(route('produk.edit', $p->kd_produk)); ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3">
                                             <i class="bi bi-pencil-square me-1"></i> Edit Produk
                                         </a>
                                     </td>
                                 </tr>
-                            @empty
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                 <tr>
                                     <td colspan="11" class="text-center py-5">
                                         <i class="bi bi-box-seam text-muted" style="font-size: 3rem; opacity: 0.3;"></i>
                                         <div class="mt-2 fw-semibold">Produk tidak tersedia</div>
                                     </td>
                                 </tr>
-                            @endforelse
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -224,9 +224,9 @@
     </div>
 </div>
 
-{{-- MODAL ADMIN (DITEMPEL LANGSUNG DI SINI) --}}
-@auth
-    @if(auth()->user()->isAdmin())
+
+<?php if(auth()->guard()->check()): ?>
+    <?php if(auth()->user()->isAdmin()): ?>
     <div class="modal fade" id="modalKelolaKategori" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow" style="border-radius: 20px;">
@@ -235,8 +235,8 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body px-4">
-                    <form id="formTambahKategori" action="{{ route('kategori.store') }}" method="POST">
-                        @csrf
+                    <form id="formTambahKategori" action="<?php echo e(route('kategori.store')); ?>" method="POST">
+                        <?php echo csrf_field(); ?>
                         <div class="input-group mb-4 shadow-sm border rounded-pill overflow-hidden">
                             <input type="text" id="inputNamaKategori" name="nama_kategori" class="form-control border-0 px-3" placeholder="Nama kategori baru..." required>
                             <button class="btn btn-success border-0 px-4" type="submit"><i class="bi bi-plus-lg"></i></button>
@@ -250,14 +250,14 @@
                     <div class="small text-muted mb-2 d-none" id="kategoriNoResult">Tidak ada kategori yang cocok.</div>
                     <div class="small text-muted mb-2 d-none" id="kategoriHint">Ketik nama kategori untuk melihat rekomendasi.</div>
                     <div class="list-group border shadow-sm rounded-3 overflow-hidden" id="containerListKategori" style="max-height: 250px; overflow-y: auto;">
-                        @foreach($kategori as $kat)
-                            <div class="list-group-item d-flex justify-content-between align-items-center bg-light item-kategori" data-search="{{ strtolower($kat->nama_kategori) }}">
-                                <span class="nama-kategori-text">{{ $kat->nama_kategori }}</span>
-                                <button type="button" class="btn btn-sm btn-white border btn-toggle-visible-kat" data-id="{{ $kat->kd_kategori }}">
-                                    <i class="bi {{ $kat->is_hidden ? 'bi-eye-slash-fill text-danger' : 'bi-eye-fill text-primary' }}"></i>
+                        <?php $__currentLoopData = $kategori; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $kat): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <div class="list-group-item d-flex justify-content-between align-items-center bg-light item-kategori" data-search="<?php echo e(strtolower($kat->nama_kategori)); ?>">
+                                <span class="nama-kategori-text"><?php echo e($kat->nama_kategori); ?></span>
+                                <button type="button" class="btn btn-sm btn-white border btn-toggle-visible-kat" data-id="<?php echo e($kat->kd_kategori); ?>">
+                                    <i class="bi <?php echo e($kat->is_hidden ? 'bi-eye-slash-fill text-danger' : 'bi-eye-fill text-primary'); ?>"></i>
                                 </button>
                             </div>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </div>
                 </div>
                 <div class="modal-footer border-0 pb-4">
@@ -276,7 +276,7 @@
                 </div>
                 <div class="modal-body px-4">
                     <form id="formTambahMerk">
-                        @csrf
+                        <?php echo csrf_field(); ?>
                         <div class="input-group mb-3 shadow-sm border rounded-pill overflow-hidden">
                             <input type="text" id="inputNamaMerk" name="nama_merk" class="form-control border-0 px-3" placeholder="Tambah merk baru..." required>
                             <button class="btn btn-success border-0 px-4" type="submit"><i class="bi bi-plus-lg"></i></button>
@@ -290,14 +290,14 @@
                     <div class="small text-muted mb-2 d-none" id="merkNoResult">Tidak ada merk yang cocok.</div>
                     <div class="small text-muted mb-2 d-none" id="merkHint">Ketik nama merk untuk melihat rekomendasi.</div>
                     <div class="list-group border shadow-sm rounded-3 overflow-hidden" id="containerListMerk" style="max-height: 250px; overflow-y: auto;">
-                        @foreach($merk as $m)
-                            <div class="list-group-item d-flex justify-content-between align-items-center bg-light item-merk" data-search="{{ strtolower($m->nama_merk) }}">
-                                <span class="nama-merk-text">{{ $m->nama_merk }}</span>
-                                <button type="button" class="btn btn-sm btn-white border btn-toggle-visible" data-id="{{ $m->kd_merk }}">
-                                    <i class="bi {{ $m->is_hidden ? 'bi-eye-slash-fill text-danger' : 'bi-eye-fill text-primary' }}"></i>
+                        <?php $__currentLoopData = $merk; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $m): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <div class="list-group-item d-flex justify-content-between align-items-center bg-light item-merk" data-search="<?php echo e(strtolower($m->nama_merk)); ?>">
+                                <span class="nama-merk-text"><?php echo e($m->nama_merk); ?></span>
+                                <button type="button" class="btn btn-sm btn-white border btn-toggle-visible" data-id="<?php echo e($m->kd_merk); ?>">
+                                    <i class="bi <?php echo e($m->is_hidden ? 'bi-eye-slash-fill text-danger' : 'bi-eye-fill text-primary'); ?>"></i>
                                 </button>
                             </div>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </div>
                 </div>
                 <div class="modal-footer border-0 pb-4">
@@ -316,7 +316,7 @@
                 </div>
                 <div class="modal-body px-4">
                     <form id="formTambahSatuan">
-                        @csrf
+                        <?php echo csrf_field(); ?>
                         <div class="input-group mb-3 shadow-sm border rounded-pill overflow-hidden">
                             <input type="text" id="inputNamaSatuan" name="nama_satuan" class="form-control border-0 px-3" placeholder="Tambah satuan baru (pcs, box, rim, lusin, dll)..." required>
                             <button class="btn btn-success border-0 px-4" type="submit"><i class="bi bi-plus-lg"></i></button>
@@ -330,14 +330,14 @@
                     <div class="small text-muted mb-2 d-none" id="satuanNoResult">Tidak ada satuan yang cocok.</div>
                     <div class="small text-muted mb-2 d-none" id="satuanHint">Ketik nama satuan untuk melihat rekomendasi.</div>
                     <div class="list-group border shadow-sm rounded-3 overflow-hidden" id="containerListSatuan" style="max-height: 250px; overflow-y: auto;">
-                        @foreach($satuan as $sat)
-                            <div class="list-group-item d-flex justify-content-between align-items-center bg-light item-satuan" data-search="{{ strtolower($sat->nama_satuan) }}">
-                                <span class="nama-satuan-text">{{ $sat->nama_satuan }}</span>
-                                <button type="button" class="btn btn-sm btn-white border btn-toggle-visible-satuan" data-id="{{ $sat->kd_satuan }}">
-                                    <i class="bi {{ $sat->is_hidden ? 'bi-eye-slash-fill text-danger' : 'bi-eye-fill text-primary' }}"></i>
+                        <?php $__currentLoopData = $satuan; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $sat): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <div class="list-group-item d-flex justify-content-between align-items-center bg-light item-satuan" data-search="<?php echo e(strtolower($sat->nama_satuan)); ?>">
+                                <span class="nama-satuan-text"><?php echo e($sat->nama_satuan); ?></span>
+                                <button type="button" class="btn btn-sm btn-white border btn-toggle-visible-satuan" data-id="<?php echo e($sat->kd_satuan); ?>">
+                                    <i class="bi <?php echo e($sat->is_hidden ? 'bi-eye-slash-fill text-danger' : 'bi-eye-fill text-primary'); ?>"></i>
                                 </button>
                             </div>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </div>
                 </div>
                 <div class="modal-footer border-0 pb-4">
@@ -346,14 +346,14 @@
             </div>
         </div>
     </div>
-    @endif
-@endauth
-@endsection
+    <?php endif; ?>
+<?php endif; ?>
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 $(document).ready(function() {
-    const kategoriIndexUrl = "{{ route('produk.index') }}";
+    const kategoriIndexUrl = "<?php echo e(route('produk.index')); ?>";
 
     function setupSearchRecommendation(inputSelector, buttonSelector, listSelector, itemSelector, textSelector, recommendationSelector, noResultSelector, hintSelector) {
         const input = $(inputSelector);
@@ -482,7 +482,7 @@ $(document).ready(function() {
     // AJAX Tambah Kategori
     $('#formTambahKategori').on('submit', function(e) {
         e.preventDefault();
-        $.post("{{ route('kategori.store') }}", $(this).serialize())
+        $.post("<?php echo e(route('kategori.store')); ?>", $(this).serialize())
             .done(function(res) {
             if(res.success) {
                 const kategoriItem = $('<div>', {
@@ -518,7 +518,7 @@ $(document).ready(function() {
     // AJAX Tambah Merk
     $('#formTambahMerk').on('submit', function(e) {
         e.preventDefault();
-        $.post("{{ route('merk.store') }}", $(this).serialize(), function(res) {
+        $.post("<?php echo e(route('merk.store')); ?>", $(this).serialize(), function(res) {
             if(res.success) {
                 $('#containerListMerk').prepend(`<div class="list-group-item d-flex justify-content-between align-items-center bg-light item-merk" data-search="${res.data.nama_merk.toLowerCase()}"><span class="nama-merk-text">${res.data.nama_merk}</span><i class="bi bi-eye-fill text-primary"></i></div>`);
                 $('select[name="merk"]').append(`<option value="${res.data.kd_merk}">${res.data.nama_merk}</option>`);
@@ -530,7 +530,7 @@ $(document).ready(function() {
     // AJAX Tambah Satuan
     $('#formTambahSatuan').on('submit', function(e) {
         e.preventDefault();
-        $.post("{{ route('satuan.store') }}", $(this).serialize(), function(res) {
+        $.post("<?php echo e(route('satuan.store')); ?>", $(this).serialize(), function(res) {
             if(res.success) {
                 $('#containerListSatuan').prepend(`<div class="list-group-item d-flex justify-content-between align-items-center bg-light item-satuan" data-search="${res.data.nama_satuan.toLowerCase()}"><span class="nama-satuan-text">${res.data.nama_satuan}</span><button type="button" class="btn btn-sm btn-white border btn-toggle-visible-satuan" data-id="${res.data.kd_satuan}"><i class="bi bi-eye-fill text-primary"></i></button></div>`);
                 $('select[name="kd_satuan"]').append(`<option value="${res.data.kd_satuan}">${res.data.nama_satuan}</option>`);
@@ -543,4 +543,5 @@ $(document).ready(function() {
     });
 });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\asus\OneDrive\Documents\GitHub\kp_trenmart\sistemPenjualanTrenmart\resources\views/admin/edit_katalog.blade.php ENDPATH**/ ?>
