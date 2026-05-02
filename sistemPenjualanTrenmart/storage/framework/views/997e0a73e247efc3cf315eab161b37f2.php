@@ -14,7 +14,6 @@
             <form action="<?php echo e(route('admin.banner.update')); ?>" method="POST" enctype="multipart/form-data" id="bannerForm">
                 <?php echo csrf_field(); ?>
                 
-                
                 <input type="file" name="tentang_banner" id="bannerInput" class="d-none" accept="image/*">
 
                 <label for="bannerInput" 
