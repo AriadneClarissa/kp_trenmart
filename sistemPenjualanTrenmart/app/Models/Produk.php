@@ -21,7 +21,6 @@ class Produk extends Model
         'harga_jual_umum',     
         'harga_jual_langganan', 
         'stok_tersedia',     
-        'satuan',
         'status',
         'gambar',
         'is_highlight',

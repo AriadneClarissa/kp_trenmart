@@ -93,17 +93,6 @@
                                 <input type="number" name="stok_tersedia" class="form-control" value="{{ $produk->stok_tersedia }}" placeholder="0" required>
                             </div>
                         </div>
-                        <div class="row mt-3">
-                            <div class="col-md-6">
-                                <label class="form-label text-muted small">Satuan</label>
-                                <select name="kd_satuan" class="form-select" required>
-                                    <option value="" disabled>Pilih Satuan</option>
-                                    @foreach($satuan as $sat)
-                                        <option value="{{ $sat->kd_satuan }}" {{ $produk->kd_satuan == $sat->kd_satuan ? 'selected' : '' }}>{{ $sat->nama_satuan }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
                     </div>
 
                     <div class="d-flex justify-content-end gap-3 mt-4">

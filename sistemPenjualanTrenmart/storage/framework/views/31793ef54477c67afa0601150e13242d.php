@@ -91,17 +91,6 @@
                                 <input type="number" name="stok_tersedia" class="form-control" value="<?php echo e($produk->stok_tersedia); ?>" placeholder="0" required>
                             </div>
                         </div>
-                        <div class="row mt-3">
-                            <div class="col-md-6">
-                                <label class="form-label text-muted small">Satuan</label>
-                                <select name="kd_satuan" class="form-select" required>
-                                    <option value="" disabled>Pilih Satuan</option>
-                                    <?php $__currentLoopData = $satuan; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $sat): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <option value="<?php echo e($sat->kd_satuan); ?>" <?php echo e($produk->kd_satuan == $sat->kd_satuan ? 'selected' : ''); ?>><?php echo e($sat->nama_satuan); ?></option>
-                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                </select>
-                            </div>
-                        </div>
                     </div>
 
                     <div class="d-flex justify-content-end gap-3 mt-4">

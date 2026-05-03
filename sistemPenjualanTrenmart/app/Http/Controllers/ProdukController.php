@@ -123,6 +123,7 @@ class ProdukController extends Controller
             'kd_kategori'          => $request->kd_kategori,
             'kd_merk'              => $request->kd_merk,
             'kd_satuan'            => $request->kd_satuan,
+            'satuan'               => $request->nama_satuan,
             'harga_jual_umum'      => $request->harga_jual_umum,
             'harga_jual_langganan' => $request->harga_jual_langganan ?? $request->harga_jual_umum,
             'stok_tersedia'        => $request->stok_tersedia,
