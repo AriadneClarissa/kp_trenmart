@@ -45,7 +45,7 @@
                     <i class="bi bi-person-plus me-1"></i> Buat Pelanggan
                 </a>
                 <a href="{{ route('admin.admins.create') }}" class="btn btn-sm btn-warning admin-nav-btn text-dark">
-                    <i class="bi bi-shield-check me-1"></i> Buat Admin
+                    <i class="bi bi-shield-check me-1"></i> Buat User Internal
                 </a>
                 <a href="{{ route('beranda') }}" class="btn btn-sm btn-outline-secondary admin-nav-btn">
                     <i class="bi bi-house-door-fill me-1"></i> Kembali ke Beranda

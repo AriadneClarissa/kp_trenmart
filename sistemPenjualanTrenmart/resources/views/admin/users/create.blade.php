@@ -23,10 +23,8 @@
 
                 <div class="col-md-6">
                     <label class="form-label">Jenis Pelanggan</label>
-                    <select name="customer_type" class="form-select">
-                        <option value="langganan">Langganan (Grosir)</option>
-                        <option value="regular">Regular (Eceran)</option>
-                    </select>
+                    <input type="text" class="form-control bg-light text-muted" value="Langganan (Grosir)" style="pointer-events: none;" readonly>
+                    <input type="hidden" name="customer_type" value="langganan">
                 </div>
 
                 <div class="col-md-6">
@@ -35,9 +33,10 @@
                 </div>
 
                 <div class="col-md-6">
-                    <label class="form-label">Nama Organisasi (opsional)</label>
-                    <input type="text" name="organization_name" class="form-control">
+                    <label class="form-label">Nama Organisasi <span class="text-danger">*</span></label>
+                    <input type="text" name="organization_name" class="form-control" required>
                 </div>
+
                 <div class="col-md-6">
                     <label class="form-label">Tipe Organisasi (opsional)</label>
                     <input type="text" name="organization_type" class="form-control">
@@ -58,4 +57,31 @@
         </form>
     </div>
 </div>
+<script>
+function validateEmail(input) {
+    const val = input.value;
+    const errorElement = document.getElementById('email-error');
+    
+    // Regex standar untuk validasi format email
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (val.length > 0) {
+        if (!emailPattern.test(val)) {
+            // Jika format salah
+            errorElement.style.display = 'block';
+            input.classList.add('is-invalid');
+            input.classList.remove('is-valid');
+        } else {
+            // Jika format sudah benar
+            errorElement.style.display = 'none';
+            input.classList.remove('is-invalid');
+            input.classList.add('is-valid');
+        }
+    } else {
+        // Jika kosong
+        errorElement.style.display = 'none';
+        input.classList.remove('is-invalid', 'is-valid');
+    }
+}
+</script>
 @endsection

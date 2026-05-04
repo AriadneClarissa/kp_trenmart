@@ -17,7 +17,6 @@
                             <th>Email</th>
                             <th>Jenis</th>
                             <th>Organisasi (jika ada)</th>
-                            <th>Status Persetujuan</th>
                             <th>Tgl Daftar</th>
                         </tr>
                     </thead>
@@ -29,7 +28,6 @@
                             <td><?php echo e($c->email); ?></td>
                             <td><?php echo e(strtoupper($c->customer_type ?? 'regular')); ?></td>
                             <td><?php echo e($c->organization_name ?? '-'); ?></td>
-                            <td><?php echo e($c->is_approved ? 'Disetujui' : 'Menunggu'); ?></td>
                             <td><?php echo e($c->created_at ? $c->created_at->format('d M Y') : '-'); ?></td>
                         </tr>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>

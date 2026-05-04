@@ -19,7 +19,6 @@
                             <th>Email</th>
                             <th>Jenis</th>
                             <th>Organisasi (jika ada)</th>
-                            <th>Status Persetujuan</th>
                             <th>Tgl Daftar</th>
                         </tr>
                     </thead>
@@ -31,7 +30,6 @@
                             <td>{{ $c->email }}</td>
                             <td>{{ strtoupper($c->customer_type ?? 'regular') }}</td>
                             <td>{{ $c->organization_name ?? '-' }}</td>
-                            <td>{{ $c->is_approved ? 'Disetujui' : 'Menunggu' }}</td>
                             <td>{{ $c->created_at ? $c->created_at->format('d M Y') : '-' }}</td>
                         </tr>
                         @endforeach

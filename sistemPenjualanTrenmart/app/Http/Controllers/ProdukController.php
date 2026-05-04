@@ -18,7 +18,7 @@ class ProdukController extends Controller
      */
     public function index()
     {
-        $settings = BerandaSetting::all()->pluck('value', 'key');
+        $settings = BerandaSetting::all()->pluck('value', 'key'); 
 
         // Mengambil produk terbaru (8 item)
         $produk_terbaru = Produk::latest()->take(8)->get();
@@ -30,7 +30,7 @@ class ProdukController extends Controller
         $merk = Merk::all();
 
         // Mengambil data admin untuk banner
-        $admin = User::where('email', 'admintrenmart@gmail.com')->first();
+        $admin = User::where('role', 'admin')->first();
 
         return view('beranda', compact('settings', 'produk_terbaru', 'kategori', 'merk', 'admin'));
     }
