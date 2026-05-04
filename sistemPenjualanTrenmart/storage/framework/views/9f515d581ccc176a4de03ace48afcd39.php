@@ -1,50 +1,50 @@
-@extends('layouts.app')
 
-@section('content')
+
+<?php $__env->startSection('content'); ?>
 <div class="container mt-4 mb-5">
     <div class="card border-0 shadow-sm p-4" style="border-radius: 15px;">
         <h4 class="fw-bold mb-4">Tambah Paket Bundling</h4>
 
-        @if ($errors->any())
+        <?php if($errors->any()): ?>
             <div class="alert alert-danger">
                 <ul class="mb-0">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
+                    <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <li><?php echo e($error); ?></li>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </ul>
             </div>
-        @endif
+        <?php endif; ?>
 
-        <form action="{{ route('bundling.store') }}" method="POST">
-            @csrf
+        <form action="<?php echo e(route('bundling.store')); ?>" method="POST">
+            <?php echo csrf_field(); ?>
             <div class="row">
-                {{-- Data Utama Bundling --}}
+                
                 <div class="col-md-5">
                     <div class="bg-light p-3 rounded-3 mb-3 border">
                         <label class="form-label fw-bold">Tipe Paket Bundling</label>
                         <select id="bundling_type" class="form-select mb-3 border-primary fw-bold" onchange="adjustProductRows()">
-                            <option value="2" {{ old('bundling_type') == '2' ? 'selected' : '' }}>Bundling 2 Barang</option>
-                            <option value="3" {{ old('bundling_type') == '3' ? 'selected' : '' }}>Bundling 3 Barang</option>
+                            <option value="2" <?php echo e(old('bundling_type') == '2' ? 'selected' : ''); ?>>Bundling 2 Barang</option>
+                            <option value="3" <?php echo e(old('bundling_type') == '3' ? 'selected' : ''); ?>>Bundling 3 Barang</option>
                         </select>
 
                         <label class="form-label fw-bold">Nama Paket</label>
                         <input type="text" name="name" class="form-control mb-3" 
                                placeholder="Contoh: Paket Alat Tulis Hemat" required 
-                               value="{{ old('name') }}">
+                               value="<?php echo e(old('name')); ?>">
                         
                         <label class="form-label fw-bold">Deskripsi</label>
-                        <textarea name="description" class="form-control" rows="4">{{ old('description') }}</textarea>
+                        <textarea name="description" class="form-control" rows="4"><?php echo e(old('description')); ?></textarea>
                     </div>
                 </div>
 
-                {{-- Pilih Produk --}}
+                
                 <div class="col-md-7">
                     <div class="p-3 border rounded-3 shadow-sm bg-white">
                         <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-box-seam me-2"></i>Pilih Produk dalam Paket</h6>
                         <p class="small text-muted mb-3">Klik kotak di bawah, lalu langsung ketik nama produk atau merk untuk mencari barang.</p>
                         
                         <div id="bundling-container">
-                            {{-- Baris produk akan diatur oleh JavaScript di bawah --}}
+                            
                         </div>
                     </div>
                 </div>
@@ -59,7 +59,7 @@
                             <span class="text-muted">Total Harga Normal:</span>
                             <div class="fw-bold h5 mb-0">
                                 Rp <span id="display_total_normal">0</span>
-                                <input type="hidden" name="total_normal_price" id="input_total_normal" value="{{ old('total_normal_price', 0) }}">
+                                <input type="hidden" name="total_normal_price" id="input_total_normal" value="<?php echo e(old('total_normal_price', 0)); ?>">
                             </div>
                         </div>
                         <div class="mb-3">
@@ -67,7 +67,7 @@
                             <div class="input-group">
                                 <span class="input-group-text bg-success text-white border-0">Rp</span>
                                 <input type="number" name="bundling_price" class="form-control border-success" 
-                                       required value="{{ old('bundling_price') }}">
+                                       required value="<?php echo e(old('bundling_price')); ?>">
                             </div>
                         </div>
                         <div class="d-grid mt-3">
@@ -82,14 +82,14 @@
     </div>
 </div>
 
-{{-- Script & Select2 --}}
+
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
-    const produkData = @json($produk);
+    const produkData = <?php echo json_encode($produk, 15, 512) ?>;
 
     $(document).ready(function() {
         adjustProductRows(); 
@@ -113,7 +113,7 @@
                 <div class="row g-2 mb-3 align-items-end item-row">
                     <div class="col-8">
                         <label class="small text-muted fw-bold">Produk ${i}</label>
-                        {{-- Wrapper ini penting untuk dropdownParent Select2 --}}
+                        
                         <div class="select2-wrapper" style="position: relative;">
                             <select name="product_id[]" class="form-select product-select select2" required onchange="calculatePrices(this)">
                                 <option value=""></option>
@@ -174,4 +174,5 @@
         document.getElementById('input_total_normal').value = total;
     }
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\Lenovo LOQ\Documents\GitHub\kp_trenmart\sistemPenjualanTrenmart\resources\views/admin/manage_bundling.blade.php ENDPATH**/ ?>

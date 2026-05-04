@@ -7,6 +7,7 @@ use App\Models\BerandaSetting;
 use App\Models\Kategori;
 use App\Models\Produk;
 use App\Models\Merk;
+use App\Models\Bundling;
 use Illuminate\Support\Facades\Auth;
 
 class KatalogController extends Controller
@@ -98,5 +99,13 @@ class KatalogController extends Controller
         }
 
         return redirect()->back()->with('success', 'Konfigurasi Beranda berhasil disimpan!');
+    }
+
+    public function index()
+    {
+        $produks = Produk::all();
+        $bundlings = Bundling::with('items.product')->get(); // Ambil bundling beserta isinya
+
+        return view('katalog', compact('produks', 'bundlings'));
     }
 }

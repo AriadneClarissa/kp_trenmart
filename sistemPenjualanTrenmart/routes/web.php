@@ -10,6 +10,7 @@ use App\Http\Controllers\TentangController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\NewPasswordController;
+use App\Http\Controllers\BundlingController;
 use Illuminate\Support\Facades\Route;
 
 // --- 1. HALAMAN PUBLIK ---
@@ -126,5 +127,9 @@ Route::middleware(['auth'])->group(function () {
         // Admin - Create Admin Account
         Route::get('/admins/create', [\App\Http\Controllers\AdminUserController::class, 'createAdmin'])->name('admin.admins.create');
         Route::post('/admins', [\App\Http\Controllers\AdminUserController::class, 'storeAdmin'])->name('admin.admins.store');
+
+        // Admin - Bundling
+        Route::get('/admin/manage-bundling', [BundlingController::class, 'create'])->name('bundling.create');
+        Route::post('/admin/manage-bundling', [BundlingController::class, 'store'])->name('bundling.store');
     });
 });
