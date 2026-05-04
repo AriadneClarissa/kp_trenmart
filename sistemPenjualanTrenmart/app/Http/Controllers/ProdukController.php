@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 
 class ProdukController extends Controller
 {
@@ -101,38 +102,53 @@ class ProdukController extends Controller
 
     public function store(Request $request)
     {
+        // 1. Validasi Input
         $request->validate([
+            'kd_produk'       => 'required|unique:produk,kd_produk',
             'nama_produk'     => 'required|string|max:255',
-            'gambar'          => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
             'harga_jual_umum' => 'required|numeric',
-            'harga_jual_langganan' => 'nullable|numeric',
             'stok_tersedia'   => 'required|numeric',
-            'kd_kategori'     => 'required',
-            'kd_merk'         => 'required',
-            'kd_satuan'       => 'required',
+            'files.*'         => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        // Simpan gambar dengan nama unik
-        $imageName = time() . '_' . uniqid() . '.' . $request->gambar->extension();  
-        $request->gambar->move(public_path('storage'), $imageName);
-
-        Produk::create([
-            'kd_produk'            => 'PRD-' . strtoupper(uniqid()),
-            'nama_produk'          => $request->nama_produk,
-            'deskripsi'            => $request->deskripsi,
+        // 2. Siapkan data awal
+        $data = [
+            'kd_produk'            => $request->kd_produk,
             'kd_kategori'          => $request->kd_kategori,
             'kd_merk'              => $request->kd_merk,
             'kd_satuan'            => $request->kd_satuan,
-            'satuan'               => $request->nama_satuan,
+            'nama_produk'          => $request->nama_produk,
+            'deskripsi'            => $request->deskripsi,
             'harga_jual_umum'      => $request->harga_jual_umum,
             'harga_jual_langganan' => $request->harga_jual_langganan ?? $request->harga_jual_umum,
             'stok_tersedia'        => $request->stok_tersedia,
-            'status'               => 'aktif', 
-            'gambar'               => $imageName,
-        ]);
+            'status'               => 'aktif', // default status
+        ];
 
-        return redirect()->route($request->origin == 'beranda' ? 'beranda' : 'produk.index')
-                         ->with('success', 'Produk berhasil ditambahkan!');
+        // 3. Logika Simpan Banyak Foto (Maksimal 3)
+        if ($request->hasFile('files')) {
+            $files = $request->file('files');
+            
+            // Pemetaan urutan file ke kolom database Trenmart
+            $columns = [0 => 'gambar', 1 => 'foto_2', 2 => 'foto_3'];
+
+            foreach ($files as $index => $file) {
+                if (isset($columns[$index])) {
+                    $columnName = $columns[$index];
+                    
+                    // Simpan file ke storage/app/public/produk
+                    $path = $file->store('produk', 'public');
+                    $data[$columnName] = $path;
+                }
+            }
+        }
+
+        // 4. Eksekusi Simpan ke Database
+        Produk::create($data);
+
+        // 5. Redirect sesuai origin (Beranda atau Index Produk)
+        $route = ($request->origin == 'beranda') ? 'beranda' : 'produk.index';
+        return redirect()->route($route)->with('success', 'Produk berhasil ditambahkan!');
     }
 
     public function produkIndex(Request $request)
@@ -175,13 +191,10 @@ class ProdukController extends Controller
     public function update(Request $request, $kd_produk)
     {
         $request->validate([
-            'nama_produk'     => 'required|string|max:255',
-            'harga_jual_umum' => 'required|numeric',
-            'harga_jual_langganan' => 'nullable|numeric',
-            'stok_tersedia'   => 'required|numeric',
-            'kd_kategori'     => 'required',
-            'kd_merk'         => 'required',
-            'kd_satuan'       => 'required',
+            'nama_produk'          => 'required|string|max:255',
+            'harga_jual_umum'      => 'required|numeric',
+            'stok_tersedia'        => 'required|numeric',
+            'files.*'              => 'image|mimes:jpeg,png,jpg,webp|max:2048', 
         ]);
 
         $produk = Produk::where('kd_produk', $kd_produk)->firstOrFail();
@@ -197,15 +210,25 @@ class ProdukController extends Controller
             'stok_tersedia'        => $request->stok_tersedia,
         ];
 
-        if ($request->hasFile('gambar')) {
-            // Hapus gambar lama
-            if ($produk->gambar && File::exists(public_path('storage/' . $produk->gambar))) {
-                File::delete(public_path('storage/' . $produk->gambar));
-            }
+        // Logika Multiple Upload
+        if ($request->hasFile('files')) {
+            $files = $request->file('files');
+            $columns = [0 => 'gambar', 1 => 'foto_2', 2 => 'foto_3'];
 
-            $imageName = time() . '_' . uniqid() . '.' . $request->gambar->extension();  
-            $request->gambar->move(public_path('storage'), $imageName);
-            $updateData['gambar'] = $imageName;
+            foreach ($files as $index => $file) {
+                if (isset($columns[$index])) {
+                    $columnName = $columns[$index];
+
+                    // Hapus gambar lama jika ada
+                    if ($produk->$columnName && Storage::disk('public')->exists($produk->$columnName)) {
+                        Storage::disk('public')->delete($produk->$columnName);
+                    }
+
+                    // Simpan file baru ke folder 'produk'
+                    $path = $file->store('produk', 'public');
+                    $updateData[$columnName] = $path;
+                }
+            }
         }
 
         $produk->update($updateData);

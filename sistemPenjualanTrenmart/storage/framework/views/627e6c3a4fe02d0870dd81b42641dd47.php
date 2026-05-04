@@ -5,13 +5,82 @@
         <div class="col-md-6">
             <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 20px;">
                 <div class="card-body p-4">
-                    <div class="d-flex align-items-center justify-content-center bg-light" 
-                         style="height: 450px; border-radius: 15px; overflow: hidden;">
-                        <img src="<?php echo e(asset('storage/' . $produk->gambar)); ?>" 
-                             class="img-fluid main-product-image" 
-                             alt="<?php echo e($produk->nama_produk); ?>"
-                             style="max-height: 100%; object-fit: contain; mix-blend-mode: multiply;">
+                    <div id="productCarousel" class="carousel slide bg-light" data-bs-ride="carousel" style="border-radius: 15px; overflow: hidden;">
+                        
+                        
+                        <?php if($produk->foto_2 || $produk->foto_3): ?>
+                        <div class="carousel-indicators">
+                            <button type="button" data-bs-target="#productCarousel" data-bs-slide-to="0" class="active bg-dark"></button>
+                            <?php if($produk->foto_2): ?> <button type="button" data-bs-target="#productCarousel" data-bs-slide-to="1" class="bg-dark"></button> <?php endif; ?>
+                            <?php if($produk->foto_3): ?> <button type="button" data-bs-target="#productCarousel" data-bs-slide-to="2" class="bg-dark"></button> <?php endif; ?>
+                        </div>
+                        <?php endif; ?>
+
+                        <div class="carousel-inner" style="height: 450px;">
+                            
+                            <div class="carousel-item active h-100">
+                                <div class="d-flex align-items-center justify-content-center h-100">
+                                    <img src="<?php echo e(asset('storage/' . $produk->gambar)); ?>" 
+                                         class="img-fluid main-product-image" 
+                                         alt="<?php echo e($produk->nama_produk); ?>"
+                                         style="max-height: 100%; object-fit: contain; mix-blend-mode: multiply;">
+                                </div>
+                            </div>
+
+                            
+                            <?php if($produk->foto_2): ?>
+                            <div class="carousel-item h-100">
+                                <div class="d-flex align-items-center justify-content-center h-100">
+                                    <img src="<?php echo e(asset('storage/' . $produk->foto_2)); ?>" 
+                                         class="img-fluid main-product-image" 
+                                         style="max-height: 100%; object-fit: contain; mix-blend-mode: multiply;">
+                                </div>
+                            </div>
+                            <?php endif; ?>
+
+                            
+                            <?php if($produk->foto_3): ?>
+                            <div class="carousel-item h-100">
+                                <div class="d-flex align-items-center justify-content-center h-100">
+                                    <img src="<?php echo e(asset('storage/' . $produk->foto_3)); ?>" 
+                                         class="img-fluid main-product-image" 
+                                         style="max-height: 100%; object-fit: contain; mix-blend-mode: multiply;">
+                                </div>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+
+                        
+                        <?php if($produk->foto_2 || $produk->foto_3): ?>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon p-3 bg-dark rounded-circle" aria-hidden="true" style="background-size: 50%;"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon p-3 bg-dark rounded-circle" aria-hidden="true" style="background-size: 50%;"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                        <?php endif; ?>
                     </div>
+
+                    
+                    <?php if($produk->foto_2 || $produk->foto_3): ?>
+                    <div class="row mt-3 g-2 justify-content-center">
+                        <div class="col-2">
+                            <img src="<?php echo e(asset('storage/' . $produk->gambar)); ?>" class="img-fluid border rounded cursor-pointer opacity-hover" onclick="goToSlide(0)" style="height: 50px; width: 100%; object-fit: cover;">
+                        </div>
+                        <?php if($produk->foto_2): ?>
+                        <div class="col-2">
+                            <img src="<?php echo e(asset('storage/' . $produk->foto_2)); ?>" class="img-fluid border rounded cursor-pointer opacity-hover" onclick="goToSlide(1)" style="height: 50px; width: 100%; object-fit: cover;">
+                        </div>
+                        <?php endif; ?>
+                        <?php if($produk->foto_3): ?>
+                        <div class="col-2">
+                            <img src="<?php echo e(asset('storage/' . $produk->foto_3)); ?>" class="img-fluid border rounded cursor-pointer opacity-hover" onclick="goToSlide(2)" style="height: 50px; width: 100%; object-fit: cover;">
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -31,7 +100,7 @@
                     <h3 class="fw-bold mb-4" style="color: #800000;">
                         Rp <?php echo e(number_format($produk->harga_tampil, 0, ',', '.')); ?>
 
-                        <small class="text-muted fw-normal fs-6">/<?php echo e($produk->satuan); ?></small>
+                        <small class="text-muted fw-normal fs-6">/<?php echo e($produk->satuanModel->nama_satuan ?? 'pcs'); ?></small>
                     </h3>
                     <?php if(auth()->guard()->check()): ?>
                         <?php if(auth()->user()->isAdmin()): ?>
@@ -73,7 +142,6 @@
                     <div class="action-section">
                         <?php if(auth()->guard()->check()): ?>
                             <?php if(auth()->user()->isAdmin()): ?>
-                                
                                 <div class="alert alert-secondary border-0 d-flex align-items-center" style="border-radius: 12px; background-color: #f8f9fa;">
                                     <i class="bi bi-shield-lock-fill fs-4 me-3 text-dark"></i>
                                     <div>
@@ -87,9 +155,8 @@
                                     </a>
                                 </div>
                             <?php else: ?>
-                                
                                 <?php if($produk->stok_tersedia > 0): ?>
-                                        <form action="<?php echo e(route('cart.add', $produk->kd_produk)); ?>" method="POST" class="add-to-cart-form">
+                                    <form action="<?php echo e(route('cart.add', $produk->kd_produk)); ?>" method="POST">
                                         <?php echo csrf_field(); ?>
                                         <button type="submit" class="btn btn-buy w-100 py-3 shadow-sm">
                                             <i class="bi bi-cart-plus fs-5 me-2"></i> Tambah ke Keranjang
@@ -102,19 +169,16 @@
                                 <?php endif; ?>
                             <?php endif; ?>
                         <?php else: ?>
-                            
                             <a href="<?php echo e(route('login')); ?>" class="btn btn-buy w-100 py-3 shadow-sm">
                                 <i class="bi bi-box-arrow-in-right fs-5 me-2"></i> Login untuk Membeli
                             </a>
                         <?php endif; ?>
                     </div>
 
-                    
                     <div class="mt-4 text-center">
                         <a href="<?php echo e(request('from') === 'produk.index' ? route('produk.index') : (request('from') === 'katalog' ? route('katalog') : route('beranda'))); ?>" class="text-decoration-none text-muted small hover-maroon">
                             <i class="bi bi-arrow-left me-1"></i>
-                            <?php echo e(request('from') === 'produk.index' ? 'Kembali ke Produk' : (request('from') === 'katalog' ? 'Kembali ke Katalog' : 'Kembali ke Beranda')); ?>
-
+                            Kembali
                         </a>
                     </div>
                 </div>
@@ -124,12 +188,12 @@
 </div>
 
 <style>
-    /* Transisi Halus untuk Card */
-    .card {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
+    .cursor-pointer { cursor: pointer; }
+    .opacity-hover:hover { opacity: 0.7; transition: 0.3s; }
+    .carousel-control-prev, .carousel-control-next { width: 10%; }
     
-    /* Warna Maroon Khusus Tombol Beli */
+    .card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    
     .btn-buy {
         background-color: #800000;
         color: white;
@@ -147,24 +211,15 @@
         box-shadow: 0 5px 15px rgba(128, 0, 0, 0.3);
     }
 
-    .hover-maroon:hover {
-        color: #800000 !important;
-    }
-
-    .main-product-image {
-        transition: transform 0.5s ease;
-    }
-
-    .card:hover .main-product-image {
-        transform: scale(1.05);
-    }
-
-    /* Responsif Mobile */
-    @media (max-width: 768px) {
-        .container { margin-top: 15px; }
-        .main-product-image { height: 300px; }
-        h2 { font-size: 1.5rem; }
-    }
+    .hover-maroon:hover { color: #800000 !important; }
 </style>
+
+<script>
+    function goToSlide(index) {
+        var myCarousel = document.querySelector('#productCarousel');
+        var carousel = bootstrap.Carousel.getOrCreateInstance(myCarousel);
+        carousel.to(index);
+    }
+</script>
 <?php $__env->stopSection(); ?>
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\Lenovo LOQ\Documents\GitHub\kp_trenmart\sistemPenjualanTrenmart\resources\views/produk/detail.blade.php ENDPATH**/ ?>

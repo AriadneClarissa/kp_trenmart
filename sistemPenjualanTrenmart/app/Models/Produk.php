@@ -22,7 +22,9 @@ class Produk extends Model
         'harga_jual_langganan', 
         'stok_tersedia',     
         'status',
-        'gambar',
+        'gambar', // foto utama
+        'foto_2', // foto tambahan 1
+        'foto_3', // foto tambahan 2
         'is_highlight',
         'is_custom_section'
     ];
