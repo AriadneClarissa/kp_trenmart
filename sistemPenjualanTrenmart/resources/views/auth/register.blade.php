@@ -158,35 +158,6 @@
                     <textarea name="home_address" class="form-control" rows="2" placeholder="Jl. Nama Jalan No. 123, Kota..." required>{{ old('home_address') }}</textarea>
                 </div>
 
-                <div class="mb-4">
-                    <label class="form-label fw-semibold">Daftar Sebagai</label>
-                    <select name="customer_type" id="customer_type" class="form-select" onchange="toggleGrosirFields()" required>
-                        <option value="regular" {{ old('customer_type') === 'regular' ? 'selected' : '' }}>Pelanggan Umum (Eceran)</option>
-                        <option value="langganan" {{ old('customer_type') === 'langganan' ? 'selected' : '' }}>Pelanggan Grosir (Langganan)</option>
-                    </select>
-                </div>
-
-                <div id="grosir_fields" style="display: {{ old('customer_type') === 'langganan' ? 'block' : 'none' }};">
-                    <div class="section-divider">
-                        <span class="section-label">DATA USAHA / TOKO</span>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Nama Toko / Perusahaan / Instansi</label>
-                        <input type="text" name="organization_name" id="organization_name" class="form-control" value="{{ old('organization_name') }}" placeholder="Contoh: Toko Berkah Jaya">
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label fw-semibold">Jenis Organisasi</label>
-                        <select name="organization_type" id="organization_type" class="form-select">
-                            <option value="">Pilih Jenis...</option>
-                            <option value="Toko/UMKM" {{ old('organization_type') === 'Toko/UMKM' ? 'selected' : '' }}>Toko / UMKM</option>
-                            <option value="Perusahaan" {{ old('organization_type') === 'Perusahaan' ? 'selected' : '' }}>Perusahaan (PT/CV)</option>
-                            <option value="Instansi" {{ old('organization_type') === 'Instansi' ? 'selected' : '' }}>Instansi Pemerintah</option>
-                        </select>
-                    </div>
-                </div>
-
                 <button type="submit" class="btn btn-maroon shadow-sm mt-2">Daftar Akun</button>
             </form>
 
@@ -211,30 +182,6 @@
             icon.classList.replace("bi-eye-slash", "bi-eye");
         }
     }
-
-    // Fungsi menampilkan field organisasi secara dinamis
-    function toggleGrosirFields() {
-        const customerType = document.getElementById('customer_type').value;
-        const grosirSection = document.getElementById('grosir_fields');
-        const orgNameInput = document.getElementById('organization_name');
-        const orgTypeInput = document.getElementById('organization_type');
-
-        if (customerType === 'langganan') {
-            grosirSection.style.display = 'block';
-            orgNameInput.required = true;
-            orgTypeInput.required = true;
-        } else {
-            grosirSection.style.display = 'none';
-            orgNameInput.required = false;
-            orgTypeInput.required = false;
-            // Kosongkan nilai jika tidak jadi memilih langganan
-            orgNameInput.value = "";
-            orgTypeInput.value = "";
-        }
-    }
-
-    // Jalankan pengecekan saat halaman dimuat (untuk old input)
-    window.onload = toggleGrosirFields;
 </script>
 
 @push('scripts')

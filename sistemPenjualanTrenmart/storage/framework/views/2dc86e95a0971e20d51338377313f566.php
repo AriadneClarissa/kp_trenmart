@@ -1,6 +1,6 @@
-@extends('layouts.app')
 
-@section('content')
+
+<?php $__env->startSection('content'); ?>
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-6">
@@ -9,12 +9,12 @@
                     <h4 class="fw-bold mb-3">Data Pengiriman</h4>
                     <p class="text-muted mb-4">Lengkapi data berikut untuk memudahkan proses pengiriman pesanan Anda.</p>
 
-                    <form action="{{ route('profile.initial.update') }}" method="POST">
-                        @csrf
+                    <form action="<?php echo e(route('profile.initial.update')); ?>" method="POST">
+                        <?php echo csrf_field(); ?>
                         
                         <div class="mb-3">
                             <label class="form-label">Nama Lengkap</label>
-                            <input type="text" name="name" class="form-control" value="{{ $user->name }}" required>
+                            <input type="text" name="name" class="form-control" value="<?php echo e($user->name); ?>" required>
                         </div>
 
                         <div class="mb-3">
@@ -100,4 +100,5 @@ function validateWA(input) {
     }
 }
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\Lenovo LOQ\Documents\GitHub\kp_trenmart\sistemPenjualanTrenmart\resources\views/auth/form_umum.blade.php ENDPATH**/ ?>

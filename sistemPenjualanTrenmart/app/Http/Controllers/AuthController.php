@@ -22,7 +22,6 @@ class AuthController extends Controller
         'name' => 'required|string|max:255',
         'email' => 'required|string|email|max:255|unique:users',
         'password' => 'required|string|min:8|confirmed',
-        'customer_type' => 'required|in:regular,langganan',
         // Tambahkan regex: wajib angka dan diawali 08
         'phone_number' => ['required', 'string', 'min:10', 'max:13', 'regex:/^08[0-9]{8,11}$/'],
         'home_address' => 'required|string|max:500',
@@ -42,13 +41,8 @@ class AuthController extends Controller
         'email' => $validated['email'],
         'password' => Hash::make($validated['password']),
         'role' => 'customer',
-        'customer_type' => $validated['customer_type'],
         'phone_number' => $validated['phone_number'],
         'home_address' => $validated['home_address'],
-        'organization_name' => $validated['organization_name'] ?? null,
-        'organization_type' => $validated['organization_type'] ?? null,
-            // No approval mechanism — accounts are active immediately
-            'is_approved' => true,
     ]);
         // Log the user in or redirect to login with success
         return redirect()->route('login')->with('success', 'Pendaftaran berhasil! Silakan masuk.');
@@ -72,9 +66,6 @@ class AuthController extends Controller
                 Auth::logout();
                 return redirect()->route('login')->with('error', 'Akun Anda ditolak oleh admin.');
             }
-
-            // No longer checking pending approval — accounts are active immediately
-
             return redirect()->intended('dashboard');
         }
 
@@ -99,36 +90,27 @@ class AuthController extends Controller
     public function handleGoogleCallback()
     {
         try {
-            if (empty(config('services.google.client_id')) || empty(config('services.google.client_secret'))) {
-                return redirect()->route('login')->with('error', 'Login Google belum dikonfigurasi. Silakan lengkapi kredensial Google di file .env.');
-            }
-
             $googleUser = Socialite::driver('google')
                 ->redirectUrl(url('/auth/google/callback'))
                 ->user();
+                
             $user = User::where('email', $googleUser->email)->first();
 
             if (!$user) {
+                // Ini eksekusi jika dia mendaftar pertama kali pakai Google
                 $user = User::create([
                     'name' => $googleUser->name,
                     'email' => $googleUser->email,
                     'password' => Hash::make(str()->random(16)), 
                     'role' => 'customer',
                     'google_id' => $googleUser->id,
-                    'is_approved' => false, 
+                    'is_approved' => true, 
                 ]);
             }
 
-            // PERBAIKAN: Jika tipe pelanggan masih kosong, paksa pilih jenis dlu
-            if (empty($user->customer_type)) {
-                Auth::login($user);
-                return redirect()->route('pilih.jenis');
-            }
-
-            // Jika dia langganan tapi belum disetujui, jangan biarkan login
-            // No approval required for Google signups either; activate immediately
-
             Auth::login($user);
+            
+            // PENTING: Arahkan ke fungsi ini untuk di-screening
             return $this->handleRedirectAfterLogin($user);
 
         } catch (\Exception $e) {
@@ -138,26 +120,18 @@ class AuthController extends Controller
 
     public function handlePilihJenis(Request $request)
     {
-        // Sesuaikan validasi dengan name="jenis" dari Blade
-        $request->validate([
-            'jenis' => 'required|in:regular,langganan',
-        ]);
-
+        
         /** @var \App\Models\User $user */
         $user = Auth::user();
         
-        // Update data user di database — no approval required
-        $user->update([
-            'customer_type' => $request->jenis,
-            'is_approved' => true,
-        ]);
-
-        // Redirect berdasarkan pilihan
-        if ($request->jenis === 'langganan') {
-            return redirect()->route('form.langganan');
+        // Jika data profil belum lengkap (misal: user baru dari Google belum isi nomor HP)
+        if (empty($user->phone_number)) {
+            // Langsung arahkan ke form umum
+            return redirect()->route('form.umum');
         }
 
-        return redirect()->route('form.umum');
+        // Default: Ke Beranda (User yang profilnya sudah lengkap)
+        return redirect()->route('beranda');
     }
     /**
      * 4. CENTRALIZED REDIRECT LOGIC
@@ -169,17 +143,11 @@ class AuthController extends Controller
         if ($user->isAdmin()) {
             return redirect()->route('admin.dashboard');
         }
-
-        // Jika data profil kosong (Biasanya user baru dari Google)
-        if (empty($user->customer_type) || empty($user->phone_number)) {
-            return redirect()->route('pilih.jenis');
+        // Jika data profil belum lengkap (misal: user baru dari Google belum isi nomor HP)
+        if (empty($user->phone_number)) {
+            // Langsung arahkan ke form umum
+            return redirect()->route('form.umum');
         }
-
-        // Jika Member Langganan tapi belum disetujui Admin
-        if ($user->isPendingMember()) {
-            return redirect()->route('status.tinjau');
-        }
-
         // Default: Ke Beranda (Regular atau Langganan yang sudah aktif)
         return redirect()->route('beranda');
     }
@@ -201,23 +169,15 @@ class AuthController extends Controller
             'home_address' => 'required|string',
         ];
 
-        if ($isLangganan) {
-            $rules['organization_name'] = 'required|string|max:255';
-            $rules['organization_type'] = 'required|string';
-        }
-
         $validated = $request->validate($rules);
-
-        // Update profil dan status persetujuan
-        $user->update(array_merge($validated, [
-            'is_approved' => !$isLangganan, 
-        ]));
-
-        if ($isLangganan) {
-            // JANGAN logout di sini agar data di halaman status.tinjau bisa terbaca
-            return redirect()->route('status.tinjau');
-        }
-
+        
+        // Update data profil dan setujui akun
+        $user->update([
+            'name' => $validated['name'],
+            'phone_number' => $validated['phone_number'],
+            'home_address' => $validated['home_address'],
+            'is_approved' => true, 
+        ]);
         return redirect()->route('beranda');
     }
 

@@ -47,12 +47,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     
     // --- ALUR PROFIL SETELAH LOGIN GOOGLE ---
-    Route::get('/pilih-jenis', [AuthController::class, 'showPilihJenis'])->name('pilih.jenis');
-    Route::post('/pilih-jenis', [AuthController::class, 'handlePilihJenis'])->name('pilih.jenis.post');
     Route::get('/lengkapi-profil/umum', [AuthController::class, 'formUmum'])->name('form.umum');
-    Route::get('/lengkapi-profil/langganan', [AuthController::class, 'formLangganan'])->name('form.langganan');
     Route::post('/update-profil-awal', [AuthController::class, 'updateProfileAfterGoogle'])->name('profile.initial.update');
-    Route::get('/status-tinjau', [AuthController::class, 'statusTinjau'])->name('status.tinjau');
 
     // --- FITUR PELANGGAN ---
     Route::get('/dashboard', function () { return redirect()->route('beranda'); })->name('dashboard');
@@ -106,10 +102,6 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/satuan/hapus/{id}', [\App\Http\Controllers\SatuanController::class, 'destroy'])->name('satuan.destroy');
         Route::put('/tentang/update', [TentangController::class, 'update'])->name('admin.tentang.update');
         Route::post('/produk/update-status', [ProdukController::class, 'updateStatus'])->name('produk.updateStatus');
-
-        // Admin Approval (Tolak dan Terima Pendaftaran Pelanggan Langganan)
-        Route::post('/approve/{id}', [AuthController::class, 'approveUser'])->name('admin.approve');
-        Route::delete('/reject/{id}', [AuthController::class, 'reject'])->name('admin.reject');
 
         // Ubah Banner
         Route::post('/banner/update', [AuthController::class, 'updateBanner'])->name('admin.banner.update');
