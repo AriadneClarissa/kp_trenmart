@@ -25,19 +25,40 @@ class KatalogController extends Controller
     // 2. API UNTUK PENCARIAN PRODUK (Menangani ribuan produk agar tidak lemot)
     public function searchProduk(Request $request)
     {
-    // Mengambil keyword dari Select2 (biasanya dikirim lewat parameter 'term')
-    $search = $request->term;
+        $search = $request->term; // Konsisten dengan JS 'term'
+        $merkSearch = $request->merk; // Konsisten dengan JS 'merk'
 
-    // Cari produk berdasarkan nama atau kode produk
-    $produk = Produk::where('nama_produk', 'LIKE', "%$search%")
-                    ->orWhere('kd_produk', 'LIKE', "%$search%")
-                    ->take(10) // Ambil 10 saja agar pencarian sangat cepat
-                    ->get(['kd_produk', 'nama_produk']);
+        $query = Produk::with('merk');
 
-    // Kembalikan dalam format JSON yang bisa dibaca Select2
-    return response()->json($produk);
+        // Filter Nama/Kode Produk
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('nama_produk', 'LIKE', "%$search%")
+                ->orWhere('kd_produk', 'LIKE', "%$search%");
+            });
+        }
+
+        // Filter Merk: Memastikan hanya merk yang dicari yang tampil
+        if ($merkSearch) {
+            $query->whereHas('merk', function($q) use ($merkSearch) {
+                $q->where('nama_merk', 'LIKE', "%$merkSearch%");
+            });
+        }
+
+        $produk = $query->take(10)->get();
+
+        // Mapping Data: Konsisten mengembalikan 'id', 'text', 'price', dan 'merk'
+        $results = $produk->map(function($p) {
+            return [
+                'id'    => $p->kd_produk,
+                'text'  => $p->nama_produk,
+                'price' => (int)($p->harga_jual_umum ?? 0), // Menghindari NaN di JS
+                'merk'  => $p->merk->nama_merk ?? 'Tanpa Merk' // Menghindari undefined di JS
+            ];
+        });
+
+        return response()->json($results);
     }
-
     // 3. HALAMAN EDIT JUDUL & SECTION CUSTOM
     public function editJudul()
     {
@@ -100,12 +121,16 @@ class KatalogController extends Controller
 
         return redirect()->back()->with('success', 'Konfigurasi Beranda berhasil disimpan!');
     }
-
+    
     public function index()
     {
-        $produks = Produk::all();
-        $bundlings = Bundling::with('items.product')->get(); // Ambil bundling beserta isinya
+        $settings = BerandaSetting::all()->pluck('value', 'key');
+        $produk_terbaru = Produk::with('merk')->latest()->take(8)->get();
 
-        return view('katalog', compact('produks', 'bundlings'));
+        // Pastikan mengambil data bundling
+        $bundlings = Bundling::with('items.produk.merk')->latest()->get(); 
+
+        // Kirim variabel ke view menggunakan compact
+        return view('beranda', compact('settings', 'produk_terbaru', 'bundlings'));
     }
 }

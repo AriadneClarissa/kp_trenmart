@@ -10,11 +10,15 @@ use Illuminate\Support\Facades\DB; // Tambahkan ini agar lebih rapi
 
 class BundlingController extends Controller
 {
-    public function create()
+    public function create(Request $request)
     {
-        $produk = Produk::all();
-        // Pastikan view mengarah ke path yang benar di folder admin
-        return view('admin.manage_bundling', compact('produk'));
+        $produk = Produk::with('merk')->get();
+        
+        // Ambil parameter source dari URL (misal: ?source=beranda)
+        // Jika tidak ada, default-nya ke 'index'
+        $source = $request->query('source', 'index');
+
+        return view('admin.manage_bundling', compact('produk', 'source'));
     }
 
     public function store(Request $request)
@@ -62,8 +66,43 @@ class BundlingController extends Controller
 
     // API untuk ambil harga produk (AJAX)
     public function getProductPrice($id)
+        {
+            $produk = Produk::where('kd_produk', $id)->first();
+            return response()->json(['price' => $produk ? $produk->harga_jual_umum : 0]);
+        }
+
+    public function searchAjax(Request $request) 
     {
-        $produk = Produk::where('kd_produk', $id)->first();
-        return response()->json(['price' => $produk ? $produk->harga_jual_umum : 0]);
+        $q = $request->q;
+        $merk = $request->merk;
+
+        // Pastikan query mengambil relasi merk
+        $query = Produk::with('merk');
+
+        // Filter Nama Produk (Jika ada)
+        if ($q) {
+            $query->where('nama_produk', 'LIKE', "%$q%");
+        }
+
+        // Filter Merk (Jika ada) - KUNCI AGAR HANYA MERK TERTENTU YANG TAMPIL
+        if ($merk) {
+            $query->whereHas('merk', function($m) use ($merk) {
+                $m->where('nama_merk', 'LIKE', "%$merk%");
+            });
+        }
+
+        $produk = $query->take(10)->get();
+
+        // MAPPING DATA: Ini sangat penting agar JS tidak 'undefined'
+        $results = $produk->map(function($p) {
+            return [
+                'id'    => $p->kd_produk,
+                'text'  => $p->nama_produk,
+                'price' => (int) ($p->harga_jual_umum ?? 0),
+                'merk'  => $p->merk->nama_merk ?? 'Tanpa Merk'
+            ];
+        });
+
+        return response()->json($results);
     }
 }

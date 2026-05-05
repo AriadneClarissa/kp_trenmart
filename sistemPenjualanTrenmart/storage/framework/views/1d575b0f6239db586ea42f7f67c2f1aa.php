@@ -41,7 +41,7 @@
     .card-clickable { cursor: pointer; }
     .img-container { background-color: #f8f9fa; border-radius: 20px; padding: 25px; min-height: 190px; display: flex; align-items: center; justify-content: center; position: relative; margin: 10px; }
     
-    .badge-stok { position: absolute; top: 10px; left: 10px; font-size: 10px; padding: 4px 10px; border-radius: 8px; z-index: 2; }
+    .badge-stok { position: absolute; top: 10px; left: 10px; font-size: 10px; padding: 4px 10px; border-radius: 8px; }
     .product-info { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; }
     .price-text { color: var(--maroon); font-weight: 800; font-size: 1.2rem; }
     
@@ -131,63 +131,12 @@
                     </select>
                 </div>
                 <div class="col-md-2 text-end text-muted small">
-                    <?php echo e(count($produk) + (isset($bundlings) ? count($bundlings) : 0)); ?> item ditemukan
+                    <?php echo e(count($produk)); ?> produk ditemukan
                 </div>
             </form>
 
             
             <div class="row row-cols-2 row-cols-md-3 g-4">
-                
-                
-                <?php if(isset($bundlings) && $bundlings->count() > 0): ?>
-                    <?php $__currentLoopData = $bundlings; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $b): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                    <div class="col">
-                        <div class="card card-produk border border-primary shadow-sm h-100">
-                            <div class="img-container bg-primary-subtle bg-opacity-10">
-                                
-                                <span class="badge bg-danger badge-stok shadow-sm" style="font-size: 11px; padding: 6px 12px;">PAKET HEMAT</span>
-                                
-                                
-                                <i class="bi bi-box-seam text-primary" style="font-size: 5rem; opacity: 0.5;"></i>
-                            </div>
-                            
-                            <div class="product-info text-center d-flex flex-column">
-                                <span class="badge bg-primary mb-2 align-self-center" style="font-size: 10px;">Bundling Promo</span>
-                                <h6 class="fw-bold text-dark mb-2 text-truncate" title="<?php echo e($b->name); ?>"><?php echo e($b->name); ?></h6>
-                                
-                                <p class="text-muted small mb-3 flex-grow-1" style="font-size: 11px; line-height: 1.4;">
-                                    <?php $__currentLoopData = $b->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        • <?php echo e($item->produk->nama_produk ?? 'Produk Dihapus'); ?> <br>
-                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                </p>
-                                
-                                
-                                <div class="mt-auto">
-                                    <p class="text-muted small text-decoration-line-through mb-0" style="font-size: 12px;">
-                                        Rp <?php echo e(number_format($b->total_normal_price, 0, ',', '.')); ?>
-
-                                    </p>
-                                    <h5 class="price-text mb-3 text-success fw-bold">
-                                        Rp <?php echo e(number_format($b->bundling_price, 0, ',', '.')); ?>
-
-                                    </h5>
-                                    
-                                    <form action="#" method="POST"> 
-                                        <?php echo csrf_field(); ?>
-                                        <button type="submit" class="btn-action bg-primary text-white shadow-sm border-0 w-100">
-                                            <i class="bi bi-cart-plus me-1"></i> Beli Paket
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                <?php endif; ?>
-                
-
-
-                
                 <?php $__empty_1 = true; $__currentLoopData = $produk; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $p): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                 <div class="col">
                     <div class="card card-produk <?php echo e(auth()->check() && !auth()->user()->isAdmin() ? 'card-clickable' : ''); ?>"
@@ -203,49 +152,50 @@
                             <img src="<?php echo e(asset('storage/' . $p->gambar)); ?>" class="img-fluid" style="height: 150px; object-fit: contain;" alt="<?php echo e($p->nama_produk); ?>">
                         </div>
                         
-                        <div class="product-info text-center d-flex flex-column">
+                        <div class="product-info text-center">
                             <p class="text-muted small mb-1"><?php echo e($p->merk->nama_merk ?? 'No Brand'); ?></p>
-                            <h6 class="fw-bold text-dark text-truncate mb-2 flex-grow-1" title="<?php echo e($p->nama_produk); ?>"><?php echo e($p->nama_produk); ?></h6>
+                            <h6 class="fw-bold text-dark text-truncate mb-2" title="<?php echo e($p->nama_produk); ?>"><?php echo e($p->nama_produk); ?></h6>
                             
-                            <div class="mt-auto">
-                                
-                                <h5 class="price-text mb-1">
-                                    Rp <?php echo e(number_format(($p->harga_tampil > 0 ? $p->harga_tampil : $p->harga_jual_umum), 0, ',', '.')); ?>
+                            
+                            <h5 class="price-text mb-1">
+                                Rp <?php echo e(number_format(($p->harga_tampil > 0 ? $p->harga_tampil : $p->harga_jual_umum), 0, ',', '.')); ?>
 
-                                    <span class="text-muted small fw-normal" style="font-size: 11px;">/<?php echo e($p->satuan); ?></span>
-                                </h5>
-                                <?php if(auth()->guard()->check()): ?>
-                                    <?php if(auth()->user()->isAdmin()): ?>
-                                        <p class="mb-3 fw-semibold" style="color: #f08a24; font-size: 0.95rem;">
-                                            Langganan: Rp <?php echo e(number_format($p->harga_jual_langganan ?? $p->harga_jual_umum, 0, ',', '.')); ?>
+                                <span class="text-muted small fw-normal" style="font-size: 11px;">/<?php echo e($p->satuan); ?></span>
+                            </h5>
+                            <?php if(auth()->guard()->check()): ?>
+                                <?php if(auth()->user()->isAdmin()): ?>
+                                    <p class="mb-3 fw-semibold" style="color: #f08a24; font-size: 0.95rem;">
+                                        Langganan: Rp <?php echo e(number_format($p->harga_jual_langganan ?? $p->harga_jual_umum, 0, ',', '.')); ?>
 
-                                        </p>
-                                    <?php endif; ?>
+                                    </p>
                                 <?php endif; ?>
-                                
-                                
-                                <?php if(auth()->guard()->check()): ?>
-                                    <?php if(auth()->user()->isAdmin()): ?>
-                                        <a href="<?php echo e(route('produk.detail', ['id' => $p->kd_produk, 'from' => 'katalog'])); ?>" class="btn-action btn-detail shadow-sm mt-2">
-                                            <i class="bi bi-eye me-1"></i> Lihat Detail
-                                        </a>
-                                    <?php else: ?>
-                                        <form action="<?php echo e(route('cart.add', $p->kd_produk)); ?>" method="POST" class="mt-2 add-to-cart-form">
-                                            <?php echo csrf_field(); ?>
-                                            <button type="submit" class="btn-action btn-tambah shadow-sm w-100">
-                                                <i class="bi bi-plus-lg me-1"></i> Tambah
-                                            </button>
-                                        </form>
-                                    <?php endif; ?>
+                            <?php endif; ?>
+                            
+                            
+                            <?php if(auth()->guard()->check()): ?>
+                                <?php if(auth()->user()->isAdmin()): ?>
+                                    
+                                    <a href="<?php echo e(route('produk.detail', ['id' => $p->kd_produk, 'from' => 'katalog'])); ?>" class="btn-action btn-detail shadow-sm">
+                                        <i class="bi bi-eye me-1"></i> Lihat Detail
+                                    </a>
                                 <?php else: ?>
+                                    
                                     <form action="<?php echo e(route('cart.add', $p->kd_produk)); ?>" method="POST" class="mt-2 add-to-cart-form">
                                         <?php echo csrf_field(); ?>
-                                        <button type="submit" class="btn-action btn-tambah shadow-sm w-100">
+                                        <button type="submit" class="btn-action btn-tambah shadow-sm">
                                             <i class="bi bi-plus-lg me-1"></i> Tambah
                                         </button>
                                     </form>
                                 <?php endif; ?>
-                            </div>
+                            <?php else: ?>
+                                
+                                <form action="<?php echo e(route('cart.add', $p->kd_produk)); ?>" method="POST" class="mt-2 add-to-cart-form">
+                                    <?php echo csrf_field(); ?>
+                                    <button type="submit" class="btn-action btn-tambah shadow-sm">
+                                        <i class="bi bi-plus-lg me-1"></i> Tambah
+                                    </button>
+                                </form>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -255,8 +205,6 @@
                     <h5 class="mt-3 text-muted">Produk tidak ditemukan</h5>
                 </div>
                 <?php endif; ?>
-                
-
             </div>
         </div>
     </div>
@@ -266,13 +214,14 @@
 <?php $__env->startPush('scripts'); ?>
 <script>
 $(document).ready(function() {
-    // Live Search Kategori untuk Sidebar (Katalog)
+    // Live Search Kategori
     $('#inputSearchKat').on('keyup', function() {
         let val = $(this).val().toLowerCase();
         $("#listKatSide .kat-item").filter(function() {
             $(this).toggle($(this).find('.nama-kat').text().toLowerCase().indexOf(val) > -1)
         });
     });
+
 });
 </script>
 <?php $__env->stopPush(); ?>

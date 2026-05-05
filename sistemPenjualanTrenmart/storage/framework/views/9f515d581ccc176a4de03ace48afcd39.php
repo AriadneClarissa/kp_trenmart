@@ -39,10 +39,28 @@
 
                 
                 <div class="col-md-7">
-                    <div class="p-3 border rounded-3 shadow-sm bg-white">
-                        <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-box-seam me-2"></i>Pilih Produk dalam Paket</h6>
-                        <p class="small text-muted mb-3">Klik kotak di bawah, lalu langsung ketik nama produk atau merk untuk mencari barang.</p>
+                    <div class="p-3 border rounded-3 shadow-sm bg-white mb-3">
+                        <h6 class="fw-bold mb-2"><i class="bi bi-search me-2 text-primary"></i>Cari & Tambah Produk Cepat</h6>
+                        <p class="text-muted small mb-3">Cari berdasarkan nama atau merk, lalu klik produk untuk memasukkannya ke baris paket.</p>
                         
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <input type="text" id="inputNamaProduk" class="form-control rounded-pill px-4 shadow-sm border-0 bg-light" placeholder="Ketik Nama Produk...">
+                            </div>
+                            <div class="col-md-6">
+                                <input type="text" id="inputMerkProduk" class="form-control rounded-pill px-4 shadow-sm border-0 bg-light" placeholder="Ketik Merk...">
+                            </div>
+                        </div>
+
+                        
+                        <div class="position-relative">
+                            <div id="hasilPencarian" class="list-group shadow position-absolute w-100" style="z-index: 1050; display: none; max-height: 250px; overflow-y: auto; border-radius: 12px;"></div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="p-3 border rounded-3 shadow-sm bg-white">
+                        <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-box-seam me-2"></i>Daftar Produk dalam Paket</h6>
                         <div id="bundling-container">
                             
                         </div>
@@ -54,7 +72,7 @@
 
             <div class="row justify-content-end">
                 <div class="col-md-5">
-                    <div class="card p-3 bg-light border-0">
+                    <div class="card p-3 bg-light border-0 shadow-sm">
                         <div class="d-flex justify-content-between mb-2">
                             <span class="text-muted">Total Harga Normal:</span>
                             <div class="fw-bold h5 mb-0">
@@ -63,7 +81,7 @@
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold text-success">Harga Bundling (Harga Jual)</label>
+                            <label class="form-label fw-bold text-success">Harga Bundling (Harga Jual Baru)</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-success text-white border-0">Rp</span>
                                 <input type="number" name="bundling_price" class="form-control border-success" 
@@ -71,6 +89,7 @@
                             </div>
                         </div>
                         <div class="d-grid mt-3">
+                            <a href="<?php echo e($source == 'beranda' ? route('beranda') : route('produk.index')); ?>" class="btn btn-outline-secondary px-4 fw-bold">Batal</a>
                             <button type="submit" class="btn btn-primary py-3 fw-bold rounded-3 shadow-sm">
                                 <i class="bi bi-check-lg me-2"></i>Simpan Paket Bundling
                             </button>
@@ -100,11 +119,10 @@
         const container = document.getElementById('bundling-container');
         
         const currentSelections = [];
-        document.querySelectorAll('.product-select').forEach(select => {
-            currentSelections.push(select.value);
+        $('.product-select').each(function() {
+            currentSelections.push($(this).val());
         });
 
-        // Kosongkan container
         container.innerHTML = '';
 
         for (let i = 1; i <= type; i++) {
@@ -112,8 +130,7 @@
             const rowHtml = `
                 <div class="row g-2 mb-3 align-items-end item-row">
                     <div class="col-8">
-                        <label class="small text-muted fw-bold">Produk ${i}</label>
-                        
+                        <label class="small text-muted fw-bold">Slot Produk ${i}</label>
                         <div class="select2-wrapper" style="position: relative;">
                             <select name="product_id[]" class="form-select product-select select2" required onchange="calculatePrices(this)">
                                 <option value=""></option>
@@ -127,36 +144,30 @@
                         </div>
                     </div>
                     <div class="col-4">
-                        <input type="text" class="form-control bg-light price-display" readonly placeholder="Rp 0">
+                        <input type="text" class="form-control bg-light price-display fw-bold text-dark" readonly placeholder="Rp 0">
                     </div>
                 </div>`;
             container.insertAdjacentHTML('beforeend', rowHtml);
         }
 
-        // Hancurkan Select2 lama jika ada (agar tidak bentrok saat ganti tipe)
-        if ($('.select2').hasClass("select2-hidden-accessible")) {
-            $('.select2').select2('destroy');
-        }
-
-        // Inisialisasi ulang Select2 dengan Dropdown Parent (Solusi Anti-Glitch)
         $('.select2').each(function() {
             $(this).select2({
                 theme: 'bootstrap-5',
                 width: '100%',
-                placeholder: 'Klik lalu ketik nama produk...',
+                placeholder: 'Cari atau pilih produk...',
                 allowClear: true,
-                dropdownParent: $(this).parent() // <-- INI KUNCI UTAMANYA
+                dropdownParent: $(this).parent() 
             });
         });
 
-        document.querySelectorAll('.product-select').forEach(select => {
-            if(select.value) calculatePrices(select);
+        $('.product-select').each(function() {
+            if($(this).val()) calculatePrices(this);
         });
     }
 
     function calculatePrices(select) {
         const selectedOption = select.options[select.selectedIndex];
-        const price = parseFloat(selectedOption.getAttribute('data-price')) || 0;
+        const price = (selectedOption && selectedOption.getAttribute('data-price')) ? parseFloat(selectedOption.getAttribute('data-price')) : 0;
         const row = select.closest('.item-row');
         row.querySelector('.price-display').value = "Rp " + price.toLocaleString('id-ID');
         updateGrandTotal();
@@ -164,8 +175,8 @@
 
     function updateGrandTotal() {
         let total = 0;
-        document.querySelectorAll('.product-select').forEach(select => {
-            const selectedOption = select.options[select.selectedIndex];
+        $('.product-select').each(function() {
+            const selectedOption = this.options[this.selectedIndex];
             if (selectedOption && selectedOption.getAttribute('data-price')) {
                 total += parseFloat(selectedOption.getAttribute('data-price'));
             }
@@ -173,6 +184,96 @@
         document.getElementById('display_total_normal').innerText = total.toLocaleString('id-ID');
         document.getElementById('input_total_normal').value = total;
     }
+
+    // --- LOGIC PENCARIAN AJAX DENGAN HARGA ---
+    $('#inputNamaProduk, #inputMerkProduk').on('keyup', function() {
+        let nama = $('#inputNamaProduk').val();
+        let merk = $('#inputMerkProduk').val();
+
+        if (nama.length >= 3 || merk.length >= 3) {
+            $.ajax({
+                url: "<?php echo e(route('admin.produk.search_ajax')); ?>",
+                method: "GET",
+                data: { 
+                    q: $('#inputNamaProduk').val(), // Ambil live value nama
+                    merk: $('#inputMerkProduk').val() // Ambil live value merk
+                },
+                success: function(data) {
+                    let html = '';
+                    if (data.length > 0) {
+                        data.forEach(function(item) {
+                            // Karena sudah di-map di controller, kita pakai item.price & item.merk langsung
+                            let rawPrice = item.price; 
+                            
+                            let formattedPrice = new Intl.NumberFormat('id-ID', {
+                                style: 'currency', 
+                                currency: 'IDR', 
+                                minimumFractionDigits: 0
+                            }).format(rawPrice);
+
+                            html += `
+                                <a href="javascript:void(0)" class="list-group-item list-group-item-action item-pencarian" 
+                                    data-id="${item.id}" 
+                                    data-nama="${item.text}" 
+                                    data-price="${rawPrice}">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="fw-bold d-block text-dark">${item.text}</span>
+                                            <small class="text-muted">ID: ${item.id} | Merk: ${item.merk}</small>
+                                            <small class="d-block text-success fw-bold">${formattedPrice}</small>
+                                        </div>
+                                        <i class="bi bi-plus-circle-fill text-success fs-5"></i>
+                                    </div>
+                                </a>`;
+                        });
+                        $('#hasilPencarian').html(html).show();
+                    } else {
+                        $('#hasilPencarian').html('<div class="list-group-item text-danger small">Produk tidak ditemukan.</div>').show();
+                    }
+                }
+            });
+        } else {
+            $('#hasilPencarian').hide();
+        }
+    });
+
+    // MASUKKAN PRODUK KE BARIS SAAT HASIL PENCARIAN DIKLIK
+    $(document).on('click', '.item-pencarian', function() {
+        let id = $(this).data('id');
+        let nama = $(this).data('nama');
+        let price = $(this).data('price');
+
+        let targetSelect = null;
+        $('.product-select').each(function() {
+            if (!$(this).val()) {
+                targetSelect = $(this);
+                return false; 
+            }
+        });
+
+        if (targetSelect) {
+            // Pastikan opsi ada di Select2 agar bisa terpilih
+            if (targetSelect.find("option[value='" + id + "']").length === 0) {
+                let newOption = new Option(nama, id, true, true);
+                $(newOption).attr('data-price', price);
+                targetSelect.append(newOption).trigger('change');
+            } else {
+                targetSelect.val(id).trigger('change');
+            }
+            
+            $('#hasilPencarian').hide();
+            $('#inputNamaProduk, #inputMerkProduk').val('');
+        } else {
+            alert('Semua baris bundling sudah terisi!');
+        }
+    });
+
+    // Klik di luar hasil pencarian untuk menutup dropdown
+    $(document).on('click', function (e) {
+        if (!$(e.target).closest("#hasilPencarian, #inputNamaProduk, #inputMerkProduk").length) {
+            $("#hasilPencarian").hide();
+        }
+    });
 </script>
 <?php $__env->stopSection(); ?>
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\Lenovo LOQ\Documents\GitHub\kp_trenmart\sistemPenjualanTrenmart\resources\views/admin/manage_bundling.blade.php ENDPATH**/ ?>

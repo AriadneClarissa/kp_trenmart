@@ -146,25 +146,35 @@ $(document).ready(function() {
         let nama = $('#inputNamaProduk').val();
         let merk = $('#inputMerkProduk').val();
 
+        // Konsistensi: Cari jika salah satu input minimal 3 karakter
         if (nama.length >= 3 || merk.length >= 3) {
             $.ajax({
-                url: "{{ route('admin.produk.search_ajax') }}",
+                // PASTIKAN ROUTE INI SAMA DENGAN DI WEB.PHP (Contoh: admin.produk.search)
+                url: "{{ route('admin.produk.search') }}", 
                 method: "GET",
-                data: { q: nama, merk: merk },
-                beforeSend: function() {
-                    $('#hasilPencarian').html('<div class="list-group-item small text-muted">Mencari...</div>').show();
+                data: {
+                    term: nama, // Dikirim sebagai 'term' ke Controller
+                    merk: merk  // Dikirim sebagai 'merk' ke Controller
                 },
                 success: function(data) {
                     let html = '';
                     if (data.length > 0) {
                         data.forEach(function(item) {
+                            // Format Harga ke Rupiah agar tidak NaN
+                            let formattedPrice = new Intl.NumberFormat('id-ID', {
+                                style: 'currency',
+                                currency: 'IDR',
+                                minimumFractionDigits: 0
+                            }).format(item.price);
+
                             html += `
                                 <a href="javascript:void(0)" class="list-group-item list-group-item-action item-pencarian" 
                                    data-id="${item.id}" data-nama="${item.text}">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
-                                            <span class="fw-bold d-block">${item.text}</span>
-                                            <small class="text-muted">ID: ${item.id}</small>
+                                            <span class="fw-bold d-block text-dark">${item.text}</span>
+                                            <small class="text-muted">ID: ${item.id} | Merk: ${item.merk}</small>
+                                            <small class="d-block text-success fw-bold">${formattedPrice}</small>
                                         </div>
                                         <i class="bi bi-plus-circle-fill text-success fs-5"></i>
                                     </div>
@@ -174,6 +184,9 @@ $(document).ready(function() {
                     } else {
                         $('#hasilPencarian').html('<div class="list-group-item text-danger small">Produk tidak ditemukan.</div>').show();
                     }
+                },
+                error: function() {
+                    console.error("Gagal memuat data. Periksa Route admin.produk.search di web.php");
                 }
             });
         } else {

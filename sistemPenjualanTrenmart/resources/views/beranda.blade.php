@@ -11,13 +11,10 @@
             style="height: 300px;" 
             alt="Banner Trenmart">
 
-        {{-- Tombol ini hanya muncul jika yang login adalah Admin --}}
         @if(Auth::check() && Auth::user()->role == 'admin')
             <form action="{{ route('admin.banner.update') }}" method="POST" enctype="multipart/form-data" id="bannerForm">
                 @csrf
-                
                 <input type="file" name="tentang_banner" id="bannerInput" class="d-none" accept="image/*">
-
                 <label for="bannerInput" 
                     class="position-absolute top-50 start-50 translate-middle btn btn-light rounded-circle shadow-lg d-flex align-items-center justify-content-center hover-scale" 
                     style="width: 80px; height: 80px; opacity: 0.9; cursor: pointer; border: 3px solid white; z-index: 10;">
@@ -30,29 +27,7 @@
         @endif
     </div>
 
-    <script>
-        // Otomatis submit form saat file dipilih
-        const bannerInput = document.getElementById('bannerInput');
-        if(bannerInput) {
-            bannerInput.addEventListener('change', function() {
-                if (this.files && this.files[0]) {
-                    document.getElementById('bannerForm').submit();
-                }
-            });
-        }
-    </script>
-
-    <style>
-        .hover-scale:hover {
-            transform: translate(-50%, -50%) scale(1.1);
-            transition: 0.3s ease;
-        }
-        .object-fit-cover {
-            object-fit: cover;
-        }
-    </style>
-
-    {{-- 2. Panel Kontrol Admin (Hanya muncul jika login sebagai Admin) --}}
+    {{-- 2. Panel Kontrol Admin --}}
     @auth
         @if(auth()->user()->isAdmin())
         <div class="card shadow-sm mb-5 admin-panel-card border-0 bg-light">
@@ -66,11 +41,9 @@
                     </div>
                     <div class="col-md-6 text-center text-md-end mt-3 mt-md-0">
                         <div class="d-grid d-md-inline-block gap-2">
-                            {{-- Route untuk Tambah Bundling --}}
-                            <a href="{{ route('bundling.create') }}" class="btn btn-success rounded-pill px-4 shadow-sm">
+                            <a href="{{ route('bundling.create', ['source' => 'beranda']) }}" class="btn btn-success rounded-pill px-4 shadow-sm">
                                 <i class="bi bi-plus-lg me-1"></i> Tambah Bundling
                             </a>
-                            {{-- FIX: Route admin.judul.edit agar tidak error Route Not Found --}}
                             <a href="{{ route('admin.judul.edit') }}" class="btn btn-warning rounded-pill px-4 shadow-sm">
                                 <i class="bi bi-pencil-square me-1"></i> Edit Judul
                             </a>
@@ -100,73 +73,73 @@
             @endforelse
         </div>
     </section>
-    {{-- 4. Section Paket Bundling Hemat --}}
-    @if(isset($bundlings) && $bundlings->count() > 0)
-    <section class="mb-5">
-        <h4 class="fw-bold mb-4 text-center fs-5 fs-md-4" style="color: #800000;">
-            <i class="bi bi-box-seam me-2"></i> Paket Bundling Hemat
-        </h4>
-        
-        {{-- Menggunakan class flex-nowrap agar bisa di-scroll ke samping seperti Produk Terbaru --}}
-        <div class="row flex-nowrap overflow-auto g-3 g-md-4 pb-3 custom-scrollbar">
-            @foreach($bundlings as $b)
-            <div class="col-auto card-mobile-width">
-                <div class="card h-100 border-0 shadow-sm" style="border-radius: 15px; overflow: hidden; background: white; transition: 0.3s;">
-                    
-                    {{-- Bagian Gambar / Ikon Box --}}
-                    <div class="position-relative d-flex justify-content-center align-items-center bg-light" style="height: 150px;">
-                        <span class="badge position-absolute" style="top: 10px; left: 10px; background-color: #e63946; border-radius: 8px; font-size: 10px; padding: 4px 8px; z-index: 2;">
-                            Promo
-                        </span>
-                        <i class="bi bi-boxes" style="font-size: 4rem; color: #dee2e6;"></i>
-                    </div>
 
-                    {{-- Info Bundling --}}
-                    <div class="card-body p-3 d-flex flex-column">
-                        <p class="text-muted small mb-1" style="font-size: 11px;">Spesial Trenmart</p>
-                        <h6 class="fw-bold text-dark text-truncate mb-2" style="font-size: 14px;" title="{{ $b->name }}">
-                            {{ $b->name }}
-                        </h6>
-                        
-                        {{-- Isi Paket Singkat --}}
-                        <div class="mb-2 flex-grow-1" style="font-size: 11px; color: #6c757d; line-height: 1.4;">
-                            @foreach($b->items->take(2) as $item)
-                                <div class="text-truncate">• {{ $item->produk->nama_produk ?? 'Produk Dihapus' }}</div>
-                            @endforeach
-                            @if($b->items->count() > 2)
-                                <div>• ...dan lainnya</div>
-                            @endif
-                        </div>
-                        
-                        {{-- Harga & Tombol --}}
-                        <div class="mt-auto pt-2">
-                            <div class="text-muted text-decoration-line-through mb-0" style="font-size: 11px;">
-                                Rp {{ number_format($b->total_normal_price, 0, ',', '.') }}
+    {{-- 4. SECTION BUNDLING (Di bawah Produk Terbaru) --}}
+    <section class="mt-5 pt-3">
+        <div class="text-center mb-5">
+            <h4 class="fw-bold"><i class="bi bi-box2-heart text-danger me-2"></i> Paket Bundling Hemat</h4>
+            <p class="text-muted small">Dapatkan kombinasi produk terbaik dengan harga lebih murah!</p>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+            @forelse($bundling as $b)
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm card-bundling-hover" style="border-radius: 20px;">
+                        <div class="card-body p-4 d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h5 class="fw-bold text-dark mb-0">{{ $b->name }}</h5>
+                                <span class="badge bg-danger rounded-pill px-3 py-2 small">Bundling</span>
                             </div>
-                            <h5 class="fw-bold mb-3" style="color: #800000; font-size: 1.1rem;">
-                                Rp {{ number_format($b->bundling_price, 0, ',', '.') }}
-                            </h5>
                             
-                            {{-- Sesuaikan action route dengan fitur keranjang milikmu --}}
-                            <form action="#" method="POST" class="w-100">
-                                @csrf
-                                <button type="submit" class="btn w-100 fw-bold shadow-sm" style="background-color: #800000; color: white; border-radius: 10px; font-size: 12px; padding: 8px;">
-                                    <i class="bi bi-cart-plus me-1"></i> Beli Paket
-                                </button>
-                            </form>
+                            <p class="text-muted small mb-4" style="min-height: 40px;">{{ $b->description ?? 'Paket hemat pilihan Trenmart.' }}</p>
+
+                            <div class="bg-light p-3 rounded-4 mb-4">
+                                <label class="small fw-bold text-primary mb-2 d-block">Isi Paket:</label>
+                                <ul class="list-unstyled mb-0">
+                                    @foreach($b->items as $item)
+                                        <li class="small d-flex align-items-center mb-2">
+                                            <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                            <span>
+                                                {{ $item->produk->nama_produk }} 
+                                                <small class="text-muted">({{ $item->produk->merk->nama_merk ?? 'Tanpa Merk' }})</small>
+                                            </span>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+
+                            <div class="mt-auto">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <small class="text-muted text-decoration-line-through">
+                                        Rp {{ number_format($b->total_normal_price, 0, ',', '.') }}
+                                    </small>
+                                    @if($b->total_normal_price > $b->bundling_price)
+                                        <span class="badge bg-light text-danger border border-danger small" style="font-size: 0.7rem;">
+                                            Hemat Rp {{ number_format($b->total_normal_price - $b->bundling_price, 0, ',', '.') }}
+                                        </span>
+                                    @endif
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h4 class="fw-bold text-danger mb-0">
+                                        Rp {{ number_format($b->bundling_price, 0, ',', '.') }}
+                                    </h4>
+                                    <button class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">Beli</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            @endforeach
+            @empty
+                <div class="col-12 text-center py-5">
+                    <p class="text-muted italic">Belum ada paket bundling yang aktif saat ini.</p>
+                </div>
+            @endforelse
         </div>
     </section>
-    @endif
-</div>
 </div>
 
+{{-- SCRIPT & STYLE --}}
 <script>
-    // Otomatis submit form saat file banner dipilih
     const bannerInput = document.getElementById('bannerInput');
     if(bannerInput) {
         bannerInput.addEventListener('change', function() {
@@ -178,48 +151,23 @@
 </script>
 
 <style>
-    /* Animasi Banner Hover */
-    .hover-scale:hover {
-        transform: translate(-50%, -50%) scale(1.1);
-        transition: 0.3s ease;
-    }
-    .object-fit-cover {
-        object-fit: cover;
-    }
+    .hover-scale:hover { transform: translate(-50%, -50%) scale(1.1); transition: 0.3s ease; }
+    .object-fit-cover { object-fit: cover; }
+    .img-banner-responsive { height: 160px; object-fit: cover; }
+    @media (min-width: 768px) { .img-banner-responsive { height: 300px; } }
 
-    /* Mengatur tinggi banner agar tidak terlalu besar di HP */
-    .img-banner-responsive { 
-        height: 160px; 
-        object-fit: cover; 
-    }
-    
-    @media (min-width: 768px) { 
-        .img-banner-responsive { height: auto; } 
-    }
-
-    /* Mengatur lebar kartu produk agar bisa di-scroll menyamping di HP */
     .card-mobile-width { width: 165px; }
-    
-    @media (min-width: 768px) { 
-        .card-mobile-width { width: 220px; } 
-    }
+    @media (min-width: 768px) { .card-mobile-width { width: 220px; } }
 
-    /* Menghilangkan scrollbar tapi tetap bisa di-scroll */
-    .custom-scrollbar { 
-        scrollbar-width: none; 
-        -ms-overflow-style: none; 
-    }
-    .custom-scrollbar::-webkit-scrollbar { 
-        display: none; 
-    }
+    .custom-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+    .custom-scrollbar::-webkit-scrollbar { display: none; }
+    .flex-nowrap { scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+    .col-auto { scroll-snap-align: start; }
 
-    .flex-nowrap { 
-        scroll-snap-type: x mandatory; 
-        -webkit-overflow-scrolling: touch; 
-    }
-    
-    .col-auto { 
-        scroll-snap-align: start; 
+    .card-bundling-hover:hover {
+        transform: translateY(-5px);
+        transition: 0.3s ease;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
     }
 </style>
 @endsection

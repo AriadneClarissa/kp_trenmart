@@ -103,6 +103,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/satuan/hapus/{id}', [\App\Http\Controllers\SatuanController::class, 'destroy'])->name('satuan.destroy');
         Route::put('/tentang/update', [TentangController::class, 'update'])->name('admin.tentang.update');
         Route::post('/produk/update-status', [ProdukController::class, 'updateStatus'])->name('produk.updateStatus');
+        Route::get('/', [KatalogController::class, 'index'])->name('beranda');
 
         // Ubah Banner
         Route::post('/banner/update', [AuthController::class, 'updateBanner'])->name('admin.banner.update');

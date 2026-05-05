@@ -32,24 +32,39 @@
                 <div class="col-md-4">
                     <div class="section-card bg-white mb-3 p-3 border rounded-3">
                         <label class="form-label mb-3"><i class="bi bi-image me-2"></i> Foto Produk</label>
-                        <div class="upload-box" id="drop-area" onclick="document.getElementById('multi_upload').click()" 
-                             style="border: 2px dashed #ccc; min-height: 250px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer;">
-                            
-                            
-                            <div id="preview-container" class="d-none w-100 p-2">
-                                <div class="row g-2" id="preview-row"></div>
-                            </div>
-
-                            <div id="upload-placeholder" class="text-center">
-                                <i class="bi bi-cloud-arrow-up fs-1 text-muted"></i>
-                                <p class="mt-2 mb-1 small fw-bold">Klik untuk unggah gambar</p>
-                                <span class="text-muted" style="font-size: 0.75rem;">Maksimal 3 foto (JPG, PNG, WEBP)</span>
-                            </div>
-
+                        
+                        
+                        <div class="upload-box mb-3" onclick="document.getElementById('multi_upload').click()"
+                            style="border: 2px dashed #007bff; min-height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; background: #f0f7ff;">
+                            <i class="bi bi-cloud-arrow-up fs-1 text-primary"></i>
+                            <p class="mt-2 mb-1 small fw-bold text-center px-2">Klik untuk Pilih 1-3 Foto Sekaligus</p>
                             
                             <input type="file" id="multi_upload" name="files[]" accept="image/*" multiple hidden onchange="previewImages(this)" required>
                         </div>
-                        <small class="text-muted d-block mt-2">Gunakan <b>Ctrl + Klik</b> untuk pilih hingga 3 foto.</small>
+
+                        
+                        <div class="row g-2">
+                            
+                            <div class="col-4 text-center">
+                                <div class="p-1 border rounded bg-light">
+                                    <img id="preview_utama" src="<?php echo e(isset($produk->gambar) ? asset('storage/' . $produk->gambar) : asset('images/placeholder.png')); ?>" class="img-fluid rounded" style="height: 60px; width: 100%; object-fit: cover;">
+                                    <div style="font-size: 0.6rem;" class="mt-1">Utama</div>
+                                </div>
+                            </div>
+                            <div class="col-4 text-center">
+                                <div class="p-1 border rounded bg-light">
+                                    <img id="preview_2" src="<?php echo e(isset($produk->foto_2) ? asset('storage/' . $produk->foto_2) : asset('images/placeholder.png')); ?>" class="img-fluid rounded" style="height: 60px; width: 100%; object-fit: cover;">
+                                    <div style="font-size: 0.6rem;" class="mt-1">Foto 2</div>
+                                </div>
+                            </div>
+                            <div class="col-4 text-center">
+                                <div class="p-1 border rounded bg-light">
+                                    <img id="preview_3" src="<?php echo e(isset($produk->foto_3) ? asset('storage/' . $produk->foto_3) : asset('images/placeholder.png')); ?>" class="img-fluid rounded" style="height: 60px; width: 100%; object-fit: cover;">
+                                    <div style="font-size: 0.6rem;" class="mt-1">Foto 3</div>
+                                </div>
+                            </div>
+                        </div>
+                        <small class="text-muted d-block mt-3 text-center" style="font-size: 0.7rem;">* Gunakan tombol <b>Ctrl</b> untuk memilih lebih dari 1 foto.</small>
                     </div>
 
                     <div class="section-card bg-white p-3 border rounded-3">
@@ -135,36 +150,30 @@
 <?php $__env->startPush('scripts'); ?>
 <script>
     function previewImages(input) {
-        const previewRow = document.getElementById('preview-row');
-        const container = document.getElementById('preview-container');
-        const placeholder = document.getElementById('upload-placeholder');
+        const previewIds = ['preview_utama', 'preview_2', 'preview_3'];
         
-        previewRow.innerHTML = ''; 
-        
+        // Reset semua gambar ke placeholder terlebih dahulu
+        previewIds.forEach(id => {
+            document.getElementById(id).src = "<?php echo e(asset('images/placeholder.png')); ?>";
+        });
+
         if (input.files && input.files.length > 0) {
+            // Validasi maksimal 3 foto
             if (input.files.length > 3) {
                 alert("Maksimal hanya bisa memilih 3 foto sekaligus!");
-                input.value = "";
+                input.value = ""; 
                 return;
             }
 
-            placeholder.classList.add('d-none');
-            container.classList.remove('d-none');
-
+            // Loop file yang dipilih dan masukkan ke masing-masing ID preview
             Array.from(input.files).forEach((file, index) => {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const col = document.createElement('div');
-                    col.className = 'col-4';
-                    col.innerHTML = `
-                        <div class="text-center p-1 border rounded bg-light">
-                            <img src="${e.target.result}" class="img-fluid" style="height: 100px; object-fit: cover; width: 100%;">
-                            <div style="font-size: 0.6rem;" class="mt-1">${index === 0 ? 'Utama' : 'Foto ' + (index + 1)}</div>
-                        </div>
-                    `;
-                    previewRow.appendChild(col);
+                if (index < 3) { 
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.getElementById(previewIds[index]).src = e.target.result;
+                    }
+                    reader.readAsDataURL(file);
                 }
-                reader.readAsDataURL(file);
             });
         }
     }
