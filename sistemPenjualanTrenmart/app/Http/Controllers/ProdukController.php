@@ -254,7 +254,9 @@ class ProdukController extends Controller
     {
         $produk = Produk::where('kd_produk', $id)->firstOrFail();
         $this->setHargaTampil($produk);
-        return view('produk.detail', compact('produk'));
+        
+        // Kirim is_bundling false agar sistem tahu ini produk biasa
+        return view('produk.detail', compact('produk'))->with('is_bundling', false);
     }
 
     public function searchAjax(Request $request)

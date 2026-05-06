@@ -108,8 +108,8 @@ class BundlingController extends Controller
 
     public function show($id)
     {
-        // Pastikan namespace modelnya benar
-        $bundling = \App\Models\Bundling::with(['items.produk.merk', 'items.produk.kategori', 'items.produk.satuanModel'])->findOrFail($id);
+        // Mengambil data bundling beserta relasi produknya
+        $bundling = Bundling::with(['items.produk.merk', 'items.produk.kategori', 'items.produk.satuanModel'])->findOrFail($id);
 
         $images = collect();
         foreach ($bundling->items as $item) {
@@ -122,9 +122,9 @@ class BundlingController extends Controller
             return $item->produk->stok_tersedia ?? 0;
         });
 
-        $is_bundling = true; 
+        $is_bundling = true;
 
-        // Harus mengembalikan view 'produk.detail' karena kita me-reuse file tersebut
-        return view('produk.detail', compact('bundling', 'images', 'stok_tersedia', 'is_bundling'));
+        return view('produk.detail', compact('images', 'stok_tersedia', 'is_bundling'))
+            ->with('produk', $bundling);
     }
 }

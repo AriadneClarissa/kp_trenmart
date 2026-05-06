@@ -9,21 +9,38 @@
                     
                     <?php if(isset($is_bundling) && $is_bundling): ?>
                         
-                        <?php if($images->count() > 0): ?>
+                        <?php if($produk->items->count() > 0): ?>
                             <div id="productCarousel" class="carousel slide bg-light" data-bs-ride="carousel" style="border-radius: 15px; overflow: hidden;">
                                 <div class="carousel-inner" style="height: 450px;">
-                                    <?php $__currentLoopData = $images; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $img): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <?php $__currentLoopData = $produk->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                         <div class="carousel-item <?php echo e($index == 0 ? 'active' : ''); ?> h-100">
-                                            <div class="d-flex align-items-center justify-content-center h-100">
-                                                <img src="<?php echo e(asset('storage/' . $img)); ?>" 
-                                                     class="img-fluid main-product-image" 
-                                                     alt="Foto Bundling"
-                                                     style="max-height: 100%; object-fit: contain; mix-blend-mode: multiply;">
+                                            
+                                            
+                                            <div class="position-absolute top-0 end-0 m-3" style="z-index: 10;">
+                                                <span class="badge bg-dark opacity-75 p-2 px-3 shadow-sm" style="border-radius: 10px;">
+                                                    Harga Asli: Rp <?php echo e(number_format($item->price_at_snapshot, 0, ',', '.')); ?>
+
+                                                </span>
+                                            </div>
+
+                                            <div class="d-flex align-items-center justify-content-center h-100 position-relative">
+                                                <?php if($item->produk && $item->produk->gambar): ?>
+                                                    <img src="<?php echo e(asset('storage/' . $item->produk->gambar)); ?>" 
+                                                         class="img-fluid main-product-image" 
+                                                         alt="<?php echo e($item->produk->nama_produk); ?>"
+                                                         style="max-height: 100%; object-fit: contain; mix-blend-mode: multiply;">
+                                                    
+                                                    <div class="position-absolute bottom-0 start-50 translate-middle-x mb-3 bg-white px-3 py-1 rounded-pill shadow-sm border small fw-bold text-dark">
+                                                        <?php echo e($item->produk->nama_produk); ?>
+
+                                                    </div>
+                                                <?php endif; ?>
                                             </div>
                                         </div>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </div>
-                                <?php if($images->count() > 1): ?>
+                                
+                                <?php if($produk->items->count() > 1): ?>
                                     <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
                                         <span class="carousel-control-prev-icon p-3 bg-dark rounded-circle" aria-hidden="true" style="background-size: 50%;"></span>
                                     </button>
@@ -33,33 +50,21 @@
                                 <?php endif; ?>
                             </div>
 
-                            
-                            <?php if($images->count() > 1): ?>
                             <div class="row mt-3 g-2 justify-content-center">
-                                <?php $__currentLoopData = $images; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $img): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <?php $__currentLoopData = $produk->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <div class="col-2">
-                                    <img src="<?php echo e(asset('storage/' . $img)); ?>" class="img-fluid border rounded cursor-pointer opacity-hover" onclick="goToSlide(<?php echo e($index); ?>)" style="height: 50px; width: 100%; object-fit: cover;">
+                                    <img src="<?php echo e(asset('storage/' . $item->produk->gambar)); ?>" 
+                                         class="img-fluid border rounded cursor-pointer opacity-hover" 
+                                         onclick="goToSlide(<?php echo e($index); ?>)" 
+                                         style="height: 50px; width: 100%; object-fit: cover;">
                                 </div>
                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                            </div>
-                            <?php endif; ?>
-                        <?php else: ?>
-                            <div class="d-flex align-items-center justify-content-center bg-light" style="height: 450px; border-radius: 15px;">
-                                <span class="text-muted"><i class="bi bi-image fs-1"></i><br>Tidak ada gambar</span>
                             </div>
                         <?php endif; ?>
 
                     <?php else: ?>
                         
                         <div id="productCarousel" class="carousel slide bg-light" data-bs-ride="carousel" style="border-radius: 15px; overflow: hidden;">
-                            <?php if($produk->foto_2 || $produk->foto_3): ?>
-                            <div class="carousel-indicators">
-                                <button type="button" data-bs-target="#productCarousel" data-bs-slide-to="0" class="active bg-dark"></button>
-                                <?php if($produk->foto_2): ?> <button type="button" data-bs-target="#productCarousel" data-bs-slide-to="1" class="bg-dark"></button> <?php endif; ?>
-                                <?php if($produk->foto_3): ?> <button type="button" data-bs-target="#productCarousel" data-bs-slide-to="2" class="bg-dark"></button> <?php endif; ?>
-                            </div>
-                            <?php endif; ?>
-
                             <div class="carousel-inner" style="height: 450px;">
                                 <div class="carousel-item active h-100">
                                     <div class="d-flex align-items-center justify-content-center h-100">
@@ -81,26 +86,8 @@
                                 </div>
                                 <?php endif; ?>
                             </div>
-
-                            <?php if($produk->foto_2 || $produk->foto_3): ?>
-                            <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
-                                <span class="carousel-control-prev-icon p-3 bg-dark rounded-circle" aria-hidden="true" style="background-size: 50%;"></span>
-                            </button>
-                            <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
-                                <span class="carousel-control-next-icon p-3 bg-dark rounded-circle" aria-hidden="true" style="background-size: 50%;"></span>
-                            </button>
-                            <?php endif; ?>
                         </div>
-
-                        <?php if($produk->foto_2 || $produk->foto_3): ?>
-                        <div class="row mt-3 g-2 justify-content-center">
-                            <div class="col-2"><img src="<?php echo e(asset('storage/' . $produk->gambar)); ?>" class="img-fluid border rounded cursor-pointer opacity-hover" onclick="goToSlide(0)" style="height: 50px; width: 100%; object-fit: cover;"></div>
-                            <?php if($produk->foto_2): ?><div class="col-2"><img src="<?php echo e(asset('storage/' . $produk->foto_2)); ?>" class="img-fluid border rounded cursor-pointer opacity-hover" onclick="goToSlide(1)" style="height: 50px; width: 100%; object-fit: cover;"></div><?php endif; ?>
-                            <?php if($produk->foto_3): ?><div class="col-2"><img src="<?php echo e(asset('storage/' . $produk->foto_3)); ?>" class="img-fluid border rounded cursor-pointer opacity-hover" onclick="goToSlide(2)" style="height: 50px; width: 100%; object-fit: cover;"></div><?php endif; ?>
-                        </div>
-                        <?php endif; ?>
                     <?php endif; ?>
-
                 </div>
             </div>
         </div>
@@ -114,44 +101,29 @@
                         
                         <div class="mb-3">
                             <span class="badge bg-secondary mb-2" style="border-radius: 6px;">Bundling Hemat</span>
-                            <h2 class="fw-bold text-dark mb-1"><?php echo e($bundling->name); ?></h2>
+                            <h2 class="fw-bold text-dark mb-1"><?php echo e($produk->name); ?></h2>
                             <p class="text-muted small">
                                 Isi Paket: 
-                                <?php $__currentLoopData = $bundling->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <?php echo e($item->produk->nama_produk); ?><?php echo e(!$loop->last ? ' + ' : ''); ?>
+                                <?php $__currentLoopData = $produk->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <span class="fw-bold text-dark"><?php echo e($item->produk->nama_produk); ?></span> 
+                                    <span class="text-muted">1 (<?php echo e($item->produk->satuanModel->nama_satuan ?? 'pcs'); ?>)</span>
+                                    <?php echo e(!$loop->last ? ' + ' : ''); ?>
 
                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </p>
                         </div>
 
                         <h3 class="fw-bold mb-4" style="color: #800000;">
-                            Rp <?php echo e(number_format($bundling->bundling_price, 0, ',', '.')); ?>
+                            Rp <?php echo e(number_format($produk->bundling_price, 0, ',', '.')); ?>
 
                             <small class="text-muted fw-normal fs-6">/Paket</small>
                         </h3>
 
-                        <?php if($bundling->total_normal_price > $bundling->bundling_price): ?>
+                        <?php if($produk->total_normal_price > $produk->bundling_price): ?>
                             <p class="text-warning fw-bold mb-3" style="margin-top: -15px;">
-                                Harga Normal: <span class="text-decoration-line-through text-muted fw-normal">Rp <?php echo e(number_format($bundling->total_normal_price, 0, ',', '.')); ?></span> 
+                                Harga Normal: <span class="text-decoration-line-through text-muted fw-normal">Rp <?php echo e(number_format($produk->total_normal_price, 0, ',', '.')); ?></span> 
                             </p>
                         <?php endif; ?>
-
-                        <?php if($stok_tersedia > 0): ?>
-                            <div class="mb-4">
-                                <span class="badge bg-success-subtle text-success px-3 py-2 border border-success-subtle" style="border-radius: 8px;">
-                                    <i class="bi bi-check-circle-fill me-1"></i>Stok Paket Tersedia: <?php echo e($stok_tersedia); ?>
-
-                                </span>
-                            </div>
-                        <?php else: ?>
-                            <div class="mb-4">
-                                <span class="badge bg-danger-subtle text-danger px-3 py-2 border border-danger-subtle" style="border-radius: 8px;">
-                                    <i class="bi bi-x-circle-fill me-1"></i>Stok Habis
-                                </span>
-                            </div>
-                        <?php endif; ?>
-                        
-                        
 
                     <?php else: ?>
                         
@@ -166,30 +138,24 @@
 
                             <small class="text-muted fw-normal fs-6">/<?php echo e($produk->satuanModel->nama_satuan ?? 'pcs'); ?></small>
                         </h3>
-                        <?php if(auth()->guard()->check()): ?>
-                            <?php if(auth()->user()->isAdmin()): ?>
-                                <p class="mb-4 fw-semibold" style="color: #f08a24; font-size: 1rem;">
-                                    Langganan: Rp <?php echo e(number_format($produk->harga_jual_langganan ?? $produk->harga_jual_umum, 0, ',', '.')); ?>
+                    <?php endif; ?>
 
-                                </p>
-                            <?php endif; ?>
-                        <?php endif; ?>
-                        
-                        <?php if($produk->stok_tersedia > 0): ?>
-                            <div class="mb-4">
-                                <span class="badge bg-success-subtle text-success px-3 py-2 border border-success-subtle" style="border-radius: 8px;">
-                                    <i class="bi bi-check-circle-fill me-1"></i>Stok Tersedia: <?php echo e($produk->stok_tersedia); ?>
+                    
+                    <?php $stok_check = (isset($is_bundling) && $is_bundling) ? $stok_tersedia : $produk->stok_tersedia; ?>
+                    <div class="mb-4">
+                        <?php if($stok_check > 0): ?>
+                            <span class="badge bg-success-subtle text-success px-3 py-2 border border-success-subtle" style="border-radius: 8px;">
+                                <i class="bi bi-check-circle-fill me-1"></i>Stok Tersedia: <?php echo e($stok_check); ?>
 
-                                </span>
-                            </div>
+                            </span>
                         <?php else: ?>
-                            <div class="mb-4">
-                                <span class="badge bg-danger-subtle text-danger px-3 py-2 border border-danger-subtle" style="border-radius: 8px;">
-                                    <i class="bi bi-x-circle-fill me-1"></i>Stok Habis
-                                </span>
-                            </div>
+                            <span class="badge bg-danger-subtle text-danger px-3 py-2 border border-danger-subtle" style="border-radius: 8px;">
+                                <i class="bi bi-x-circle-fill me-1"></i>Stok Habis
+                            </span>
                         <?php endif; ?>
+                    </div>
 
+                    <?php if(!isset($is_bundling) || !$is_bundling): ?>
                         <div class="mb-4">
                             <h6 class="fw-bold text-dark">Deskripsi Produk</h6>
                             <p class="text-muted" style="line-height: 1.6;">
@@ -209,7 +175,7 @@
                                     <i class="bi bi-shield-lock-fill fs-4 me-3 text-dark"></i>
                                     <div>
                                         <div class="fw-bold">Mode Admin</div>
-                                        <small class="text-muted">Gunakan tombol di bawah untuk mengelola data.</small>
+                                        <small class="text-muted">Kelola data melalui tombol di bawah.</small>
                                     </div>
                                 </div>
                                 <div class="d-grid gap-2">
@@ -224,7 +190,6 @@
                                     <?php endif; ?>
                                 </div>
                             <?php else: ?>
-                                <?php $stok_check = isset($is_bundling) ? $stok_tersedia : $produk->stok_tersedia; ?>
                                 <?php if($stok_check > 0): ?>
                                     <form action="#" method="POST">
                                         <?php echo csrf_field(); ?>
@@ -246,15 +211,13 @@
                     </div>
 
                     <div class="mt-4 text-center">
-                        <a href="<?php echo e(request('from') === 'produk.index' ? route('produk.index') : (request('from') === 'katalog' ? route('katalog') : route('beranda'))); ?>" class="text-decoration-none text-muted small hover-maroon">
+                        <a href="<?php echo e(url()->previous()); ?>" class="text-decoration-none text-muted small hover-maroon">
                             <i class="bi bi-arrow-left me-1"></i> Kembali
                         </a>
                     </div>
-
                 </div>
             </div>
         </div>
-
     </div>
 </div>
 
@@ -262,9 +225,6 @@
     .cursor-pointer { cursor: pointer; }
     .opacity-hover:hover { opacity: 0.7; transition: 0.3s; }
     .carousel-control-prev, .carousel-control-next { width: 10%; }
-    
-    .card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
-    
     .btn-buy {
         background-color: #800000;
         color: white;
@@ -274,14 +234,12 @@
         transition: 0.3s;
         border: none;
     }
-
     .btn-buy:hover {
         background-color: #600000;
         color: white;
         transform: translateY(-2px);
         box-shadow: 0 5px 15px rgba(128, 0, 0, 0.3);
     }
-
     .hover-maroon:hover { color: #800000 !important; }
 </style>
 

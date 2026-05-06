@@ -1,6 +1,8 @@
 <div class="col">
     <div class="card h-100 border-0 shadow-sm p-2 product-card" style="border-radius: 16px; position: relative; cursor: pointer;"
-             onclick="if(event.target.closest('form')) return; window.location.href='{{ route('produk.detail', ['id' => $item->kd_produk, 'from' => 'beranda']) }}'">
+            onclick="if(event.target.closest('form')) return; window.location.href='{{ route('produk.detail', ['id' => $item->kd_produk, 'from' => 'beranda']) }}'">
+        
+        {{-- Badge Status Stok --}}
         @if($item->stok_tersedia > 0)
             <div class="position-absolute" style="top: 12px; left: 12px; z-index: 10;">
                 <span class="badge bg-success px-2 py-1" style="border-radius: 7px; font-size: 0.68rem;">
@@ -9,6 +11,7 @@
             </div>
         @endif
 
+        {{-- Area Foto Produk --}}
         <div class="d-flex align-items-center justify-content-center bg-light mb-3"
              style="height: 150px; border-radius: 12px; overflow: hidden;">
             <img src="{{ asset('storage/' . $item->gambar) }}"
@@ -18,30 +21,35 @@
         </div>
 
         <div class="card-body p-0">
+            {{-- Merk Produk --}}
             <p class="text-muted mb-1" style="font-size: 0.78rem;">
                 {{ $item->merk->nama_merk ?? 'Tanpa Merk' }}
             </p>
 
+            {{-- Nama Produk --}}
             <h5 class="fw-bold text-dark mb-2" style="font-size: 0.95rem;">
                 {{ $item->nama_produk }}
             </h5>
 
-            <h4 class="fw-bold mb-2" style="color: #800000; font-size: 1.15rem;">
+            {{-- Harga Utama & Satuan --}}
+            <h4 class="fw-bold mb-1" style="color: #800000; font-size: 1.15rem;">
                 Rp {{ number_format($item->harga_tampil, 0, ',', '.') }}
-                <small class="text-muted fw-normal" style="font-size: 0.62rem;">/{{ $item->satuan }}</small>
+                <span class="text-muted fw-normal" style="font-size: 0.75rem;">/ {{ $item->satuanModel->nama_satuan ?? 'pcs' }}</span>
             </h4>
 
+            {{-- Harga Langganan (Muncul untuk Admin atau User tipe Langganan) --}}
             @auth
-                @if(auth()->user()->isAdmin())
-                    <p class="mb-2 fw-semibold" style="color: #f08a24; font-size: 0.9rem;">
+                @if(auth()->user()->isAdmin() || auth()->user()->customer_type === 'langganan')
+                    <p class="mb-2 fw-semibold" style="color: #f08a24; font-size: 0.85rem;">
                         Langganan: Rp {{ number_format($item->harga_jual_langganan ?? $item->harga_jual_umum, 0, ',', '.') }}
                     </p>
                 @endif
             @endauth
 
+            {{-- Tombol Tambah (Hanya untuk Pelanggan) --}}
             @auth
                 @if(!auth()->user()->isAdmin())
-                    <form action="{{ route('cart.add', $item->kd_produk) }}" method="POST" class="add-to-cart-form">
+                    <form action="{{ route('cart.add', $item->kd_produk) }}" method="POST" class="add-to-cart-form mt-2">
                         @csrf
                         <button type="submit" class="btn w-100 py-2 d-flex align-items-center justify-content-center gap-1"
                                 style="background-color: #800000; color: white; border-radius: 10px; font-weight: 600; font-size: 0.9rem;">
@@ -60,13 +68,12 @@
     }
     .product-card:hover {
         transform: translateY(-8px);
-        box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+        box-shadow: 0 15px 30px rgba(128, 0, 0, 0.1) !important;
     }
     .product-card .btn:hover {
         background-color: #600000 !important;
         filter: brightness(1.1);
     }
-
     .product-card form {
         position: relative;
         z-index: 2;

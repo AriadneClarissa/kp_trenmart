@@ -57,8 +57,8 @@
 
     {{-- 3. Section Produk Terbaru --}}
     <section class="mb-5">
-        <h4 class="fw-bold mb-4 text-center fs-5 fs-md-4">
-            <i class="bi bi-stars text-warning me-2"></i>
+        <h4 class="fw-bold mb-4 text-center fs-4 fs-md-3">
+        <i class="bi bi-stars text-warning me-2"></i>
             {{ $settings['judul_terbaru'] ?? 'Produk Terbaru' }}
         </h4>
         <div class="row flex-nowrap overflow-auto g-3 g-md-4 pb-3 custom-scrollbar">
@@ -77,17 +77,22 @@
     {{-- 4. SECTION BUNDLING --}}
     <section class="mt-5 pt-3">
         <div class="text-center mb-5">
-            <h4 class="fw-bold"><i class="bi bi-box2-heart text-danger me-2"></i> Paket Bundling Hemat</h4>
+            <h4 class="fw-bold mb-2 fs-4 fs-md-3">
+                <i class="bi bi-box2-heart text-danger me-2"></i> Paket Bundling Hemat
+            </h4>
             <p class="text-muted small">Dapatkan kombinasi produk terbaik dengan harga lebih murah!</p>
         </div>
 
         <div class="row g-4 justify-content-center">
             @forelse($bundling as $b)
                 <div class="col-md-6 col-lg-4">
-                    <div class="card h-100 border-0 shadow-sm card-bundling-hover" style="border-radius: 20px;">
+                    {{-- Tambahkan position-relative pada card agar link mencakup seluruh area card --}}
+                    <div class="card h-100 border-0 shadow-sm card-bundling-hover position-relative" style="border-radius: 20px;">
                         <div class="card-body p-3 d-flex flex-column">
+                            
                             <div class="d-flex justify-content-between align-items-start mb-3">
-                                <a href="{{ route('bundling.show', $b->id) }}" class="text-decoration-none">
+                                {{-- Gunakan class stretched-link di sini --}}
+                                <a href="{{ route('bundling.show', $b->id) }}" class="text-decoration-none stretched-link">
                                     <h5 class="fw-bold text-dark mb-0 hover-maroon">{{ $b->name }}</h5>
                                 </a>
                             </div>
@@ -122,7 +127,14 @@
                                     <h4 class="fw-bold text-danger mb-0">
                                         Rp {{ number_format($b->bundling_price, 0, ',', '.') }}
                                     </h4>
-                                    <button class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">Beli</button>
+                                    
+                                    {{-- Tombol Tambah (khusus pelanggan) --}}
+                                    @if(!Auth::check() || (Auth::check() && Auth::user()->role !== 'admin'))
+                                        {{-- Gunakan span karena aksi klik sudah diambil alih oleh stretched-link di atas --}}
+                                        <span class="btn-tambah-card shadow-sm d-flex align-items-center justify-content-center" style="position: relative; z-index: 2;">
+                                            <i class="bi bi-plus-lg me-1"></i> Tambah
+                                        </span>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -167,6 +179,24 @@
         transform: translateY(-5px);
         transition: 0.3s ease;
         box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+    /* Style untuk tombol Tambah di Card */
+    .btn-tambah-card {
+        background-color: #800000; /* Warna maroon Trenmart */
+        color: white;
+        border-radius: 8px; /* Bentuk tidak terlalu bulat (bukan pill) */
+        font-size: 0.9rem; /* Ukuran font disesuaikan agar rapi */
+        padding: 0.5rem 1.25rem;
+        transition: all 0.3s ease;
+        border: none;
+        text-decoration: none;
+    }
+
+    .btn-tambah-card:hover {
+        background-color: #600000;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(128, 0, 0, 0.2) !important;
     }
 </style>
 @endsection

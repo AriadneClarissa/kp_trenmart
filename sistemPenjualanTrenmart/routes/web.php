@@ -15,10 +15,10 @@ use Illuminate\Support\Facades\Route;
 
 // --- 1. HALAMAN PUBLIK ---
 Route::get('/', [ProdukController::class, 'index'])->name('beranda');
+Route::get('/bundling/{id}', [BundlingController::class, 'show'])->name('bundling.show'); 
 Route::get('/katalog', [ProdukController::class, 'katalog'])->name('katalog');
 Route::get('/produk/detail/{id}', [ProdukController::class, 'show'])->name('produk.detail');
 Route::get('/tentang-kami', [TentangController::class, 'index'])->name('tentang');
-Route::get('/bundling/{id}', [BundlingController::class, 'show'])->name('bundling.show');
 
 // --- 2. SISTEM AUTENTIKASI GUEST (LOGIN CUSTOMER) ---
 Route::middleware(['guest'])->group(function () {
