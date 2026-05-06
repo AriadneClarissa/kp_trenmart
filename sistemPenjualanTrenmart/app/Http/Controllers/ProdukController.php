@@ -33,23 +33,34 @@ class ProdukController extends Controller
 
         // Mengambil data admin untuk banner
         $admin = User::where('role', 'admin')->first();
+        
+        // Eager loading untuk optimasi database
         $bundling = Bundling::with(['items.produk.merk'])->latest()->get();
 
-        
+        // Inisialisasi collection kosong
         $bundling_warnings = collect();
-        if (auth()->check() && auth()->user()->isAdmin()) {
+
+        
+        if (Auth::check() && Auth::user()->isAdmin()) {
             $bundling_warnings = $bundling->filter(function($b) {
                 return $b->hasPriceDivergence();
             });
         }
 
-        return view('beranda', compact('settings', 'produk_terbaru', 'kategori', 'merk', 'admin', 'bundling', 'bundling_warnings'));
+        return view('beranda', compact(
+            'settings', 
+            'produk_terbaru', 
+            'kategori', 
+            'merk', 
+            'admin', 
+            'bundling', 
+            'bundling_warnings'
+        ));
     }
             
 
-    /**
-     * Menampilkan Halaman Katalog dengan Filter Pencarian
-     */
+    //Menampilkan Halaman Katalog dengan Filter Pencarian
+
     public function katalog(Request $request)
     {
         $kategori = Kategori::all();

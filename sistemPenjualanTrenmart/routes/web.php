@@ -69,6 +69,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/keranjang/update/{id}', [KeranjangController::class, 'update'])->name('cart.update');
     Route::delete('/keranjang/hapus/{id}', [KeranjangController::class, 'destroy'])->name('cart.remove');
     Route::get('/cart/sidebar-content', [ProdukController::class, 'getSidebarContent'])->name('cart.sidebar.content');
+    Route::post('/keranjang/tambah/{id}/{type}', [KeranjangController::class, 'store'])->name('cart.add');
 
     // --- CHECKOUT & PEMBAYARAN ---
     Route::get('/checkout', [\App\Http\Controllers\CheckoutController::class, 'index'])->name('checkout.index');
@@ -76,6 +77,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/checkout/{order}/upload-proof', [\App\Http\Controllers\CheckoutController::class, 'uploadProof'])->name('checkout.upload_proof');
     Route::post('/checkout/{order}/store-proof', [\App\Http\Controllers\CheckoutController::class, 'storeProof'])->name('checkout.store_proof');
     Route::get('/checkout/{order}/waiting', [\App\Http\Controllers\CheckoutController::class, 'waiting'])->name('checkout.waiting');
+    
 
     // --- 4. GRUP KHUSUS ADMIN (Hanya Bisa Diakses Role Admin) ---
     Route::middleware(['admin'])->prefix('admin')->group(function () {

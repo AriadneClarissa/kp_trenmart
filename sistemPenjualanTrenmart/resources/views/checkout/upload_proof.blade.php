@@ -73,6 +73,10 @@
     
     {{-- Header --}}
     <div class="mb-4">
+        {{-- Tombol Back --}}
+        <a href="{{ route('checkout.index') }}" class="text-muted text-decoration-none small">
+            <i class="bi bi-chevron-left"></i> Kembali ke Pilih Bank
+        </a>
         <div class="d-flex align-items-center mt-1">
             <i class="bi bi-shield-check text-dark fs-2 me-3"></i>
             <div>

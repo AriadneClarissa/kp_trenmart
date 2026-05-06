@@ -234,8 +234,11 @@
                                 </div>
                             @else
                                 @if($stok_check > 0)
-                                    <form action="{{ route('cart.add', isset($is_bundling) ? $produk->id : $produk->kd_produk) }}" method="POST">
+                                    <form action="{{ route('cart.add', isset($is_bundling) && $is_bundling ? $produk->id : $produk->kd_produk) }}" method="POST">
                                         @csrf
+                                        {{-- Input hidden ini sangat penting --}}
+                                        <input type="hidden" name="type" value="{{ (isset($is_bundling) && $is_bundling) ? 'bundling' : 'reguler' }}">
+                                        
                                         <button type="submit" class="btn btn-buy w-100 py-3 shadow-sm">
                                             <i class="bi bi-cart-plus fs-5 me-2"></i> Tambah ke Keranjang
                                         </button>

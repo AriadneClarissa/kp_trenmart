@@ -71,6 +71,10 @@
     
     
     <div class="mb-4">
+        
+        <a href="<?php echo e(route('checkout.index')); ?>" class="text-muted text-decoration-none small">
+            <i class="bi bi-chevron-left"></i> Kembali ke Pilih Bank
+        </a>
         <div class="d-flex align-items-center mt-1">
             <i class="bi bi-shield-check text-dark fs-2 me-3"></i>
             <div>
@@ -153,7 +157,7 @@
 
                 <div class="mt-4 text-center">
                     <p class="text-muted mb-0" style="font-size: 11px;">
-                        <i class="bi bi-info-circle"></i> Pesanan Anda akan diproses manual oleh Admin<br>setelah bukti transfer divalidasi.
+                        <i class="bi bi-info-circle"></i> Pesanan Anda akan diproses oleh Admin<br>setelah bukti transfer divalidasi.
                     </p>
                 </div>
             </div>

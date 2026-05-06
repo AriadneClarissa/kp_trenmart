@@ -12,29 +12,23 @@ use Illuminate\Support\Str;
 
 class CheckoutController extends Controller
 {
-    // Menampilkan halaman pilih bank
     public function index()
     {
-        $items = Keranjang::with('produk')->where('user_id', Auth::id())->get();
-        
-        if ($items->isEmpty()) {
-            return redirect()->route('cart.index')->with('error', 'Keranjang Anda kosong.');
-        }
+        $user = Auth::id();
+        $cartItems = Keranjang::where('user_id', $user)->get();
+        $paymentMethods = \App\Models\PaymentMethod::all(); 
 
         $total = 0;
-        foreach ($items as $item) {
-            $harga = (Auth::user()->customer_type === 'langganan') 
-                    ? ($item->produk->harga_jual_langganan ?? $item->produk->harga_jual_umum) 
-                    : $item->produk->harga_jual_umum;
-            $item->harga_at_time = $harga;
+        foreach ($cartItems as $item) {
+            $harga = $item->bundling_id 
+                    ? $item->bundling->bundling_price 
+                    : ($item->produk->harga_jual_umum); 
             $total += $harga * $item->jumlah;
         }
 
-        $paymentMethods = PaymentMethod::where('is_active', true)->get();
-        return view('checkout.select_payment', compact('items', 'total', 'paymentMethods'));
+        // Kirim variabel $total ke view
+        return view('checkout.select_payment', compact('cartItems', 'paymentMethods', 'total'));
     }
-
-    // Proses pembuatan Order (Tombol Lanjut ke Bukti Pembayaran)
     public function placeOrder(Request $request)
     {
         $request->validate([
@@ -48,6 +42,7 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index')->with('error', 'Keranjang kosong.');
         }
 
+        // 1. Hitung Total (Sama seperti sebelumnya)
         $total = 0;
         foreach ($items as $item) {
             $harga = (Auth::user()->customer_type === 'langganan') 
@@ -56,19 +51,19 @@ class CheckoutController extends Controller
             $total += $harga * $item->jumlah;
         }
 
-        // Simpan ke Tabel Orders
+        // 2. Buat Order
         $order = Order::create([
             'order_number' => 'TRM-' . strtoupper(Str::random(8)),
             'user_id' => Auth::id(),
             'total' => $total,
             'payment_method_id' => $request->payment_method_id,
             'pickup_method' => $request->pickup_method ?? 'delivery',
-            'payment_status' => 'pending',
+            'payment_status' => 'pending', // Status masih pending
             'order_status' => 'new',
             'alamat_pengiriman' => Auth::user()->alamat,
         ]);
 
-        // Simpan ke Tabel Order Items
+        // 3. Pindahkan item keranjang ke Order Items
         foreach ($items as $item) {
             $price_at_time = (Auth::user()->customer_type === 'langganan') 
                             ? ($item->produk->harga_jual_langganan ?? $item->produk->harga_jual_umum) 
@@ -82,20 +77,33 @@ class CheckoutController extends Controller
             ]);
         }
 
-        // PENTING: Hapus keranjang HANYA jika order sukses dibuat
-        Keranjang::where('user_id', Auth::id())->delete();
-
         return redirect()->route('checkout.upload_proof', $order->id);
     }
 
-    // Menampilkan halaman instruksi transfer & upload foto
-    public function uploadProof($orderId)
+    public function storeProof(Request $request, $orderId)
     {
-        $order = Order::with('paymentMethod')
-                      ->where('id', $orderId)
-                      ->where('user_id', Auth::id())
-                      ->firstOrFail();
+        $order = Order::where('id', $orderId)->where('user_id', Auth::id())->firstOrFail();
 
-        return view('checkout.upload_proof', compact('order'));
+        $request->validate([
+            'bukti_pembayaran' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
+
+        if ($request->hasFile('bukti_pembayaran')) {
+            $path = $request->file('bukti_pembayaran')->store('payment_proofs', 'public');
+
+            $order->update([
+                'payment_proof' => $path,
+                'payment_status' => 'waiting_confirmation'
+            ]);
+
+            // HAPUS KERANJANG DI SINI
+            // Sekarang keranjang hanya terhapus jika bukti sudah dikirim.
+            Keranjang::where('user_id', Auth::id())->delete();
+
+            return redirect()->route('checkout.waiting', $order->id)
+                            ->with('success', 'Bukti transfer berhasil diunggah.');
+        }
+
+        return back()->with('error', 'Gagal mengunggah gambar.');
     }
 }

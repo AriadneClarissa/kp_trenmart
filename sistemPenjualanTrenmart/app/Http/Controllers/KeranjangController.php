@@ -47,43 +47,67 @@ class KeranjangController extends Controller
      */
     public function store(Request $request, $id)
     {
-        // 1. Cek apakah produk tersebut valid
-        $produk = Produk::where('kd_produk', $id)->firstOrFail();
+        // Ambil tipe dari request (kita kirim via hidden input atau parameter)
+        $type = $request->input('type', 'reguler'); 
+
+        if ($type === 'bundling') {
+            // 1a. Validasi Bundling
+            $bundling = \App\Models\Bundling::findOrFail($id);
+            $stokTersedia = 999; // Atau logic stok bundling kamu
+            $identifierColumn = 'bundling_id'; 
+            $kdProdukValue = null;
+            $bundlingIdValue = $id;
+        } else {
+            // 1b. Validasi Produk Reguler
+            $produk = Produk::where('kd_produk', $id)->firstOrFail();
+            $stokTersedia = $produk->stok_tersedia;
+            $identifierColumn = 'kd_produk';
+            $kdProdukValue = $id;
+            $bundlingIdValue = null;
+        }
 
         // 2. Cek apakah barang sudah ada di keranjang user
+        // Kita cek berdasarkan kd_produk ATAU bundling_id
         $itemExist = Keranjang::where('user_id', Auth::id())
-                              ->where('kd_produk', $id)
-                              ->first();
+                        ->when($type === 'bundling', function($q) use ($id) {
+                            return $q->where('bundling_id', $id);
+                        })
+                        ->when($type === 'reguler', function($q) use ($id) {
+                            return $q->where('kd_produk', $id);
+                        })
+                        ->first();
 
         if ($itemExist) {
-            // Cek stok sebelum menambah jumlah
-            if ($itemExist->jumlah < $produk->stok_tersedia) {
+            if ($itemExist->jumlah < $stokTersedia) {
                 $itemExist->increment('jumlah');
             } else {
-                if ($request->wantsJson() || $request->ajax()) {
-                    return response()->json(['success' => false, 'message' => 'Stok produk tidak mencukupi.'], 422);
-                }
-
-                return back()->with('error', 'Stok produk tidak mencukupi.');
+                return $this->errorResponse($request, 'Stok tidak mencukupi.');
             }
         } else {
-            // Jika belum ada, buat record baru
+            // 3. Buat record baru
             Keranjang::create([
-                'user_id' => Auth::id(),
-                'kd_produk' => $id,
-                'jumlah' => 1
+                'user_id'   => Auth::id(),
+                'kd_produk' => $kdProdukValue,
+                'bundling_id' => $bundlingIdValue, // Pastikan kolom ini sudah kamu tambah di migration keranjang
+                'jumlah'    => 1
             ]);
         }
 
-        // Hitung kembali jumlah item di keranjang (total jumlah)
         $cartCount = Keranjang::where('user_id', Auth::id())->sum('jumlah');
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json(['success' => true, 'cartCount' => $cartCount]);
         }
 
-        // Tidak mengarahkan ke halaman keranjang — kembali ke halaman sebelumnya
-        return back()->with('success', 'Produk berhasil ditambahkan ke keranjang!');
+        return back()->with('success', 'Berhasil ditambahkan ke keranjang!');
+    }
+
+    // Helper untuk handle error response
+    private function errorResponse($request, $message) {
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => false, 'message' => $message], 422);
+        }
+        return back()->with('error', $message);
     }
 
     /**
