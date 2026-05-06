@@ -7,6 +7,7 @@ use App\Models\Kategori;
 use App\Models\Merk;
 use App\Models\BerandaSetting;
 use App\Models\User;
+use App\Models\Bundling;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
@@ -32,8 +33,8 @@ class ProdukController extends Controller
 
         // Mengambil data admin untuk banner
         $admin = User::where('role', 'admin')->first();
-
-        return view('beranda', compact('settings', 'produk_terbaru', 'kategori', 'merk', 'admin'));
+        $bundling = Bundling::with(['items.produk.merk'])->latest()->get();
+        return view('beranda', compact('settings', 'produk_terbaru', 'kategori', 'merk', 'admin', 'bundling'));
     }
 
     /**

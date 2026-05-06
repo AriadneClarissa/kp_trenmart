@@ -74,7 +74,7 @@
         </div>
     </section>
 
-    {{-- 4. SECTION BUNDLING (Di bawah Produk Terbaru) --}}
+    {{-- 4. SECTION BUNDLING --}}
     <section class="mt-5 pt-3">
         <div class="text-center mb-5">
             <h4 class="fw-bold"><i class="bi bi-box2-heart text-danger me-2"></i> Paket Bundling Hemat</h4>
@@ -85,13 +85,12 @@
             @forelse($bundling as $b)
                 <div class="col-md-6 col-lg-4">
                     <div class="card h-100 border-0 shadow-sm card-bundling-hover" style="border-radius: 20px;">
-                        <div class="card-body p-4 d-flex flex-column">
+                        <div class="card-body p-3 d-flex flex-column">
                             <div class="d-flex justify-content-between align-items-start mb-3">
-                                <h5 class="fw-bold text-dark mb-0">{{ $b->name }}</h5>
-                                <span class="badge bg-danger rounded-pill px-3 py-2 small">Bundling</span>
+                                <a href="{{ route('bundling.show', $b->id) }}" class="text-decoration-none">
+                                    <h5 class="fw-bold text-dark mb-0 hover-maroon">{{ $b->name }}</h5>
+                                </a>
                             </div>
-                            
-                            <p class="text-muted small mb-4" style="min-height: 40px;">{{ $b->description ?? 'Paket hemat pilihan Trenmart.' }}</p>
 
                             <div class="bg-light p-3 rounded-4 mb-4">
                                 <label class="small fw-bold text-primary mb-2 d-block">Isi Paket:</label>
@@ -131,7 +130,7 @@
                 </div>
             @empty
                 <div class="col-12 text-center py-5">
-                    <p class="text-muted italic">Belum ada paket bundling yang aktif saat ini.</p>
+                    <p class="text-muted italic">Belum ada paket bundling untuk saat ini.</p>
                 </div>
             @endforelse
         </div>

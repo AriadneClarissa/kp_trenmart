@@ -31,9 +31,6 @@
                         <input type="text" name="name" class="form-control mb-3" 
                                placeholder="Contoh: Paket Alat Tulis Hemat" required 
                                value="<?php echo e(old('name')); ?>">
-                        
-                        <label class="form-label fw-bold">Deskripsi</label>
-                        <textarea name="description" class="form-control" rows="4"><?php echo e(old('description')); ?></textarea>
                     </div>
                 </div>
 
@@ -202,9 +199,8 @@
                     let html = '';
                     if (data.length > 0) {
                         data.forEach(function(item) {
-                            // Karena sudah di-map di controller, kita pakai item.price & item.merk langsung
                             let rawPrice = item.price; 
-                            
+                        
                             let formattedPrice = new Intl.NumberFormat('id-ID', {
                                 style: 'currency', 
                                 currency: 'IDR', 

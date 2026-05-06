@@ -3,140 +3,200 @@
 @section('content')
 <div class="container mt-4 mb-5">
     <div class="row g-4">
-        {{-- Sisi Kiri: Slider Gambar Produk --}}
+        
+        {{-- SISI KIRI: SLIDER GAMBAR --}}
         <div class="col-md-6">
             <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 20px;">
                 <div class="card-body p-4">
-                    <div id="productCarousel" class="carousel slide bg-light" data-bs-ride="carousel" style="border-radius: 15px; overflow: hidden;">
-                        
-                        {{-- Indikator (Titik-titik di bawah foto) --}}
-                        @if($produk->foto_2 || $produk->foto_3)
-                        <div class="carousel-indicators">
-                            <button type="button" data-bs-target="#productCarousel" data-bs-slide-to="0" class="active bg-dark"></button>
-                            @if($produk->foto_2) <button type="button" data-bs-target="#productCarousel" data-bs-slide-to="1" class="bg-dark"></button> @endif
-                            @if($produk->foto_3) <button type="button" data-bs-target="#productCarousel" data-bs-slide-to="2" class="bg-dark"></button> @endif
-                        </div>
-                        @endif
-
-                        <div class="carousel-inner" style="height: 450px;">
-                            {{-- Foto Utama --}}
-                            <div class="carousel-item active h-100">
-                                <div class="d-flex align-items-center justify-content-center h-100">
-                                    <img src="{{ asset('storage/' . $produk->gambar) }}" 
-                                         class="img-fluid main-product-image" 
-                                         alt="{{ $produk->nama_produk }}"
-                                         style="max-height: 100%; object-fit: contain; mix-blend-mode: multiply;">
+                    
+                    @if(isset($is_bundling) && $is_bundling)
+                        {{-- ================= TAMPILAN GAMBAR BUNDLING ================= --}}
+                        @if($images->count() > 0)
+                            <div id="productCarousel" class="carousel slide bg-light" data-bs-ride="carousel" style="border-radius: 15px; overflow: hidden;">
+                                <div class="carousel-inner" style="height: 450px;">
+                                    @foreach($images as $index => $img)
+                                        <div class="carousel-item {{ $index == 0 ? 'active' : '' }} h-100">
+                                            <div class="d-flex align-items-center justify-content-center h-100">
+                                                <img src="{{ asset('storage/' . $img) }}" 
+                                                     class="img-fluid main-product-image" 
+                                                     alt="Foto Bundling"
+                                                     style="max-height: 100%; object-fit: contain; mix-blend-mode: multiply;">
+                                            </div>
+                                        </div>
+                                    @endforeach
                                 </div>
+                                @if($images->count() > 1)
+                                    <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+                                        <span class="carousel-control-prev-icon p-3 bg-dark rounded-circle" aria-hidden="true" style="background-size: 50%;"></span>
+                                    </button>
+                                    <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+                                        <span class="carousel-control-next-icon p-3 bg-dark rounded-circle" aria-hidden="true" style="background-size: 50%;"></span>
+                                    </button>
+                                @endif
                             </div>
 
-                            {{-- Foto Tambahan 2 --}}
-                            @if($produk->foto_2)
-                            <div class="carousel-item h-100">
-                                <div class="d-flex align-items-center justify-content-center h-100">
-                                    <img src="{{ asset('storage/' . $produk->foto_2) }}" 
-                                         class="img-fluid main-product-image" 
-                                         style="max-height: 100%; object-fit: contain; mix-blend-mode: multiply;">
+                            {{-- Thumbnail Kecil --}}
+                            @if($images->count() > 1)
+                            <div class="row mt-3 g-2 justify-content-center">
+                                @foreach($images as $index => $img)
+                                <div class="col-2">
+                                    <img src="{{ asset('storage/' . $img) }}" class="img-fluid border rounded cursor-pointer opacity-hover" onclick="goToSlide({{ $index }})" style="height: 50px; width: 100%; object-fit: cover;">
                                 </div>
+                                @endforeach
+                            </div>
+                            @endif
+                        @else
+                            <div class="d-flex align-items-center justify-content-center bg-light" style="height: 450px; border-radius: 15px;">
+                                <span class="text-muted"><i class="bi bi-image fs-1"></i><br>Tidak ada gambar</span>
+                            </div>
+                        @endif
+
+                    @else
+                        {{-- ================= TAMPILAN GAMBAR PRODUK BIASA ================= --}}
+                        <div id="productCarousel" class="carousel slide bg-light" data-bs-ride="carousel" style="border-radius: 15px; overflow: hidden;">
+                            @if($produk->foto_2 || $produk->foto_3)
+                            <div class="carousel-indicators">
+                                <button type="button" data-bs-target="#productCarousel" data-bs-slide-to="0" class="active bg-dark"></button>
+                                @if($produk->foto_2) <button type="button" data-bs-target="#productCarousel" data-bs-slide-to="1" class="bg-dark"></button> @endif
+                                @if($produk->foto_3) <button type="button" data-bs-target="#productCarousel" data-bs-slide-to="2" class="bg-dark"></button> @endif
                             </div>
                             @endif
 
-                            {{-- Foto Tambahan 3 --}}
-                            @if($produk->foto_3)
-                            <div class="carousel-item h-100">
-                                <div class="d-flex align-items-center justify-content-center h-100">
-                                    <img src="{{ asset('storage/' . $produk->foto_3) }}" 
-                                         class="img-fluid main-product-image" 
-                                         style="max-height: 100%; object-fit: contain; mix-blend-mode: multiply;">
+                            <div class="carousel-inner" style="height: 450px;">
+                                <div class="carousel-item active h-100">
+                                    <div class="d-flex align-items-center justify-content-center h-100">
+                                        <img src="{{ asset('storage/' . $produk->gambar) }}" class="img-fluid main-product-image" alt="{{ $produk->nama_produk }}" style="max-height: 100%; object-fit: contain; mix-blend-mode: multiply;">
+                                    </div>
                                 </div>
+                                @if($produk->foto_2)
+                                <div class="carousel-item h-100">
+                                    <div class="d-flex align-items-center justify-content-center h-100">
+                                        <img src="{{ asset('storage/' . $produk->foto_2) }}" class="img-fluid main-product-image" style="max-height: 100%; object-fit: contain; mix-blend-mode: multiply;">
+                                    </div>
+                                </div>
+                                @endif
+                                @if($produk->foto_3)
+                                <div class="carousel-item h-100">
+                                    <div class="d-flex align-items-center justify-content-center h-100">
+                                        <img src="{{ asset('storage/' . $produk->foto_3) }}" class="img-fluid main-product-image" style="max-height: 100%; object-fit: contain; mix-blend-mode: multiply;">
+                                    </div>
+                                </div>
+                                @endif
                             </div>
+
+                            @if($produk->foto_2 || $produk->foto_3)
+                            <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon p-3 bg-dark rounded-circle" aria-hidden="true" style="background-size: 50%;"></span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+                                <span class="carousel-control-next-icon p-3 bg-dark rounded-circle" aria-hidden="true" style="background-size: 50%;"></span>
+                            </button>
                             @endif
                         </div>
 
-                        {{-- Tombol Geser (Muncul jika ada lebih dari 1 foto) --}}
                         @if($produk->foto_2 || $produk->foto_3)
-                        <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
-                            <span class="carousel-control-prev-icon p-3 bg-dark rounded-circle" aria-hidden="true" style="background-size: 50%;"></span>
-                            <span class="visually-hidden">Previous</span>
-                        </button>
-                        <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
-                            <span class="carousel-control-next-icon p-3 bg-dark rounded-circle" aria-hidden="true" style="background-size: 50%;"></span>
-                            <span class="visually-hidden">Next</span>
-                        </button>
-                        @endif
-                    </div>
-
-                    {{-- Thumbnail Kecil di Bawah Carousel --}}
-                    @if($produk->foto_2 || $produk->foto_3)
-                    <div class="row mt-3 g-2 justify-content-center">
-                        <div class="col-2">
-                            <img src="{{ asset('storage/' . $produk->gambar) }}" class="img-fluid border rounded cursor-pointer opacity-hover" onclick="goToSlide(0)" style="height: 50px; width: 100%; object-fit: cover;">
-                        </div>
-                        @if($produk->foto_2)
-                        <div class="col-2">
-                            <img src="{{ asset('storage/' . $produk->foto_2) }}" class="img-fluid border rounded cursor-pointer opacity-hover" onclick="goToSlide(1)" style="height: 50px; width: 100%; object-fit: cover;">
+                        <div class="row mt-3 g-2 justify-content-center">
+                            <div class="col-2"><img src="{{ asset('storage/' . $produk->gambar) }}" class="img-fluid border rounded cursor-pointer opacity-hover" onclick="goToSlide(0)" style="height: 50px; width: 100%; object-fit: cover;"></div>
+                            @if($produk->foto_2)<div class="col-2"><img src="{{ asset('storage/' . $produk->foto_2) }}" class="img-fluid border rounded cursor-pointer opacity-hover" onclick="goToSlide(1)" style="height: 50px; width: 100%; object-fit: cover;"></div>@endif
+                            @if($produk->foto_3)<div class="col-2"><img src="{{ asset('storage/' . $produk->foto_3) }}" class="img-fluid border rounded cursor-pointer opacity-hover" onclick="goToSlide(2)" style="height: 50px; width: 100%; object-fit: cover;"></div>@endif
                         </div>
                         @endif
-                        @if($produk->foto_3)
-                        <div class="col-2">
-                            <img src="{{ asset('storage/' . $produk->foto_3) }}" class="img-fluid border rounded cursor-pointer opacity-hover" onclick="goToSlide(2)" style="height: 50px; width: 100%; object-fit: cover;">
-                        </div>
-                        @endif
-                    </div>
                     @endif
+
                 </div>
             </div>
         </div>
 
-        {{-- Sisi Kanan: Detail & Aksi --}}
+        {{-- SISI KANAN: DETAIL & AKSI --}}
         <div class="col-md-6">
             <div class="card border-0 shadow-sm" style="border-radius: 20px;">
                 <div class="card-body p-4">
-                    {{-- Merk & Judul --}}
-                    <div class="mb-3">
-                        <span class="badge bg-secondary mb-2" style="border-radius: 6px;">{{ $produk->merk->nama_merk ?? 'Tanpa Merk' }}</span>
-                        <h2 class="fw-bold text-dark mb-1">{{ $produk->nama_produk }}</h2>
-                        <p class="text-muted small">Kategori: {{ $produk->kategori->nama_kategori ?? 'Tidak ada kategori' }}</p>
-                    </div>
+                    
+                    @if(isset($is_bundling) && $is_bundling)
+                        {{-- ================= DETAIL BUNDLING ================= --}}
+                        <div class="mb-3">
+                            <span class="badge bg-secondary mb-2" style="border-radius: 6px;">Bundling Hemat</span>
+                            <h2 class="fw-bold text-dark mb-1">{{ $bundling->name }}</h2>
+                            <p class="text-muted small">
+                                Isi Paket: 
+                                @foreach($bundling->items as $item)
+                                    {{ $item->produk->nama_produk }}{{ !$loop->last ? ' + ' : '' }}
+                                @endforeach
+                            </p>
+                        </div>
 
-                    {{-- Harga --}}
-                    <h3 class="fw-bold mb-4" style="color: #800000;">
-                        Rp {{ number_format($produk->harga_tampil, 0, ',', '.') }}
-                        <small class="text-muted fw-normal fs-6">/{{ $produk->satuanModel->nama_satuan ?? 'pcs' }}</small>
-                    </h3>
-                    @auth
-                        @if(auth()->user()->isAdmin())
-                            <p class="mb-4 fw-semibold" style="color: #f08a24; font-size: 1rem;">
-                                Langganan: Rp {{ number_format($produk->harga_jual_langganan ?? $produk->harga_jual_umum, 0, ',', '.') }}
+                        <h3 class="fw-bold mb-4" style="color: #800000;">
+                            Rp {{ number_format($bundling->bundling_price, 0, ',', '.') }}
+                            <small class="text-muted fw-normal fs-6">/Paket</small>
+                        </h3>
+
+                        @if($bundling->total_normal_price > $bundling->bundling_price)
+                            <p class="text-warning fw-bold mb-3" style="margin-top: -15px;">
+                                Harga Normal: <span class="text-decoration-line-through text-muted fw-normal">Rp {{ number_format($bundling->total_normal_price, 0, ',', '.') }}</span> 
                             </p>
                         @endif
-                    @endauth
-                    
-                    {{-- Status Stok --}}
-                    @if($produk->stok_tersedia > 0)
-                        <div class="mb-4">
-                            <span class="badge bg-success-subtle text-success px-3 py-2 border border-success-subtle" style="border-radius: 8px;">
-                                <i class="bi bi-check-circle-fill me-1"></i>Stok Tersedia: {{ $produk->stok_tersedia }}
-                            </span>
-                        </div>
+
+                        @if($stok_tersedia > 0)
+                            <div class="mb-4">
+                                <span class="badge bg-success-subtle text-success px-3 py-2 border border-success-subtle" style="border-radius: 8px;">
+                                    <i class="bi bi-check-circle-fill me-1"></i>Stok Paket Tersedia: {{ $stok_tersedia }}
+                                </span>
+                            </div>
+                        @else
+                            <div class="mb-4">
+                                <span class="badge bg-danger-subtle text-danger px-3 py-2 border border-danger-subtle" style="border-radius: 8px;">
+                                    <i class="bi bi-x-circle-fill me-1"></i>Stok Habis
+                                </span>
+                            </div>
+                        @endif
+                        
+                        {{-- Note: Deskripsi Produk Dihilangkan Khusus Untuk Bundling --}}
+
                     @else
+                        {{-- ================= DETAIL PRODUK BIASA ================= --}}
+                        <div class="mb-3">
+                            <span class="badge bg-secondary mb-2" style="border-radius: 6px;">{{ $produk->merk->nama_merk ?? 'Tanpa Merk' }}</span>
+                            <h2 class="fw-bold text-dark mb-1">{{ $produk->nama_produk }}</h2>
+                            <p class="text-muted small">Kategori: {{ $produk->kategori->nama_kategori ?? 'Tidak ada kategori' }}</p>
+                        </div>
+
+                        <h3 class="fw-bold mb-4" style="color: #800000;">
+                            Rp {{ number_format($produk->harga_tampil, 0, ',', '.') }}
+                            <small class="text-muted fw-normal fs-6">/{{ $produk->satuanModel->nama_satuan ?? 'pcs' }}</small>
+                        </h3>
+                        @auth
+                            @if(auth()->user()->isAdmin())
+                                <p class="mb-4 fw-semibold" style="color: #f08a24; font-size: 1rem;">
+                                    Langganan: Rp {{ number_format($produk->harga_jual_langganan ?? $produk->harga_jual_umum, 0, ',', '.') }}
+                                </p>
+                            @endif
+                        @endauth
+                        
+                        @if($produk->stok_tersedia > 0)
+                            <div class="mb-4">
+                                <span class="badge bg-success-subtle text-success px-3 py-2 border border-success-subtle" style="border-radius: 8px;">
+                                    <i class="bi bi-check-circle-fill me-1"></i>Stok Tersedia: {{ $produk->stok_tersedia }}
+                                </span>
+                            </div>
+                        @else
+                            <div class="mb-4">
+                                <span class="badge bg-danger-subtle text-danger px-3 py-2 border border-danger-subtle" style="border-radius: 8px;">
+                                    <i class="bi bi-x-circle-fill me-1"></i>Stok Habis
+                                </span>
+                            </div>
+                        @endif
+
                         <div class="mb-4">
-                            <span class="badge bg-danger-subtle text-danger px-3 py-2 border border-danger-subtle" style="border-radius: 8px;">
-                                <i class="bi bi-x-circle-fill me-1"></i>Stok Habis
-                            </span>
+                            <h6 class="fw-bold text-dark">Deskripsi Produk</h6>
+                            <p class="text-muted" style="line-height: 1.6;">
+                                {{ $produk->deskripsi ?? 'Tidak ada deskripsi untuk produk ini.' }}
+                            </p>
                         </div>
                     @endif
 
-                    {{-- Deskripsi --}}
-                    <div class="mb-4">
-                        <h6 class="fw-bold text-dark">Deskripsi Produk</h6>
-                        <p class="text-muted" style="line-height: 1.6;">
-                            {{ $produk->deskripsi ?? 'Tidak ada deskripsi untuk produk ini.' }}
-                        </p>
-                    </div>
-
                     <hr class="my-4 opacity-25">
 
-                    {{-- BAGIAN AKSI --}}
+                    {{-- ================= BAGIAN AKSI (SAMA UNTUK KEDUANYA) ================= --}}
                     <div class="action-section">
                         @auth
                             @if(auth()->user()->isAdmin())
@@ -144,17 +204,24 @@
                                     <i class="bi bi-shield-lock-fill fs-4 me-3 text-dark"></i>
                                     <div>
                                         <div class="fw-bold">Mode Admin</div>
-                                        <small class="text-muted">Gunakan tombol di bawah untuk mengelola data produk.</small>
+                                        <small class="text-muted">Gunakan tombol di bawah untuk mengelola data.</small>
                                     </div>
                                 </div>
                                 <div class="d-grid gap-2">
-                                    <a href="{{ route('produk.edit', $produk->kd_produk) }}" class="btn btn-warning py-3 fw-bold rounded-3 shadow-sm">
-                                        <i class="bi bi-pencil-square me-2"></i>Edit Data Produk
-                                    </a>
+                                    @if(isset($is_bundling) && $is_bundling)
+                                        <a href="#" class="btn btn-warning py-3 fw-bold rounded-3 shadow-sm">
+                                            <i class="bi bi-pencil-square me-2"></i>Edit Data Bundling
+                                        </a>
+                                    @else
+                                        <a href="{{ route('produk.edit', $produk->kd_produk) }}" class="btn btn-warning py-3 fw-bold rounded-3 shadow-sm">
+                                            <i class="bi bi-pencil-square me-2"></i>Edit Data Produk
+                                        </a>
+                                    @endif
                                 </div>
                             @else
-                                @if($produk->stok_tersedia > 0)
-                                    <form action="{{ route('cart.add', $produk->kd_produk) }}" method="POST">
+                                @php $stok_check = isset($is_bundling) ? $stok_tersedia : $produk->stok_tersedia; @endphp
+                                @if($stok_check > 0)
+                                    <form action="#" method="POST">
                                         @csrf
                                         <button type="submit" class="btn btn-buy w-100 py-3 shadow-sm">
                                             <i class="bi bi-cart-plus fs-5 me-2"></i> Tambah ke Keranjang
@@ -175,13 +242,14 @@
 
                     <div class="mt-4 text-center">
                         <a href="{{ request('from') === 'produk.index' ? route('produk.index') : (request('from') === 'katalog' ? route('katalog') : route('beranda')) }}" class="text-decoration-none text-muted small hover-maroon">
-                            <i class="bi bi-arrow-left me-1"></i>
-                            Kembali
+                            <i class="bi bi-arrow-left me-1"></i> Kembali
                         </a>
                     </div>
+
                 </div>
             </div>
         </div>
+
     </div>
 </div>
 

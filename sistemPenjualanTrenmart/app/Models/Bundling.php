@@ -14,7 +14,6 @@ class Bundling extends Model
         'name',
         'total_normal_price',
         'bundling_price',
-        'description'
     ];
 
     /**
