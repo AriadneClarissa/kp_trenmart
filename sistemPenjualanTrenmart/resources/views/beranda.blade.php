@@ -58,14 +58,17 @@
     {{-- 3. Section Produk Terbaru --}}
     <section class="mb-5">
         <h4 class="fw-bold mb-4 text-center fs-4 fs-md-3">
-        <i class="bi bi-stars text-warning me-2"></i>
+            <i class="bi bi-stars text-warning me-2"></i>
             {{ $settings['judul_terbaru'] ?? 'Produk Terbaru' }}
         </h4>
-        <div class="row flex-nowrap overflow-auto g-3 g-md-4 pb-3 custom-scrollbar">
+        
+        <!-- Tambahkan d-flex di sini untuk memastikan elemen tetap sejajar horizontal -->
+        <div class="row d-flex flex-nowrap overflow-auto g-3 g-md-4 pb-3 custom-scrollbar" style="margin-right: 0; margin-left: 0;">
             @forelse($produk_terbaru as $item)
-            <div class="col-auto card-mobile-width"> 
-                @include('partials.item_produk', ['item' => $item])
-            </div>
+                <!-- Gunakan col-auto agar lebar kolom mengikuti isi (card-mobile-width) -->
+                <div class="col-auto card-mobile-width" style="flex: 0 0 auto;"> 
+                    @include('partials.item_produk', ['item' => $item])
+                </div>
             @empty
                 <div class="col-12 text-center py-4">
                     <p class="text-muted">Belum ada produk untuk ditampilkan.</p>
@@ -167,13 +170,34 @@
     .img-banner-responsive { height: 160px; object-fit: cover; }
     @media (min-width: 768px) { .img-banner-responsive { height: 300px; } }
 
-    .card-mobile-width { width: 165px; }
-    @media (min-width: 768px) { .card-mobile-width { width: 220px; } }
+    .card-mobile-width { 
+        width: 165px; 
+        flex: 0 0 auto; /* Tambahkan ini agar kartu tidak menciut */
+    }
+    
+    @media (min-width: 768px) { 
+        .card-mobile-width { 
+            width: 220px; 
+            flex: 0 0 auto; 
+        } 
+    }
 
-    .custom-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
-    .custom-scrollbar::-webkit-scrollbar { display: none; }
-    .flex-nowrap { scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
-    .col-auto { scroll-snap-align: start; }
+    .custom-scrollbar { 
+        scrollbar-width: none; 
+        -ms-overflow-style: none; 
+        padding-left: 5px; /
+        padding-right: 5px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar { 
+        display: none; 
+    }
+
+    .flex-nowrap { 
+        display: flex;
+        flex-wrap: nowrap !important; /* Memaksa kartu tetap satu baris */
+        -webkit-overflow-scrolling: touch; /* Scroll halus di iPhone/iOS */
+    }
 
     .card-bundling-hover:hover {
         transform: translateY(-5px);

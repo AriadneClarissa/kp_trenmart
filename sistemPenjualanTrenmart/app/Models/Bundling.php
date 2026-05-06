@@ -24,4 +24,15 @@ class Bundling extends Model
     {
         return $this->hasMany(BundlingItem::class, 'bundling_id', 'id');
     }
+
+    public function hasPriceDivergence()
+    {
+        foreach ($this->items as $item) {
+            // Cek jika harga snapshot berbeda dengan harga master produk saat ini
+            if ($item->price_at_snapshot != $item->produk->harga_jual_umum) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

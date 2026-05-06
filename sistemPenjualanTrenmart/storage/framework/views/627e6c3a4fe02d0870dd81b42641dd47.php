@@ -86,6 +86,15 @@
                                 </div>
                                 <?php endif; ?>
                             </div>
+
+                            <?php if($produk->foto_2 || $produk->foto_3): ?>
+                                <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon p-3 bg-dark rounded-circle" aria-hidden="true" style="background-size: 50%;"></span>
+                                </button>
+                                <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+                                    <span class="carousel-control-next-icon p-3 bg-dark rounded-circle" aria-hidden="true" style="background-size: 50%;"></span>
+                                </button>
+                            <?php endif; ?>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -113,6 +122,36 @@
                             </p>
                         </div>
 
+                        
+                        <?php if(auth()->guard()->check()): ?>
+                            <?php if(auth()->user()->isAdmin()): ?>
+                                <?php $has_divergence = false; ?>
+                                <?php $__currentLoopData = $produk->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <?php if($item->price_at_snapshot != $item->produk->harga_jual_umum): ?>
+                                        <?php $has_divergence = true; ?>
+                                    <?php endif; ?>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+
+                                <?php if($has_divergence): ?>
+                                    <div class="alert alert-danger border-0 mb-4 shadow-sm" style="border-radius: 15px;">
+                                        <h6 class="fw-bold"><i class="bi bi-info-circle-fill me-2"></i>Perbandingan Harga Terbaru:</h6>
+                                        <ul class="list-unstyled mb-0 small">
+                                            <?php $__currentLoopData = $produk->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <?php if($item->price_at_snapshot != $item->produk->harga_jual_umum): ?>
+                                                    <li class="mb-1">
+                                                        <strong><?php echo e($item->produk->nama_produk); ?>:</strong> 
+                                                        <span class="text-decoration-line-through text-muted">Rp <?php echo e(number_format($item->price_at_snapshot, 0, ',', '.')); ?></span> 
+                                                        &rarr; <span class="text-danger fw-bold">Rp <?php echo e(number_format($item->produk->harga_jual_umum, 0, ',', '.')); ?></span>
+                                                    </li>
+                                                <?php endif; ?>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                        </ul>
+                                        <p class="mt-2 mb-0 x-small text-muted">Klik "Edit Data Bundling" untuk menyesuaikan harga paket.</p>
+                                    </div>
+                                <?php endif; ?>
+                            <?php endif; ?>
+                        <?php endif; ?>
+
                         <h3 class="fw-bold mb-4" style="color: #800000;">
                             Rp <?php echo e(number_format($produk->bundling_price, 0, ',', '.')); ?>
 
@@ -138,6 +177,16 @@
 
                             <small class="text-muted fw-normal fs-6">/<?php echo e($produk->satuanModel->nama_satuan ?? 'pcs'); ?></small>
                         </h3>
+
+                        
+                        <?php if(auth()->guard()->check()): ?>
+                            <?php if(auth()->user()->isAdmin()): ?>
+                                <p class="mb-4 fw-semibold text-orange" style="font-size: 1rem;">
+                                    Langganan: Rp <?php echo e(number_format($produk->harga_jual_langganan ?? $produk->harga_jual_umum, 0, ',', '.')); ?>
+
+                                </p>
+                            <?php endif; ?>
+                        <?php endif; ?>
                     <?php endif; ?>
 
                     
@@ -191,7 +240,7 @@
                                 </div>
                             <?php else: ?>
                                 <?php if($stok_check > 0): ?>
-                                    <form action="#" method="POST">
+                                    <form action="<?php echo e(route('cart.add', isset($is_bundling) ? $produk->id : $produk->kd_produk)); ?>" method="POST">
                                         <?php echo csrf_field(); ?>
                                         <button type="submit" class="btn btn-buy w-100 py-3 shadow-sm">
                                             <i class="bi bi-cart-plus fs-5 me-2"></i> Tambah ke Keranjang
@@ -225,6 +274,7 @@
     .cursor-pointer { cursor: pointer; }
     .opacity-hover:hover { opacity: 0.7; transition: 0.3s; }
     .carousel-control-prev, .carousel-control-next { width: 10%; }
+    .text-orange { color: #f08a24; }
     .btn-buy {
         background-color: #800000;
         color: white;
