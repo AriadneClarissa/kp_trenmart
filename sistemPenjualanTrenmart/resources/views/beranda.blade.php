@@ -62,15 +62,13 @@
             {{ $settings['judul_terbaru'] ?? 'Produk Terbaru' }}
         </h4>
         
-        <!-- Tambahkan d-flex di sini untuk memastikan elemen tetap sejajar horizontal -->
-        <div class="row d-flex flex-nowrap overflow-auto g-3 g-md-4 pb-3 custom-scrollbar" style="margin-right: 0; margin-left: 0;">
+        <div class="d-flex flex-nowrap overflow-auto pb-4 custom-scrollbar-visible" style="gap: 15px; padding-left: 5px; padding-right: 5px;">
             @forelse($produk_terbaru as $item)
-                <!-- Gunakan col-auto agar lebar kolom mengikuti isi (card-mobile-width) -->
-                <div class="col-auto card-mobile-width" style="flex: 0 0 auto;"> 
+                <div class="card-mobile-width" style="flex: 0 0 auto;"> 
                     @include('partials.item_produk', ['item' => $item])
                 </div>
             @empty
-                <div class="col-12 text-center py-4">
+                <div class="w-100 text-center py-4">
                     <p class="text-muted">Belum ada produk untuk ditampilkan.</p>
                 </div>
             @endforelse
@@ -172,7 +170,7 @@
 
     .card-mobile-width { 
         width: 165px; 
-        flex: 0 0 auto; /* Tambahkan ini agar kartu tidak menciut */
+        flex: 0 0 auto; 
     }
     
     @media (min-width: 768px) { 
@@ -180,17 +178,6 @@
             width: 220px; 
             flex: 0 0 auto; 
         } 
-    }
-
-    .custom-scrollbar { 
-        scrollbar-width: none; 
-        -ms-overflow-style: none; 
-        padding-left: 5px; /
-        padding-right: 5px;
-    }
-    
-    .custom-scrollbar::-webkit-scrollbar { 
-        display: none; 
     }
 
     .flex-nowrap { 

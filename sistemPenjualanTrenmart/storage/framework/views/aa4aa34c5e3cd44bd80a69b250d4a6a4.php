@@ -1,6 +1,4 @@
-@extends('layouts.app')
-
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
     :root { 
         --maroon-trenmart: #800000; 
@@ -66,35 +64,35 @@
     .text-accent { color: var(--accent-red); }
     .text-maroon { color: var(--maroon-trenmart); }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container main-container pb-5">
     
-    {{-- Header --}}
+    
     <div class="mb-4">
         <div class="d-flex align-items-center mt-1">
             <i class="bi bi-shield-check text-dark fs-2 me-3"></i>
             <div>
                 <h3 class="fw-bold mb-0">Bukti Pembayaran</h3>
-                <p class="text-muted small mb-0">No. Pesanan: <strong>{{ $order->order_number }}</strong></p>
+                <p class="text-muted small mb-0">No. Pesanan: <strong><?php echo e($order->order_number); ?></strong></p>
             </div>
         </div>
     </div>
 
     <div class="row cart-wrapper g-4">
         
-        {{-- KOLOM KIRI: INFO REKENING & UPLOAD --}}
+        
         <div class="col-lg-8">
-            {{-- Instruksi Rekening --}}
+            
             <div class="card card-custom p-4 shadow-sm">
-                <h6 class="fw-bold mb-3"><i class="bi bi-bank me-2"></i>Tujuan Transfer ({{ $order->paymentMethod->name }})</h6>
+                <h6 class="fw-bold mb-3"><i class="bi bi-bank me-2"></i>Tujuan Transfer (<?php echo e($order->paymentMethod->name); ?>)</h6>
                 <div class="p-4 rounded-3 mb-2" style="background: #f8f9fa; border: 1px solid #eee;">
                     <div class="row align-items-center">
                         <div class="col-md-8">
                             <small class="text-muted d-block mb-1">Nomor Rekening:</small>
-                            <h2 class="fw-bold text-maroon mb-1" id="rekening-text">{{ $order->paymentMethod->account_number }}</h2>
-                            <p class="small mb-0">Atas Nama: <strong>{{ $order->paymentMethod->account_holder }}</strong></p>
+                            <h2 class="fw-bold text-maroon mb-1" id="rekening-text"><?php echo e($order->paymentMethod->account_number); ?></h2>
+                            <p class="small mb-0">Atas Nama: <strong><?php echo e($order->paymentMethod->account_holder); ?></strong></p>
                         </div>
                         <div class="col-md-4 text-md-end mt-3 mt-md-0">
                             <button class="btn btn-dark btn-sm px-3 rounded-pill fw-bold" onclick="copyText()">
@@ -109,9 +107,9 @@
                 </div>
             </div>
 
-            {{-- Form Upload Foto --}}
-            <form action="{{ route('checkout.store_proof', $order->id) }}" method="POST" enctype="multipart/form-data" id="final-form">
-                @csrf
+            
+            <form action="<?php echo e(route('checkout.store_proof', $order->id)); ?>" method="POST" enctype="multipart/form-data" id="final-form">
+                <?php echo csrf_field(); ?>
                 <div class="card card-custom p-4 shadow-sm">
                     <h6 class="fw-bold mb-3"><i class="bi bi-camera-fill me-2"></i>Unggah Bukti Foto</h6>
                     <div class="upload-area" onclick="document.getElementById('bukti_tf').click()">
@@ -122,20 +120,20 @@
                         </div>
                         <img id="preview-img" src="" alt="Preview">
                     </div>
-                    {{-- ID input 'bukti_tf' tapi NAME harus 'bukti_pembayaran' sesuai Controller --}}
+                    
                     <input type="file" name="bukti_pembayaran" id="bukti_tf" class="d-none" accept="image/*" onchange="showPreview(this)" required>
                 </div>
             </form>
         </div>
 
-        {{-- KOLOM KANAN: RINGKASAN & TOMBOL KONFIRMASI --}}
+        
         <div class="col-lg-4">
             <div class="summary-card shadow-sm">
                 <h6 class="fw-bold mb-4"><i class="bi bi-receipt me-2"></i>Ringkasan Pembayaran</h6>
                 
                 <div class="d-flex justify-content-between mb-2 text-muted small">
                     <span>Subtotal Produk</span>
-                    <span>Rp {{ number_format($order->total, 0, ',', '.') }}</span>
+                    <span>Rp <?php echo e(number_format($order->total, 0, ',', '.')); ?></span>
                 </div>
                 <div class="d-flex justify-content-between mb-4 text-muted small">
                     <span>Biaya Pengiriman</span>
@@ -144,7 +142,7 @@
 
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h5 class="fw-bold mb-0">Total Bayar</h5>
-                    <h4 class="fw-bold text-accent mb-0">Rp {{ number_format($order->total + 15000, 0, ',', '.') }}</h4>
+                    <h4 class="fw-bold text-accent mb-0">Rp <?php echo e(number_format($order->total + 15000, 0, ',', '.')); ?></h4>
                 </div>
 
                 <hr class="my-4 opacity-25">
@@ -155,7 +153,7 @@
 
                 <div class="mt-4 text-center">
                     <p class="text-muted mb-0" style="font-size: 11px;">
-                        <i class="bi bi-info-circle"></i> Pesanan Anda akan diproses oleh Admin<br>setelah bukti transfer divalidasi.
+                        <i class="bi bi-info-circle"></i> Pesanan Anda akan diproses manual oleh Admin<br>setelah bukti transfer divalidasi.
                     </p>
                 </div>
             </div>
@@ -163,9 +161,9 @@
 
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
     // Fungsi menampilkan preview gambar yang diunggah
     function showPreview(input) {
@@ -184,7 +182,7 @@
     function copyText() {
         const rek = document.getElementById('rekening-text').innerText;
         navigator.clipboard.writeText(rek).then(() => {
-            alert("Nomor rekening {{ $order->paymentMethod->name }} berhasil disalin!");
+            alert("Nomor rekening <?php echo e($order->paymentMethod->name); ?> berhasil disalin!");
         });
     }
 
@@ -198,4 +196,5 @@
         document.getElementById('final-form').submit();
     }
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\Lenovo LOQ\Documents\GitHub\kp_trenmart\sistemPenjualanTrenmart\resources\views/checkout/upload_proof.blade.php ENDPATH**/ ?>
