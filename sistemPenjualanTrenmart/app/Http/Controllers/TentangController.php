@@ -37,7 +37,7 @@ class TentangController extends Controller
             $fiturUnggulan = json_decode($defaults['tentang_fitur'], true);
         }
 
-        $isAdminEditMode = Auth::check() && Auth::user()->role === 'admin' && !$request->boolean('preview');
+        $isAdminEditMode = Auth::check() && Auth::user()->isAdmin() && !$request->boolean('preview');
 
         return view('tentang-kami', [
             'data' => $data,

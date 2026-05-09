@@ -75,6 +75,7 @@ class AdminUserController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
+            'role' => 'required|in:admin,kasir',
             'send_email' => 'nullable|boolean',
         ]);
 
@@ -85,21 +86,22 @@ class AdminUserController extends Controller
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => \Illuminate\Support\Facades\Hash::make($defaultPassword),
-            'role' => 'admin',
+            'role' => $data['role'],
             'is_approved' => true,
         ]);
 
         // Optional: send email with credentials
         if ($request->boolean('send_email')) {
             try {
-                \Illuminate\Support\Facades\Mail::raw("Halo {$admin->name},\n\nAkun Admin Anda telah dibuat.\nEmail: {$admin->email}\nPassword: {$defaultPassword}\n\nSilakan masuk di: " . url('/login') . " dan segera ganti kata sandi melalui halaman profil.", function ($m) use ($admin) {
-                    $m->to($admin->email)->subject('Akun Admin Trenmart');
+                $roleLabel = $data['role'] === 'kasir' ? 'Kasir' : 'Admin';
+                \Illuminate\Support\Facades\Mail::raw("Halo {$admin->name},\n\nAkun {$roleLabel} Anda telah dibuat.\nEmail: {$admin->email}\nPassword: {$defaultPassword}\n\nSilakan masuk di: " . url('/login') . " dan segera ganti kata sandi melalui halaman profil.", function ($m) use ($admin, $roleLabel) {
+                    $m->to($admin->email)->subject('Akun ' . $roleLabel . ' Trenmart');
                 });
             } catch (\Throwable $e) {
                 report($e);
             }
         }
 
-        return redirect()->route('admin.dashboard')->with('success', 'Akun admin berhasil dibuat.');
+        return redirect()->route('admin.users.index')->with('success', 'Akun ' . $data['role'] . ' berhasil dibuat.');
     }
 }

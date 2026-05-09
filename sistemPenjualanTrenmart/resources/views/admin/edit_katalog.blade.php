@@ -111,7 +111,14 @@
             @if(auth()->user()->isAdmin())
             <div class="col-12 mb-4">
                 <div class="card-sidebar p-3 d-flex gap-2 align-items-center flex-wrap" style="border: 1px solid #ffc107;">
-                    <div class="sidebar-header-admin flex-grow-1"><i class="bi bi-shield-lock-fill me-2"></i>Panel Admin</div>
+                    <div class="sidebar-header-admin flex-grow-1">
+                        <i class="bi bi-shield-lock-fill me-2"></i>
+                        @if(auth()->user()->isOwner())
+                            Panel Pemilik
+                        @else
+                            Panel Admin
+                        @endif
+                    </div>
                     <button class="btn btn-sm btn-primary" style="background-color: #55bdff; border: none;" data-bs-toggle="modal" data-bs-target="#modalKelolaKategori">
                         <i class="bi bi-plus-circle me-1"></i> Kelola Kategori
                     </button>

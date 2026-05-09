@@ -47,7 +47,13 @@ class User extends \Illuminate\Foundation\Auth\User
     // 1. Cek Admin
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return $this->role === 'admin' || $this->role === 'owner';
+    }
+
+    // 1b. Cek Pemilik (owner)
+    public function isOwner(): bool
+    {
+        return $this->role === 'owner';
     }
 
     // 2. Cek apakah user adalah Customer Langganan yang SUDAH DISETUJUI

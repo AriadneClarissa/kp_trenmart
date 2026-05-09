@@ -11,7 +11,7 @@
             style="height: 300px;" 
             alt="Banner Trenmart">
 
-        @if(Auth::check() && Auth::user()->role == 'admin')
+        @if(Auth::check() && Auth::user()->isAdmin())
             <form action="{{ route('admin.banner.update') }}" method="POST" enctype="multipart/form-data" id="bannerForm">
                 @csrf
                 <input type="file" name="tentang_banner" id="bannerInput" class="d-none" accept="image/*">
@@ -29,13 +29,18 @@
 
     {{-- 2. Panel Kontrol Admin --}}
     @auth
-        @if(auth()->user()->isAdmin())
+            @if(auth()->user()->isAdmin())
         <div class="card shadow-sm mb-5 admin-panel-card border-0 bg-light">
             <div class="card-body p-4">
                 <div class="row align-items-center">
                     <div class="col-md-6 text-center text-md-start">
                         <h5 class="fw-bold mb-1">
-                            <i class="bi bi-shield-lock-fill me-2 text-danger"></i>Panel Kontrol Admin
+                            <i class="bi bi-shield-lock-fill me-2 text-danger"></i>
+                            @if(auth()->user()->isOwner())
+                                Panel Kontrol Pemilik
+                            @else
+                                Panel Kontrol Admin
+                            @endif
                         </h5>
                         <p class="text-muted small mb-0">Kelola stok produk dan pengaturan tampilan beranda</p>
                     </div>
@@ -44,9 +49,6 @@
                             <a href="{{ route('bundling.create', ['source' => 'beranda']) }}" class="btn btn-success rounded-pill px-4 shadow-sm">
                                 <i class="bi bi-plus-lg me-1"></i> Tambah Bundling
                             </a>
-                            <a href="{{ route('admin.judul.edit') }}" class="btn btn-warning rounded-pill px-4 shadow-sm">
-                                <i class="bi bi-pencil-square me-1"></i> Edit Judul
-                            </a>
                         </div>
                     </div>
                 </div>
@@ -54,6 +56,131 @@
         </div>
         @endif
     @endauth
+
+    {{-- 3. GRAFIK PENJUALAN (HANYA UNTUK OWNER) --}}
+    @if(Auth::check() && Auth::user()->isOwner() && !empty($chartLabels))
+    <div class="mb-5">
+        <!-- Key Metrics -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="text-muted mb-1">Total Pendapatan</p>
+                                <h3 class="fw-bold text-primary mb-0">Rp {{ number_format($totalRevenue, 0, ',', '.') }}</h3>
+                            </div>
+                            <i class="bi bi-cash-coin text-primary fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="text-muted mb-1">Total Pesanan</p>
+                                <h3 class="fw-bold text-success mb-0">{{ $totalOrders }}</h3>
+                            </div>
+                            <i class="bi bi-bag-check text-success fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="text-muted mb-1">Rata-rata Pesanan</p>
+                                <h3 class="fw-bold text-info mb-0">Rp {{ number_format($averageOrderValue, 0, ',', '.') }}</h3>
+                            </div>
+                            <i class="bi bi-graph-up text-info fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sales Chart -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white border-bottom">
+                        <h5 class="card-title mb-0 fw-bold">Grafik Penjualan (30 Hari Terakhir)</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="salesChart" height="80"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Breakdown -->
+        @if($statusBreakdown->isNotEmpty())
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white border-bottom">
+                        <h5 class="card-title mb-0 fw-bold">Status Pesanan</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-borderless mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Status</th>
+                                        <th class="text-end">Jumlah</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($statusBreakdown as $status => $count)
+                                    <tr>
+                                        <td>
+                                            @switch($status)
+                                                @case('pending')
+                                                    <span class="badge bg-warning-subtle text-warning-emphasis">Menunggu</span>
+                                                    @break
+                                                @case('processing')
+                                                    <span class="badge bg-info-subtle text-info-emphasis">Diproses</span>
+                                                    @break
+                                                @case('completed')
+                                                    <span class="badge bg-success-subtle text-success-emphasis">Selesai</span>
+                                                    @break
+                                                @case('cancelled')
+                                                    <span class="badge bg-danger-subtle text-danger-emphasis">Dibatalkan</span>
+                                                    @break
+                                                @default
+                                                    <span class="badge bg-secondary-subtle text-secondary-emphasis">{{ ucfirst($status) }}</span>
+                                            @endswitch
+                                        </td>
+                                        <td class="text-end fw-bold">{{ $count }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white border-bottom">
+                        <h5 class="card-title mb-0 fw-bold">Distribusi Status</h5>
+                    </div>
+                    <div class="card-body d-flex align-items-center justify-content-center" style="min-height: 300px;">
+                        <canvas id="statusChart" style="max-width: 300px;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
+    </div>
+    @endif
 
     {{-- 3. Section Produk Terbaru --}}
     <section class="mb-5">
@@ -130,7 +257,7 @@
                                     </h4>
                                     
                                     {{-- Tombol Tambah (khusus pelanggan) --}}
-                                    @if(!Auth::check() || (Auth::check() && Auth::user()->role !== 'admin'))
+                                    @if(!Auth::check() || (Auth::check() && !Auth::user()->isAdmin()))
                                         {{-- Gunakan span karena aksi klik sudah diambil alih oleh stretched-link di atas --}}
                                         <span class="btn-tambah-card shadow-sm d-flex align-items-center justify-content-center" style="position: relative; z-index: 2;">
                                             <i class="bi bi-plus-lg me-1"></i> Tambah
@@ -210,4 +337,91 @@
         box-shadow: 0 5px 15px rgba(128, 0, 0, 0.2) !important;
     }
 </style>
+
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Sales Chart - Only initialize if element exists
+    const salesChartElement = document.getElementById('salesChart');
+    if (salesChartElement) {
+        const salesCtx = salesChartElement.getContext('2d');
+        const salesChart = new Chart(salesCtx, {
+            type: 'line',
+            data: {
+                labels: @json($chartLabels),
+                datasets: [{
+                    label: 'Pendapatan (Rp)',
+                    data: @json($chartData),
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 5,
+                    pointBackgroundColor: '#0d6efd',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: {
+                            usePointStyle: true,
+                            padding: 15
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return 'Rp ' + value.toLocaleString('id-ID', {maximumFractionDigits: 0});
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Status Chart (Pie Chart) - Only initialize if element exists
+    const statusChartElement = document.getElementById('statusChart');
+    if (statusChartElement) {
+        const statusCtx = statusChartElement.getContext('2d');
+        const colors = ['#ffc107', '#0dcaf0', '#198754', '#dc3545'];
+        const statusChart = new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: @json(array_map('ucfirst', $statusBreakdown->keys()->toArray())),
+                datasets: [{
+                    data: @json($statusBreakdown->values()->toArray()),
+                    backgroundColor: colors,
+                    borderColor: '#fff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 15
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+
 @endsection

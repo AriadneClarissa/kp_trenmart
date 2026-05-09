@@ -11,6 +11,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\BundlingController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 // --- 1. HALAMAN PUBLIK ---
@@ -53,7 +54,13 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/update-profil-awal', [AuthController::class, 'updateProfileAfterGoogle'])->name('profile.initial.update');
 
     // --- FITUR PELANGGAN ---
-    Route::get('/dashboard', function () { return redirect()->route('beranda'); })->name('dashboard');
+    Route::get('/dashboard', function () {
+        if (Auth::check() && Auth::user()->isOwner()) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        return redirect()->route('beranda');
+    })->name('dashboard');
     Route::get('/pesanan', [\App\Http\Controllers\OrderController::class, 'index'])->name('pesanan.index');
     Route::get('/pesanan/{order}', [\App\Http\Controllers\OrderController::class, 'show'])->name('pesanan.show');
     Route::post('/pesanan/{order}/message', [\App\Http\Controllers\OrderMessageController::class, 'store'])->name('orders.messages.store');
@@ -82,11 +89,13 @@ Route::middleware(['auth'])->group(function () {
     // --- 4. GRUP KHUSUS ADMIN (Hanya Bisa Diakses Role Admin) ---
     Route::middleware(['admin'])->prefix('admin')->group(function () {
         
-        Route::get('/dashboard', [\App\Http\Controllers\AdminUserController::class, 'index'])->name('admin.dashboard');
+        Route::get('/dashboard', function () {
+            abort_unless(Auth::check() && Auth::user()->isOwner(), 403);
+
+            return app(\App\Http\Controllers\AdminUserController::class)->index();
+        })->name('admin.dashboard');
         
         // Pengaturan Tampilan & Search
-        Route::get('/edit-judul', [KatalogController::class, 'editJudul'])->name('admin.judul.edit');
-        Route::put('/update-judul', [KatalogController::class, 'update'])->name('admin.judul.update');
         Route::get('/search-produk-ajax', [ProdukController::class, 'searchAjax'])->name('admin.produk.search_ajax');
 
         // Manajemen Produk

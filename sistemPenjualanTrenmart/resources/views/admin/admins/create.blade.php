@@ -23,6 +23,15 @@
                 </div>
 
                 <div class="col-md-12">
+                    <label class="form-label">Role</label>
+                    <select name="role" class="form-control" required>
+                        <option value="">-- Pilih Role --</option>
+                        <option value="admin">Admin</option>
+                        <option value="kasir">Kasir</option>
+                    </select>
+                </div>
+
+                <div class="col-md-12">
                     <label class="form-label">Password Default (opsional)</label>
                     <input type="text" name="default_password" class="form-control" placeholder="Kosongkan untuk generate otomatis">
                     <small class="text-muted d-block mt-1">Jika kosong, password akan dibuat secara otomatis</small>
@@ -39,7 +48,7 @@
                     <button type="submit" class="btn btn-primary me-2">
                         <i class="bi bi-check-circle me-1"></i> Buat Akun Admin
                     </button>
-                    <a href="{{ route('admin.dashboard') }}" class="btn btn-secondary">
+                    <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">
                         <i class="bi bi-x-circle me-1"></i> Batal
                     </a>
                 </div>

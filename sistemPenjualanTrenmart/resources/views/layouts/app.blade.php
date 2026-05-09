@@ -221,7 +221,7 @@
 
 <nav class="navbar navbar-expand-lg bg-white sticky-top shadow-sm">
     <div class="container">
-        <a class="navbar-brand" href="{{ route('dashboard') }}">
+        <a class="navbar-brand" href="{{ route('beranda') }}">
             <img src="{{ asset('images/logotrenmart.png') }}" alt="Logo">
         </a>
         
@@ -246,7 +246,7 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::is('/') ? 'active' : '' }}" href="{{ route('dashboard') }}">Beranda</a>
+                    <a class="nav-link {{ Request::is('/') ? 'active' : '' }}" href="{{ route('beranda') }}">Beranda</a>
                 </li>
                 <li class="nav-item">
                     @auth
@@ -394,8 +394,8 @@
                                     </div>
                                 </li>
                                 <li><a class="dropdown-item rounded-3" href="{{ route('profile.edit') }}"><i class="bi bi-person me-2"></i>Profil</a></li>
-                                @if(auth()->user()->isAdmin())
-                                    <li><a class="dropdown-item rounded-3 text-primary" href="{{ route('admin.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard Admin</a></li>
+                                @if(auth()->user()->isOwner())
+                                    <li><a class="dropdown-item rounded-3 text-primary" href="{{ route('dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard Pemilik</a></li>
                                 @endif
                                 <li><hr class="dropdown-divider"></li>
                                 <li>

@@ -96,6 +96,35 @@
         .social-box { width: 40px; height: 40px; background-color: rgba(255, 255, 255, 0.1); display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; color: white; margin-right: 12px; transition: all 0.3s ease; text-decoration: none; }
         .social-box:hover { background-color: rgba(255, 255, 255, 0.25); transform: translateY(-3px); color: white; }
         .border-top-footer { border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 25px; margin-top: 40px; }
+        
+        /* --- SCROLLBAR MAROON CUSTOM --- */
+        /* 1. STANDAR FIREFOX */
+        .custom-scrollbar {
+            scrollbar-width: thin !important; 
+            scrollbar-color: #800000 #f1f1f1 !important; 
+        }
+
+        /* 2. STANDAR CHROME, SAFARI, EDGE, & MOBILE */
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 10px !important;
+            display: block !important;
+            -webkit-appearance: none !important;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background-color: #f1f1f1 !important; 
+            border-radius: 10px !important;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #800000 !important; 
+            border-radius: 10px !important;
+            border: 2px solid #f1f1f1 !important; 
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { 
+            background-color: #600000 !important; 
+        }
 
         /* --- MODERN FLASH TOAST --- */
         .flash-toast-shell {
@@ -192,7 +221,7 @@
 
 <nav class="navbar navbar-expand-lg bg-white sticky-top shadow-sm">
     <div class="container">
-        <a class="navbar-brand" href="<?php echo e(route('dashboard')); ?>">
+        <a class="navbar-brand" href="<?php echo e(route('beranda')); ?>">
             <img src="<?php echo e(asset('images/logotrenmart.png')); ?>" alt="Logo">
         </a>
         
@@ -217,7 +246,7 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a class="nav-link <?php echo e(Request::is('/') ? 'active' : ''); ?>" href="<?php echo e(route('dashboard')); ?>">Beranda</a>
+                    <a class="nav-link <?php echo e(Request::is('/') ? 'active' : ''); ?>" href="<?php echo e(route('beranda')); ?>">Beranda</a>
                 </li>
                 <li class="nav-item">
                     <?php if(auth()->guard()->check()): ?>
@@ -262,51 +291,88 @@
                     <?php endif; ?>
 
                     <?php if(auth()->guard()->check()): ?>
-                        <div class="dropdown me-3 d-none d-lg-flex">
-                            <a href="#" class="icon-nav notification-link" id="notificationMenu" data-bs-toggle="dropdown" aria-expanded="false" title="Notifikasi">
-                                <i class="bi bi-bell"></i>
+                    <div class="dropdown me-3 d-none d-lg-flex">
+                        <a href="#" class="icon-nav notification-link" id="notificationMenu" data-bs-toggle="dropdown" aria-expanded="false" title="Notifikasi">
+                            <i class="bi bi-bell"></i>
+                            <?php 
+                                // Menghitung total notifikasi (Sistem + Peringatan Bundling)
+                                $totalNotif = ($notificationUnreadCount ?? 0) + (isset($bundling_warnings) ? $bundling_warnings->count() : 0);
+                            ?>
+                            <?php if($totalNotif > 0): ?>
+                                <span class="notification-badge"><?php echo e($totalNotif > 9 ? '9+' : $totalNotif); ?></span>
+                            <?php endif; ?>
+                        </a>
+                        
+                        <div class="dropdown-menu dropdown-menu-end notification-menu shadow-sm" aria-labelledby="notificationMenu" style="min-width: 340px;">
+                            
+                            
+                            <div class="dropdown-header border-bottom d-flex justify-content-between align-items-center py-3 bg-light">
+                                <span class="fw-bold text-dark">Notifikasi</span>
                                 <?php if(($notificationUnreadCount ?? 0) > 0): ?>
-                                    <span class="notification-badge"><?php echo e($notificationUnreadCount > 9 ? '9+' : $notificationUnreadCount); ?></span>
+                                    <form action="<?php echo e(route('notifications.mark_all_read')); ?>" method="POST" class="m-0">
+                                        <?php echo csrf_field(); ?>
+                                        <button type="submit" class="btn btn-link p-0 text-decoration-none small text-primary" style="font-size: 0.8rem;">
+                                            Tandai semua dibaca
+                                        </button>
+                                    </form>
                                 <?php endif; ?>
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-end notification-menu" aria-labelledby="notificationMenu" style="min-width: 340px;">
-                                <div class="dropdown-header border-bottom d-flex justify-content-between align-items-center">
-                                    <div class="notification-title">Notifikasi</div>
-                                    <?php if(($notificationUnreadCount ?? 0) > 0): ?>
-                                        <form action="<?php echo e(route('notifications.mark_all_read')); ?>" method="POST">
-                                            <?php echo csrf_field(); ?>
-                                            <button type="submit" class="btn btn-link p-0 text-decoration-none small text-primary">Tandai semua dibaca</button>
-                                        </form>
-                                    <?php endif; ?>
-                                </div>
-                                <div class="dropdown-body p-2" style="max-height: 340px; overflow-y: auto;">
-                                    <?php $__empty_1 = true; $__currentLoopData = ($recentNotifications ?? collect()); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $notification): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                                        <?php
-                                            $payload = $notification->data ?? [];
-                                            $isUnread = is_null($notification->read_at);
-                                        ?>
-                                        <a href="<?php echo e($payload['url'] ?? '#'); ?>" class="d-block text-decoration-none mb-2">
-                                            <div class="p-2 rounded-3 border <?php echo e($isUnread ? 'border-primary bg-primary-subtle' : 'border-light bg-white'); ?>">
-                                                <div class="d-flex align-items-start justify-content-between gap-2">
+                            </div>
+
+                            
+                            <div class="dropdown-body p-2 custom-scrollbar" style="max-height: 380px; overflow-y: auto;">
+                                
+                                
+                                <?php if(auth()->user()->isAdmin() && isset($bundling_warnings) && $bundling_warnings->count() > 0): ?>
+                                    <?php $__currentLoopData = $bundling_warnings; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $bw): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <a href="<?php echo e(route('bundling.show', $bw->id)); ?>" class="d-block text-decoration-none mb-2">
+                                            <div class="p-2 rounded-3 border border-warning bg-warning-subtle text-wrap">
+                                                <div class="d-flex align-items-start gap-2">
+                                                    <i class="bi bi-exclamation-triangle-fill text-warning fs-5 mt-1"></i>
                                                     <div>
-                                                        <div class="fw-semibold text-dark small"><?php echo e($payload['title'] ?? 'Notifikasi'); ?></div>
-                                                        <div class="text-muted small"><?php echo e($payload['body'] ?? ''); ?></div>
+                                                        <div class="fw-bold small text-dark">Harga Produk Berubah!</div>
+                                                        <div class="text-muted" style="font-size: 0.75rem;">Paket: <?php echo e($bw->name); ?></div>
                                                     </div>
-                                                    <?php if($isUnread): ?>
-                                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Baru</span>
-                                                    <?php endif; ?>
                                                 </div>
-                                                <div class="small text-muted mt-1"><?php echo e($notification->created_at?->diffForHumans()); ?></div>
                                             </div>
                                         </a>
-                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                                        <div class="text-center text-muted small py-3">
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                <?php endif; ?>
+
+                                
+                                <?php $__empty_1 = true; $__currentLoopData = ($recentNotifications ?? collect()); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $notification): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                    <?php
+                                        $payload = $notification->data ?? [];
+                                        $isUnread = is_null($notification->read_at);
+                                    ?>
+                                    <a href="<?php echo e($payload['url'] ?? '#'); ?>" class="d-block text-decoration-none mb-2">
+                                        <div class="p-2 rounded-3 border <?php echo e($isUnread ? 'border-primary bg-primary-subtle' : 'border-light bg-white hover-bg-light'); ?>">
+                                            <div class="d-flex align-items-start justify-content-between gap-2">
+                                                <div>
+                                                    <div class="fw-semibold text-dark small"><?php echo e($payload['title'] ?? 'Notifikasi'); ?></div>
+                                                    <div class="text-muted" style="font-size: 0.8rem;"><?php echo e($payload['body'] ?? ''); ?></div>
+                                                </div>
+                                                <?php if($isUnread): ?>
+                                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size: 0.65rem;">Baru</span>
+                                                <?php endif; ?>
+                                            </div>
+                                            <div class="text-muted mt-1" style="font-size: 0.7rem;">
+                                                <?php echo e($notification->created_at ? $notification->created_at->diffForHumans() : ''); ?>
+
+                                            </div>
+                                        </div>
+                                    </a>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                    
+                                    <?php if(!isset($bundling_warnings) || $bundling_warnings->count() == 0): ?>
+                                        <div class="text-center text-muted py-4" style="font-size: 0.85rem;">
                                             Belum ada notifikasi.
                                         </div>
                                     <?php endif; ?>
-                                </div>
+                                <?php endif; ?>
+                                
                             </div>
                         </div>
+                    </div>
                     <?php endif; ?>
 
                     <div class="dropdown">
@@ -329,8 +395,8 @@
                                     </div>
                                 </li>
                                 <li><a class="dropdown-item rounded-3" href="<?php echo e(route('profile.edit')); ?>"><i class="bi bi-person me-2"></i>Profil</a></li>
-                                <?php if(auth()->user()->isAdmin()): ?>
-                                    <li><a class="dropdown-item rounded-3 text-primary" href="<?php echo e(route('admin.dashboard')); ?>"><i class="bi bi-speedometer2 me-2"></i>Dashboard Admin</a></li>
+                                <?php if(auth()->user()->isOwner()): ?>
+                                    <li><a class="dropdown-item rounded-3 text-primary" href="<?php echo e(route('dashboard')); ?>"><i class="bi bi-speedometer2 me-2"></i>Dashboard Pemilik</a></li>
                                 <?php endif; ?>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
@@ -375,7 +441,15 @@
         </div>
     </div>
 <?php endif; ?>
-
+<div id="statusToast" class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999; display: none;">
+    <div class="toast show align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                ✅ Status berhasil diperbarui!
+            </div>
+        </div>
+    </div>
+</div>
 <main class="main-container mt-4 mb-5">
     <?php echo $__env->yieldContent('content'); ?>
 </main>

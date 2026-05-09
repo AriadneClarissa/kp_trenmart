@@ -19,7 +19,7 @@ public function handle(Request $request, Closure $next): Response
         $user = Auth::user();
 
         // Pastikan fungsi isAdmin() ada di Model User
-        if ($user->isAdmin()) {
+        if ($user->isAdmin() || (method_exists($user, 'isOwner') && $user->isOwner())) {
             return $next($request);
         }
     }

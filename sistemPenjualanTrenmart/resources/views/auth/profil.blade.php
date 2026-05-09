@@ -20,7 +20,7 @@
                     </span>
                 </div>
 
-                <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary rounded-pill px-4 shadow-sm border-2">
+                <a href="{{ route('beranda') }}" class="btn btn-outline-secondary rounded-pill px-4 shadow-sm border-2">
                     <i class="bi bi-house-door-fill me-2"></i>Kembali ke Beranda
                 </a>
             </div>

@@ -8,10 +8,13 @@ use App\Models\Merk;
 use App\Models\BerandaSetting;
 use App\Models\User;
 use App\Models\Bundling;
+use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class ProdukController extends Controller
 {
@@ -31,8 +34,10 @@ class ProdukController extends Controller
         $kategori = Kategori::all();
         $merk = Merk::all();
 
-        // Mengambil data admin untuk banner
-        $admin = User::where('role', 'admin')->first();
+        // Mengambil banner dari user yang sedang login agar hasil upload langsung terlihat
+        $admin = Auth::check() && Auth::user()->isAdmin()
+            ? Auth::user()
+            : User::where('role', 'admin')->first();
         
         // Eager loading untuk optimasi database
         $bundling = Bundling::with(['items.produk.merk'])->latest()->get();
@@ -40,11 +45,47 @@ class ProdukController extends Controller
         // Inisialisasi collection kosong
         $bundling_warnings = collect();
 
-        
+        // Inisialisasi chart data
+        $chartLabels = [];
+        $chartData = [];
+        $totalRevenue = 0;
+        $totalOrders = 0;
+        $averageOrderValue = 0;
+        $statusBreakdown = collect();
+
         if (Auth::check() && Auth::user()->isAdmin()) {
             $bundling_warnings = $bundling->filter(function($b) {
                 return $b->hasPriceDivergence();
             });
+
+            // Jika owner, tampilkan grafik penjualan
+            if (Auth::user()->isOwner()) {
+                // Fetch sales data for the last 30 days
+                $thirtyDaysAgo = Carbon::now()->subDays(30);
+                $salesData = Order::where('created_at', '>=', $thirtyDaysAgo)
+                    ->selectRaw('DATE(created_at) as date, SUM(total) as revenue, COUNT(*) as order_count')
+                    ->groupBy('date')
+                    ->orderBy('date')
+                    ->get();
+
+                // Convert to format for chart
+                for ($i = 29; $i >= 0; $i--) {
+                    $date = Carbon::now()->subDays($i)->format('Y-m-d');
+                    $chartLabels[] = Carbon::now()->subDays($i)->format('d/m');
+                    $revenue = $salesData->firstWhere('date', $date)?->revenue ?? 0;
+                    $chartData[] = floatval($revenue);
+                }
+
+                // Calculate metrics
+                $totalRevenue = Order::where('created_at', '>=', $thirtyDaysAgo)->sum('total');
+                $totalOrders = Order::where('created_at', '>=', $thirtyDaysAgo)->count();
+                $averageOrderValue = $totalOrders > 0 ? round($totalRevenue / $totalOrders, 2) : 0;
+
+                // Order status breakdown
+                $statusBreakdown = Order::selectRaw('order_status, COUNT(*) as count')
+                    ->groupBy('order_status')
+                    ->pluck('count', 'order_status');
+            }
         }
 
         return view('beranda', compact(
@@ -54,7 +95,13 @@ class ProdukController extends Controller
             'merk', 
             'admin', 
             'bundling', 
-            'bundling_warnings'
+            'bundling_warnings',
+            'chartLabels',
+            'chartData',
+            'totalRevenue',
+            'totalOrders',
+            'averageOrderValue',
+            'statusBreakdown'
         ));
     }
             

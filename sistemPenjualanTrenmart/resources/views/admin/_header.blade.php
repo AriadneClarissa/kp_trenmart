@@ -30,11 +30,20 @@
 <div class="admin-header py-3 mb-4">
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center">
-            <h2 class="mb-0">Panel Admin - Trenmart</h2>
+            <h2 class="mb-0">
+                @if(auth()->user()->isOwner())
+                    Panel Pemilik
+                @else
+                    Panel Admin
+                @endif
+                - Trenmart
+            </h2>
             <div class="d-flex gap-2 align-items-center flex-wrap">
-                <a href="{{ route('admin.dashboard') }}" class="btn btn-sm admin-nav-btn {{ $activePage === 'users' ? 'active' : 'btn-outline-secondary' }}">
-                    <i class="bi bi-people me-1"></i> Semua Pengguna
-                </a>
+                @if(auth()->user()->isOwner())
+                    <a href="{{ route('admin.dashboard') }}" class="btn btn-sm admin-nav-btn {{ $activePage === 'users' ? 'active' : 'btn-outline-secondary' }}">
+                        <i class="bi bi-people me-1"></i> Semua Pengguna
+                    </a>
+                @endif
                 <a href="{{ route('admin.customers.index') }}" class="btn btn-sm admin-nav-btn {{ $activePage === 'customers' ? 'active' : 'btn-outline-secondary' }}">
                     <i class="bi bi-person-badge me-1"></i> Pelanggan
                 </a>

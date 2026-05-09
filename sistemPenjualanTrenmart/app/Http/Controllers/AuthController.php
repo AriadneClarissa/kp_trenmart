@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\PaymentMethod;
+use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
@@ -139,10 +142,16 @@ class AuthController extends Controller
      */
     private function handleRedirectAfterLogin($user)
     {
-        // Jika Admin
-        if ($user->isAdmin()) {
+        // Jika Pemilik toko
+        if ($user->isOwner()) {
             return redirect()->route('admin.dashboard');
         }
+
+        // Jika Admin biasa
+        if ($user->isAdmin()) {
+            return redirect()->route('beranda');
+        }
+
         // Jika data profil belum lengkap (misal: user baru dari Google belum isi nomor HP)
         if (empty($user->phone_number)) {
             // Langsung arahkan ke form umum
@@ -246,13 +255,51 @@ class AuthController extends Controller
             abort(403); 
         }
 
+        // Fetch sales data for the last 30 days
+        $thirtyDaysAgo = Carbon::now()->subDays(30);
+        $salesData = Order::where('created_at', '>=', $thirtyDaysAgo)
+            ->selectRaw('DATE(created_at) as date, SUM(total) as revenue, COUNT(*) as order_count')
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+
+        // Convert to format for chart
+        $chartLabels = [];
+        $chartData = [];
+        for ($i = 29; $i >= 0; $i--) {
+            $date = Carbon::now()->subDays($i)->format('Y-m-d');
+            $chartLabels[] = Carbon::now()->subDays($i)->format('d/m');
+            $revenue = $salesData->firstWhere('date', $date)?->revenue ?? 0;
+            $chartData[] = floatval($revenue);
+        }
+
+        // Calculate metrics
+        $totalRevenue = Order::where('created_at', '>=', $thirtyDaysAgo)->sum('total');
+        $totalOrders = Order::where('created_at', '>=', $thirtyDaysAgo)->count();
+        $averageOrderValue = $totalOrders > 0 ? round($totalRevenue / $totalOrders, 2) : 0;
+
+        // Order status breakdown
+        $statusBreakdown = Order::selectRaw('order_status, COUNT(*) as count')
+            ->groupBy('order_status')
+            ->pluck('count', 'order_status');
+
         $pendingUsers = User::where('customer_type', 'langganan')
                             ->where('is_approved', false)
                             ->get();
         $allUsers = User::all();
         $methods = PaymentMethod::orderBy('created_at', 'desc')->get();
 
-        return view('admin.dashboard', compact('pendingUsers', 'allUsers', 'methods'));
+        return view('admin.dashboard', compact(
+            'pendingUsers', 
+            'allUsers', 
+            'methods',
+            'chartLabels',
+            'chartData',
+            'totalRevenue',
+            'totalOrders',
+            'averageOrderValue',
+            'statusBreakdown'
+        ));
     }
 
     public function approveUser($id)

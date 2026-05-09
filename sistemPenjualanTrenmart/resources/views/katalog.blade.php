@@ -84,7 +84,14 @@
             @auth
                 @if(auth()->user()->isAdmin())
                 <div class="panel-admin-card p-3 shadow-sm mb-4">
-                    <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-shield-lock me-2"></i>Panel Admin</h6>
+                    <h6 class="fw-bold mb-3 text-dark">
+                        <i class="bi bi-shield-lock me-2"></i>
+                        @if(auth()->user()->isOwner())
+                            Panel Pemilik
+                        @else
+                            Panel Admin
+                        @endif
+                    </h6>
                     <button class="btn btn-info text-white btn-kelola shadow-sm" data-bs-toggle="modal" data-bs-target="#modalKelolaKategori">
                         <i class="bi bi-tag me-1"></i> Kelola Kategori
                     </button>
