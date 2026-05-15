@@ -6,14 +6,15 @@
     {{-- 1. Banner Utama --}}
     <div class="banner-wrapper mb-4 position-relative overflow-hidden" style="border-radius: 1rem;">
         <img id="bannerPreview" 
-            src="{{ ($admin && $admin->tentang_banner) ? asset('storage/' . $admin->tentang_banner) : asset('images/spanduktoko.png') }}" 
+            src="{{ (!empty($settings['tentang_banner'])) ? asset('storage/' . $settings['tentang_banner']) : (($admin && $admin->tentang_banner) ? asset('storage/' . $admin->tentang_banner) : asset('images/spanduktoko.png')) }}" 
             class="w-100 shadow-sm img-banner-responsive object-fit-cover" 
             style="height: 300px;" 
             alt="Banner Trenmart">
 
         @if(Auth::check() && Auth::user()->isAdmin())
-            <form action="{{ route('admin.banner.update') }}" method="POST" enctype="multipart/form-data" id="bannerForm">
+            <form action="{{ route('admin.tentang.update') }}" method="POST" enctype="multipart/form-data" id="bannerForm">
                 @csrf
+                @method('PUT')
                 <input type="file" name="tentang_banner" id="bannerInput" class="d-none" accept="image/*">
                 <label for="bannerInput" 
                     class="position-absolute top-50 start-50 translate-middle btn btn-light rounded-circle shadow-lg d-flex align-items-center justify-content-center hover-scale" 
@@ -45,10 +46,20 @@
                         <p class="text-muted small mb-0">Kelola stok produk dan pengaturan tampilan beranda</p>
                     </div>
                     <div class="col-md-6 text-center text-md-end mt-3 mt-md-0">
-                        <div class="d-grid d-md-inline-block gap-2">
+                        <div class="d-flex align-items-center justify-content-center justify-content-md-end" style="gap:12px;">
                             <a href="{{ route('bundling.create', ['source' => 'beranda']) }}" class="btn btn-success rounded-pill px-4 shadow-sm">
-                                <i class="bi bi-plus-lg me-1"></i> Tambah Bundling
+                                <i class="bi bi-plus-lg me-2"></i> Tambah Bundling
                             </a>
+
+                            <button id="btnOpenReports" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                                <i class="bi bi-file-earmark-text me-2"></i> Laporan
+                            </button>
+
+                            @if(auth()->user()->isOwner())
+                                <a href="{{ route('admin.logs.index') }}" class="btn btn-secondary rounded-pill px-4 shadow-sm">
+                                    <i class="bi bi-journal-text me-2"></i> Lihat Log Aktivitas
+                                </a>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -225,6 +236,14 @@
                                 </a>
                             </div>
 
+                            @if($b->promo_start_at || $b->promo_end_at)
+                                <div class="mb-3">
+                                    <span class="badge bg-warning text-dark">
+                                        Promo sampai {{ $b->promo_end_at ? $b->promo_end_at->format('d M Y H:i') : 'selama tersedia' }}
+                                    </span>
+                                </div>
+                            @endif
+
                             <div class="bg-light p-3 rounded-4 mb-4">
                                 <label class="small fw-bold text-primary mb-2 d-block">Isi Paket:</label>
                                 <ul class="list-unstyled mb-0">
@@ -336,6 +355,27 @@
         transform: translateY(-2px);
         box-shadow: 0 5px 15px rgba(128, 0, 0, 0.2) !important;
     }
+
+    /* Admin action buttons styling */
+    .admin-actions .btn-with-icon{ 
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.6rem 1.05rem;
+        border-radius: 12px;
+        box-shadow: 0 6px 18px rgba(16,24,40,0.06);
+        transition: transform .18s ease, box-shadow .18s ease;
+    }
+    .admin-actions .btn-with-icon .icon{ 
+        display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:8px; background: rgba(255,255,255,0.9);
+    }
+    .admin-actions .btn-with-icon .icon i{ font-size: 0.95rem; }
+    .admin-actions .btn-with-icon:hover{ transform: translateY(-3px); box-shadow: 0 12px 30px rgba(16,24,40,0.12); }
+
+    @media (max-width:767px){
+        .admin-actions{ flex-direction:column; gap:0.6rem; }
+        .admin-actions .btn-with-icon{ width:100%; justify-content:center; }
+    }
 </style>
 
 <!-- Chart.js Library -->
@@ -422,6 +462,61 @@
             }
         });
     }
+</script>
+
+@include('partials.report_modal')
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    const monthlyBtn = document.getElementById('btnMonthlyReport');
+    const weeklyBtn = document.getElementById('btnWeeklyReport');
+    const reportModalEl = document.getElementById('reportModal');
+    const reportModal = new bootstrap.Modal(reportModalEl);
+
+    function renderReport(data, title) {
+        const content = `
+            <h6 class="mb-3">Periode: ${data.period}</h6>
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Jenis</th>
+                            <th class="text-end">Total (Rp)</th>
+                            <th class="text-end">Jumlah Pesanan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Umum</td>
+                            <td class="text-end">Rp ${Number(data.umum.total).toLocaleString('id-ID')}</td>
+                            <td class="text-end">${data.umum.count}</td>
+                        </tr>
+                        <tr>
+                            <td>Langganan</td>
+                            <td class="text-end">Rp ${Number(data.langganan.total).toLocaleString('id-ID')}</td>
+                            <td class="text-end">${data.langganan.count}</td>
+                        </tr>
+                        <tr class="fw-bold">
+                            <td>Gabungan</td>
+                            <td class="text-end">Rp ${Number(data.total).toLocaleString('id-ID')}</td>
+                            <td class="text-end">${(data.umum.count + data.langganan.count)}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        `;
+        reportModalEl.querySelector('.modal-title').textContent = title;
+        reportModalEl.querySelector('#reportContent').innerHTML = content;
+        reportModal.show();
+    }
+
+    const openReportsBtn = document.getElementById('btnOpenReports');
+    if(openReportsBtn){
+        openReportsBtn.addEventListener('click', function(){
+            window.open("{{ route('reports.index') }}", '_blank');
+        });
+    }
+});
 </script>
 
 @endsection

@@ -9,11 +9,19 @@ class Bundling extends Model
     // Nama tabel di database
     protected $table = 'bundlings';
 
+    protected $casts = [
+        'promo_start_at' => 'datetime',
+        'promo_end_at' => 'datetime',
+    ];
+
     // Kolom yang boleh diisi (Mass Assignment)
     protected $fillable = [
         'name',
         'total_normal_price',
         'bundling_price',
+        'description',
+        'promo_start_at',
+        'promo_end_at',
     ];
 
     /**
@@ -34,5 +42,35 @@ class Bundling extends Model
             }
         }
         return false;
+    }
+
+    public function scopeActivePromo($query)
+    {
+        $now = now();
+
+        return $query
+            ->where(function ($q) use ($now) {
+                $q->whereNull('promo_start_at')
+                  ->orWhere('promo_start_at', '<=', $now);
+            })
+            ->where(function ($q) use ($now) {
+                $q->whereNull('promo_end_at')
+                  ->orWhere('promo_end_at', '>=', $now);
+            });
+    }
+
+    public function isPromoActive(): bool
+    {
+        $now = now();
+
+        if ($this->promo_start_at && $this->promo_start_at->gt($now)) {
+            return false;
+        }
+
+        if ($this->promo_end_at && $this->promo_end_at->lt($now)) {
+            return false;
+        }
+
+        return true;
     }
 }

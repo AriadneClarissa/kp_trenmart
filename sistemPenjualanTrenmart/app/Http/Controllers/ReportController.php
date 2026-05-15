@@ -1,0 +1,203 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Order;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
+
+class ReportController extends Controller
+{
+    public function index(Request $request)
+    {
+        abort_unless(Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isOwner()), 403);
+
+        return view('reports.index');
+    }
+    // Return monthly sales summary (totals and counts) split by customer_type
+    public function monthly(Request $request)
+    {
+        abort_unless(Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isOwner()), 403);
+
+        $year = $request->query('year', now()->year);
+        $month = $request->query('month', now()->month);
+
+        $start = Carbon::create($year, $month, 1)->startOfMonth();
+        $end = (clone $start)->endOfMonth();
+
+        $query = Order::whereBetween('created_at', [$start, $end])->where('payment_status', '!=', 'rejected');
+
+        $totalCombined = (float) $query->sum('total');
+
+        $totalLangganan = (float) $query->whereHas('user', fn($q) => $q->where('customer_type', 'langganan'))->sum('total');
+        $countLangganan = (int) $query->whereHas('user', fn($q) => $q->where('customer_type', 'langganan'))->count();
+
+        $totalUmum = (float) $query->whereHas('user', fn($q) => $q->where(function($qq){ $qq->where('customer_type', '!=', 'langganan')->orWhereNull('customer_type'); }))->sum('total');
+        $countUmum = (int) $query->whereHas('user', fn($q) => $q->where(function($qq){ $qq->where('customer_type', '!=', 'langganan')->orWhereNull('customer_type'); }))->count();
+
+        return response()->json([
+            'period' => $start->format('Y-m'),
+            'total' => $totalCombined,
+            'langganan' => [
+                'total' => $totalLangganan,
+                'count' => $countLangganan,
+            ],
+            'umum' => [
+                'total' => $totalUmum,
+                'count' => $countUmum,
+            ],
+        ]);
+    }
+
+    // Return weekly sales summary
+    public function weekly(Request $request)
+    {
+        abort_unless(Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isOwner()), 403);
+
+        $start = $request->query('start') ? Carbon::parse($request->query('start'))->startOfWeek() : Carbon::now()->startOfWeek();
+        $end = (clone $start)->endOfWeek();
+
+        $query = Order::whereBetween('created_at', [$start, $end])->where('payment_status', '!=', 'rejected');
+
+        $totalCombined = (float) $query->sum('total');
+
+        $totalLangganan = (float) $query->whereHas('user', fn($q) => $q->where('customer_type', 'langganan'))->sum('total');
+        $countLangganan = (int) $query->whereHas('user', fn($q) => $q->where('customer_type', 'langganan'))->count();
+
+        $totalUmum = (float) $query->whereHas('user', fn($q) => $q->where(function($qq){ $qq->where('customer_type', '!=', 'langganan')->orWhereNull('customer_type'); }))->sum('total');
+        $countUmum = (int) $query->whereHas('user', fn($q) => $q->where(function($qq){ $qq->where('customer_type', '!=', 'langganan')->orWhereNull('customer_type'); }))->count();
+
+        return response()->json([
+            'period' => $start->format('Y-m-d') . ' - ' . $end->format('Y-m-d'),
+            'total' => $totalCombined,
+            'langganan' => [
+                'total' => $totalLangganan,
+                'count' => $countLangganan,
+            ],
+            'umum' => [
+                'total' => $totalUmum,
+                'count' => $countUmum,
+            ],
+        ]);
+    }
+
+    // Printable HTML view (Word-like) for monthly
+    public function printMonthly(Request $request)
+    {
+        abort_unless(Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isOwner()), 403);
+
+        $year = $request->query('year', now()->year);
+        $month = $request->query('month', now()->month);
+
+        $start = Carbon::create($year, $month, 1)->startOfMonth();
+        $end = (clone $start)->endOfMonth();
+
+        $type = $request->query('type', 'all');
+
+        $ordersQuery = Order::with('user')->whereBetween('created_at', [$start, $end])->where('payment_status', '!=', 'rejected');
+        if ($type === 'langganan') {
+            $ordersQuery->whereHas('user', fn($q) => $q->where('customer_type', 'langganan'));
+        } elseif ($type === 'umum') {
+            $ordersQuery->whereHas('user', fn($q) => $q->where(function($qq){ $qq->where('customer_type', '!=', 'langganan')->orWhereNull('customer_type'); }));
+        }
+        $orders = $ordersQuery->get();
+
+        $data = [
+            'title' => 'Laporan Penjualan Bulanan',
+            'period' => $start->format('F Y'),
+            'orders' => $orders,
+            'generated_at' => now(),
+        ];
+
+        return view('reports.print', $data);
+    }
+
+    public function pdfMonthly(Request $request)
+    {
+        abort_unless(Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isOwner()), 403);
+
+        $year = $request->query('year', now()->year);
+        $month = $request->query('month', now()->month);
+
+        $start = Carbon::create($year, $month, 1)->startOfMonth();
+        $end = (clone $start)->endOfMonth();
+
+        $type = $request->query('type', 'all');
+
+        $ordersQuery = Order::with('user')->whereBetween('created_at', [$start, $end])->where('payment_status', '!=', 'rejected');
+        if ($type === 'langganan') {
+            $ordersQuery->whereHas('user', fn($q) => $q->where('customer_type', 'langganan'));
+        } elseif ($type === 'umum') {
+            $ordersQuery->whereHas('user', fn($q) => $q->where(function($qq){ $qq->where('customer_type', '!=', 'langganan')->orWhereNull('customer_type'); }));
+        }
+        $orders = $ordersQuery->get();
+
+        $data = [
+            'title' => 'Laporan Penjualan Bulanan',
+            'period' => $start->format('F Y'),
+            'orders' => $orders,
+            'generated_at' => now(),
+        ];
+
+        $pdf = PDF::loadView('reports.print', $data)->setPaper('a4', 'portrait');
+        return $pdf->download('laporan_bulanan_' . $start->format('Y_m') . ($type !== 'all' ? "_{$type}" : '') . '.pdf');
+    }
+
+    // Printable and PDF for weekly
+    public function printWeekly(Request $request)
+    {
+        abort_unless(Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isOwner()), 403);
+
+        $start = $request->query('start') ? Carbon::parse($request->query('start'))->startOfWeek() : Carbon::now()->startOfWeek();
+        $end = (clone $start)->endOfWeek();
+
+        $type = $request->query('type', 'all');
+
+        $ordersQuery = Order::with('user')->whereBetween('created_at', [$start, $end])->where('payment_status', '!=', 'rejected');
+        if ($type === 'langganan') {
+            $ordersQuery->whereHas('user', fn($q) => $q->where('customer_type', 'langganan'));
+        } elseif ($type === 'umum') {
+            $ordersQuery->whereHas('user', fn($q) => $q->where(function($qq){ $qq->where('customer_type', '!=', 'langganan')->orWhereNull('customer_type'); }));
+        }
+        $orders = $ordersQuery->get();
+
+        $data = [
+            'title' => 'Laporan Penjualan Mingguan',
+            'period' => $start->format('Y-m-d') . ' - ' . $end->format('Y-m-d'),
+            'orders' => $orders,
+            'generated_at' => now(),
+        ];
+
+        return view('reports.print', $data);
+    }
+
+    public function pdfWeekly(Request $request)
+    {
+        abort_unless(Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isOwner()), 403);
+
+        $start = $request->query('start') ? Carbon::parse($request->query('start'))->startOfWeek() : Carbon::now()->startOfWeek();
+        $end = (clone $start)->endOfWeek();
+
+        $type = $request->query('type', 'all');
+
+        $ordersQuery = Order::with('user')->whereBetween('created_at', [$start, $end])->where('payment_status', '!=', 'rejected');
+        if ($type === 'langganan') {
+            $ordersQuery->whereHas('user', fn($q) => $q->where('customer_type', 'langganan'));
+        } elseif ($type === 'umum') {
+            $ordersQuery->whereHas('user', fn($q) => $q->where(function($qq){ $qq->where('customer_type', '!=', 'langganan')->orWhereNull('customer_type'); }));
+        }
+        $orders = $ordersQuery->get();
+
+        $data = [
+            'title' => 'Laporan Penjualan Mingguan',
+            'period' => $start->format('Y-m-d') . ' - ' . $end->format('Y-m-d'),
+            'orders' => $orders,
+            'generated_at' => now(),
+        ];
+
+        $pdf = PDF::loadView('reports.print', $data)->setPaper('a4', 'portrait');
+        return $pdf->download('laporan_mingguan_' . $start->format('Y_m_d') . ($type !== 'all' ? "_{$type}" : '') . '.pdf');
+    }
+}

@@ -69,7 +69,7 @@ class AuthController extends Controller
                 Auth::logout();
                 return redirect()->route('login')->with('error', 'Akun Anda ditolak oleh admin.');
             }
-            return redirect()->intended('dashboard');
+            return redirect()->intended(route('beranda'));
         }
 
         return back()->withErrors(['email' => 'Email atau password tidak sesuai.'])->onlyInput('email');
@@ -144,7 +144,7 @@ class AuthController extends Controller
     {
         // Jika Pemilik toko
         if ($user->isOwner()) {
-            return redirect()->route('admin.dashboard');
+            return redirect()->route('beranda');
         }
 
         // Jika Admin biasa

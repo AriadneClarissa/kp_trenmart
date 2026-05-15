@@ -59,11 +59,6 @@
     }
     .btn-checkout:hover { background: #c5163e; transform: translateY(-2px); }
 
-    /* Delivery Options */
-    .delivery-option { border: 1.5px solid #eee; border-radius: 12px; padding: 15px; cursor: pointer; transition: 0.2s; position: relative; margin-bottom: 10px; }
-    .delivery-option.active { border-color: var(--accent-red); background: #fff5f7; }
-    .delivery-option input[type="radio"] { accent-color: var(--accent-red); transform: scale(1.2); }
-
     /* Utility */
     .text-maroon { color: var(--maroon-trenmart); }
     .text-accent { color: var(--accent-red); }
@@ -127,41 +122,6 @@
                 @endforelse
             </div>
 
-            {{-- Metode Pengambilan --}}
-            @if(count($items) > 0)
-            <div class="card card-custom p-4">
-                <h6 class="fw-bold mb-3">Metode Pengambilan</h6>
-                
-                <div class="delivery-option active d-flex align-items-center justify-content-between" id="opt-delivery">
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-truck fs-4 me-3 text-accent"></i>
-                        <div>
-                            <div class="fw-bold">Delivery</div>
-                        </div>
-                    </div>
-                    <input type="radio" name="pickup_method" value="delivery" checked>
-                </div>
-
-                <div class="delivery-option d-flex align-items-center justify-content-between" id="opt-pickup">
-                    <div class="d-flex align-items-center text-muted">
-                        <i class="bi bi-shop fs-4 me-3"></i>
-                        <div>
-                            <div class="fw-bold">Ambil di Toko</div>
-                            <div class="small">Jl. Jenderal Ahmad Yani, Tangga Takat</div>
-                        </div>
-                    </div>
-                    <input type="radio" name="pickup_method" value="pickup">
-                </div>
-
-                <div class="mt-4 pt-3 border-top">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <label class="small fw-bold text-muted"><i class="bi bi-geo-alt-fill text-danger"></i> Alamat Pengiriman</label>
-                        <button type="button" class="btn btn-link btn-sm btn-link-custom p-0 text-maroon shadow-none" data-bs-toggle="modal" data-bs-target="#modalAlamat">Ubah Alamat</button>
-                    </div>
-                    <textarea class="form-control bg-light border-0 small" id="displayAlamat" rows="2" readonly style="border-radius:10px; resize:none;">{{ auth()->user()->alamat ?? 'Jl. Sudirman No. 45, Jakarta Selatan' }}</textarea>
-                </div>
-            </div>
-            @endif
         </div>
 
         {{-- KOLOM KANAN: RINGKASAN PESANAN (STICKY) --}}
@@ -186,11 +146,12 @@
                 </div>
                 <div class="d-flex justify-content-between mb-4 text-muted small">
                     <span>Ongkos Kirim</span>
+                    <span class="fw-bold text-dark">Dihitung di checkout</span>
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h5 class="fw-bold mb-0">Total Bayar</h5>
-                    <h4 class="fw-bold text-accent mb-0" id="total-label">Rp {{ number_format($total + 15000, 0, ',', '.') }}</h4>
+                    <h4 class="fw-bold text-accent mb-0" id="total-label">Rp {{ number_format($total, 0, ',', '.') }}</h4>
                 </div>
 
                 @if(count($items) > 0)
@@ -205,59 +166,4 @@
 
     </div>
 </div>
-
-{{-- MODAL UBAH ALAMAT --}}
-<div class="modal fade" id="modalAlamat" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow" style="border-radius: 20px;">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="fw-bold">Ubah Alamat Pengiriman</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body pb-4">
-                <textarea class="form-control mb-3 border-light" id="newAlamat" rows="4" style="border-radius:12px; background: #fcfcfc;">{{ auth()->user()->alamat }}</textarea>
-                <button type="button" class="btn btn-danger w-100 py-3 fw-bold" id="saveAlamatBtn" style="background: var(--maroon-trenmart); border:none; border-radius:12px;">Simpan Alamat Baru</button>
-            </div>
-        </div>
-    </div>
-</div>
 @endsection
-
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Modal Alamat
-        const btnSave = document.getElementById('saveAlamatBtn');
-        if(btnSave) {
-            btnSave.addEventListener('click', function() {
-                const val = document.getElementById('newAlamat').value;
-                document.getElementById('displayAlamat').value = val;
-                bootstrap.Modal.getInstance(document.getElementById('modalAlamat')).hide();
-            });
-        }
-
-        // Switch Delivery/Pickup & Update Harga
-        const opts = document.querySelectorAll('.delivery-option');
-        const ongkirLbl = document.getElementById('ongkir-label');
-        const totalLbl = document.getElementById('total-label');
-        const subtotal = {{ $total }};
-
-        opts.forEach(opt => {
-            opt.addEventListener('click', function() {
-                opts.forEach(el => el.classList.remove('active'));
-                this.classList.add('active');
-                const radio = this.querySelector('input');
-                radio.checked = true;
-
-                if(radio.value === 'pickup') {
-                    ongkirLbl.innerText = "Rp 0";
-                    totalLbl.innerText = "Rp " + new Intl.NumberFormat('id-ID').format(subtotal);
-                } else {
-                    ongkirLbl.innerText = "Rp 15.000";
-                    totalLbl.innerText = "Rp " + new Intl.NumberFormat('id-ID').format(subtotal + 15000);
-                }
-            });
-        });
-    });
-</script>
-@endpush

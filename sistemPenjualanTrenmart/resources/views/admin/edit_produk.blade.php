@@ -22,6 +22,14 @@
             @csrf
             @method('PUT')
 
+            {{-- KODE PRODUK (sama seperti tambah) --}}
+            <div class="mb-4">
+                <label class="form-label fw-bold">Kode Produk <span class="text-danger">*</span></label>
+                <input type="text" name="kd_produk" class="form-control" placeholder="Masukkan Kode Produk (Contoh: PRD001)" required value="{{ old('kd_produk', $produk->kd_produk) }}">
+            </div>
+
+            <input type="hidden" name="origin" value="{{ $source ?? 'admin' }}">
+
             <div class="row">
                 {{-- Kolom Kiri: Upload & Kategori --}}
                 <div class="col-md-4">

@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Models\ActivityLog;
 
 class ProdukController extends Controller
 {
@@ -40,7 +41,10 @@ class ProdukController extends Controller
             : User::where('role', 'admin')->first();
         
         // Eager loading untuk optimasi database
-        $bundling = Bundling::with(['items.produk.merk'])->latest()->get();
+        $bundling = Bundling::with(['items.produk.merk'])
+            ->activePromo()
+            ->latest()
+            ->get();
 
         // Inisialisasi collection kosong
         $bundling_warnings = collect();
@@ -177,10 +181,29 @@ class ProdukController extends Controller
             'nama_produk'     => 'required|string|max:255',
             'harga_jual_umum' => 'required|numeric',
             'stok_tersedia'   => 'required|numeric',
+            'stok_minimal'    => 'nullable|numeric',
             'files.*'         => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
         // 2. Siapkan data awal
+        // Tentukan stok_minimal default berdasarkan satuan jika tidak diisi
+        $stok_minimal = $request->stok_minimal ?? null;
+        if (is_null($stok_minimal)) {
+            $satuanName = $request->satuan ?? null;
+            if (!$satuanName && $request->kd_satuan) {
+                $satuanModel = \App\Models\Satuan::find($request->kd_satuan);
+                $satuanName = $satuanModel?->nama_satuan;
+            }
+            $satuanName = strtolower($satuanName ?? '');
+            if (str_contains($satuanName, 'pcs')) {
+                $stok_minimal = 250;
+            } elseif (str_contains($satuanName, 'lusin') || str_contains($satuanName, 'dozen')) {
+                $stok_minimal = 10;
+            } else {
+                $stok_minimal = 0;
+            }
+        }
+
         $data = [
             'kd_produk'            => $request->kd_produk,
             'kd_kategori'          => $request->kd_kategori,
@@ -191,6 +214,7 @@ class ProdukController extends Controller
             'harga_jual_umum'      => $request->harga_jual_umum,
             'harga_jual_langganan' => $request->harga_jual_langganan ?? $request->harga_jual_umum,
             'stok_tersedia'        => $request->stok_tersedia,
+            'stok_minimal'         => $stok_minimal,
             'status'               => 'aktif', // default status
         ];
 
@@ -213,7 +237,20 @@ class ProdukController extends Controller
         }
 
         // 4. Eksekusi Simpan ke Database
-        Produk::create($data);
+        $produk = Produk::create($data);
+
+        try {
+            ActivityLog::create([
+                'actor_id' => Auth::id(),
+                'action' => 'create_product',
+                'details' => 'Produk: ' . ($produk->nama_produk ?? '') . ' (kd: ' . ($produk->kd_produk ?? '') . ')',
+                'ip_address' => request()->ip(),
+                'subject_type' => 'produk',
+                'subject_id' => $produk->kd_produk,
+            ]);
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         // 5. Redirect sesuai origin (Beranda atau Index Produk)
         $route = ($request->origin == 'beranda') ? 'beranda' : 'produk.index';
@@ -237,7 +274,10 @@ class ProdukController extends Controller
         }
 
         // Untuk halaman tabel manajemen stok admin
-        $produk = $query->latest()->get();
+        // Prioritaskan produk yang stoknya di bawah stok_minimal agar muncul paling atas
+        $produk = $query->orderByRaw('(stok_tersedia < COALESCE(stok_minimal, 0)) DESC')
+                 ->orderBy('created_at', 'desc')
+                 ->get();
         foreach ($produk as $item) {
             $this->setHargaTampil($item);
         }
@@ -263,11 +303,30 @@ class ProdukController extends Controller
             'nama_produk'          => 'required|string|max:255',
             'harga_jual_umum'      => 'required|numeric',
             'stok_tersedia'        => 'required|numeric',
+            'stok_minimal'         => 'nullable|numeric',
             'files.*'              => 'image|mimes:jpeg,png,jpg,webp|max:2048', 
         ]);
 
         $produk = Produk::where('kd_produk', $kd_produk)->firstOrFail();
         
+        // Tentukan stok_minimal default berdasarkan satuan jika tidak diisi
+        $stok_minimal = $request->stok_minimal ?? null;
+        if (is_null($stok_minimal)) {
+            $satuanName = $request->satuan ?? null;
+            if (!$satuanName && $request->kd_satuan) {
+                $satuanModel = \App\Models\Satuan::find($request->kd_satuan);
+                $satuanName = $satuanModel?->nama_satuan;
+            }
+            $satuanName = strtolower($satuanName ?? '');
+            if (str_contains($satuanName, 'pcs')) {
+                $stok_minimal = 250;
+            } elseif (str_contains($satuanName, 'lusin') || str_contains($satuanName, 'dozen')) {
+                $stok_minimal = 10;
+            } else {
+                $stok_minimal = 0;
+            }
+        }
+
         $updateData = [
             'nama_produk'          => $request->nama_produk,
             'deskripsi'            => $request->deskripsi,
@@ -277,6 +336,7 @@ class ProdukController extends Controller
             'harga_jual_umum'      => $request->harga_jual_umum,
             'harga_jual_langganan' => $request->harga_jual_langganan ?? $request->harga_jual_umum,
             'stok_tersedia'        => $request->stok_tersedia,
+            'stok_minimal'         => $stok_minimal,
         ];
 
         // Logika Multiple Upload
@@ -302,6 +362,19 @@ class ProdukController extends Controller
 
         $produk->update($updateData);
 
+        try {
+            ActivityLog::create([
+                'actor_id' => Auth::id(),
+                'action' => 'update_product',
+                'details' => 'Updated produk ' . $produk->nama_produk . ' (kd: ' . $produk->kd_produk . ')',
+                'ip_address' => request()->ip(),
+                'subject_type' => 'produk',
+                'subject_id' => $produk->kd_produk,
+            ]);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
         return redirect()->route('produk.index')->with('success', 'Produk berhasil diperbarui!');
     }
 
@@ -312,6 +385,19 @@ class ProdukController extends Controller
         // Hapus file gambar
         if ($produk->gambar && File::exists(public_path('storage/' . $produk->gambar))) {
             File::delete(public_path('storage/' . $produk->gambar));
+        }
+
+        try {
+            ActivityLog::create([
+                'actor_id' => Auth::id(),
+                'action' => 'delete_product',
+                'details' => 'Deleted produk ' . $produk->nama_produk . ' (kd: ' . $produk->kd_produk . ')',
+                'ip_address' => request()->ip(),
+                'subject_type' => 'produk',
+                'subject_id' => $produk->kd_produk,
+            ]);
+        } catch (\Throwable $e) {
+            report($e);
         }
 
         $produk->delete();

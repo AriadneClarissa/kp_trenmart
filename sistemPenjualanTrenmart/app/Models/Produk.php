@@ -21,6 +21,7 @@ class Produk extends Model
         'harga_jual_umum',     
         'harga_jual_langganan', 
         'stok_tersedia',     
+        'stok_minimal',
         'status',
         'gambar', // foto utama
         'foto_2', // foto tambahan 1

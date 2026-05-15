@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\ActivityLog;
+use Illuminate\Support\Facades\Auth;
 
 class AdminUserController extends Controller
 {
@@ -89,6 +91,19 @@ class AdminUserController extends Controller
             'role' => $data['role'],
             'is_approved' => true,
         ]);
+
+        try {
+            ActivityLog::create([
+                'actor_id' => Auth::id(),
+                'action' => 'create_internal_user',
+                'details' => 'Created user ' . $admin->email . ' with role ' . $data['role'],
+                'ip_address' => request()->ip(),
+                'subject_type' => 'user',
+                'subject_id' => $admin->id,
+            ]);
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         // Optional: send email with credentials
         if ($request->boolean('send_email')) {

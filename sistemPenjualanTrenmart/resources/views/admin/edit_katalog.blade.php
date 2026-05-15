@@ -189,7 +189,10 @@
                         </thead>
                         <tbody>
                             @forelse($produk as $p)
-                                <tr>
+                                @php
+                                    $isLowStock = ($p->stok_minimal ?? 0) > 0 && $p->stok_tersedia < ($p->stok_minimal ?? 0);
+                                @endphp
+                                <tr class="{{ $isLowStock ? 'table-danger' : '' }}">
                                     <td>
                                         <div class="rounded-3 bg-light d-flex align-items-center justify-content-center" style="width: 52px; height: 52px; overflow: hidden;">
                                             <img src="{{ asset('storage/' . $p->gambar) }}" alt="{{ $p->nama_produk }}" style="width: 100%; height: 100%; object-fit: contain;">
@@ -217,6 +220,9 @@
                                     <td>
                                         <span class="fw-semibold">{{ $p->stok_tersedia }}</span>
                                         <span class="text-muted small d-block">{{ $p->satuan ?? 'pcs' }}</span>
+                                        @if($isLowStock)
+                                            <div class="small text-danger fw-bold">Stok di bawah minimal ({{ $p->stok_minimal }})</div>
+                                        @endif
                                     </td>
                                     <td>{{ $p->satuanModel?->nama_satuan ?? $p->satuan ?? '-' }}</td>
                                     <td>

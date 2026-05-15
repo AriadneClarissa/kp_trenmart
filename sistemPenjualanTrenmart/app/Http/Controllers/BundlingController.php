@@ -29,16 +29,23 @@ class BundlingController extends Controller
             'bundling_price' => 'required|numeric',
             'product_id' => 'required|array|min:2', // Minimal 2 barang
             'product_id.*' => 'required|exists:produk,kd_produk',
+            'promo_start_at' => 'nullable|date',
+            'promo_end_at' => 'nullable|date|after_or_equal:promo_start_at',
         ]);
 
         DB::beginTransaction();
         try {
+            $promoStartAt = $request->promo_start_at ?: now();
+            $promoEndAt = $request->promo_end_at ?: null;
+
             // 2. Simpan ke tabel bundlings
             $bundling = Bundling::create([
                 'name' => $request->name,
                 'total_normal_price' => $request->total_normal_price,
                 'bundling_price' => $request->bundling_price,
                 'description' => $request->description,
+                'promo_start_at' => $promoStartAt,
+                'promo_end_at' => $promoEndAt,
             ]);
 
             // 3. Simpan item ke tabel bundling_items
@@ -56,6 +63,11 @@ class BundlingController extends Controller
             }
 
             DB::commit();
+            // Redirect back to source (beranda) if form came from there
+            $source = $request->input('source');
+            if ($source == 'beranda') {
+                return redirect()->route('beranda')->with('success', 'Paket Bundling Berhasil Dibuat!');
+            }
             return redirect()->route('produk.index')->with('success', 'Paket Bundling Berhasil Dibuat!');
 
         } catch (\Exception $e) {
@@ -110,6 +122,8 @@ class BundlingController extends Controller
     {
         // Mengambil data bundling beserta relasi produknya
         $bundling = Bundling::with(['items.produk.merk', 'items.produk.kategori', 'items.produk.satuanModel'])->findOrFail($id);
+
+        abort_unless($bundling->isPromoActive(), 404);
 
         $images = collect();
         foreach ($bundling->items as $item) {

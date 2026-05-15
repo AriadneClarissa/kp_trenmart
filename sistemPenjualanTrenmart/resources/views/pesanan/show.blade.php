@@ -11,7 +11,20 @@
                 <div class="small text-muted">{{ $order->created_at->format('d M Y \p\u\k\u\l H:i') }}</div>
             </div>
             <div class="text-end">
-                <div class="badge rounded-pill" style="background:#fff6e6;color:#b45309;">{{ ucfirst(str_replace('_',' ', $order->payment_status)) }}</div>
+                <div class="badge rounded-pill mb-2" style="background:#fff6e6;color:#b45309;">{{ ucfirst(str_replace('_',' ', $order->payment_status)) }}</div>
+                <div class="badge rounded-pill d-block" style="background:#e8f3ff;color:#1d4ed8;">
+                    @if($order->order_status === 'processing')
+                        Diproses
+                    @elseif($order->order_status === 'ready_to_ship')
+                        Siap Dikirim
+                    @elseif($order->order_status === 'completed')
+                        Selesai
+                    @elseif($order->order_status === 'payment_rejected')
+                        Pembayaran Ditolak
+                    @else
+                        {{ ucfirst(str_replace('_',' ', $order->order_status ?? 'new')) }}
+                    @endif
+                </div>
                 <div class="fw-bold mt-2">Rp {{ number_format($order->total,0,',','.') }}</div>
             </div>
         </div>
@@ -48,6 +61,12 @@
                 <h6 class="fw-semibold">Detail Pesanan</h6>
                 <div class="mt-2 small text-muted">Metode: {{ $order->paymentMethod->name ?? '-' }}</div>
                 <div class="mt-2 small text-muted">Status pembayaran: {{ $order->payment_status }}</div>
+                <div class="mt-2 small text-muted">Status pesanan: {{ $order->order_status === 'processing' ? 'Diproses' : ($order->order_status === 'ready_to_ship' ? 'Siap Dikirim' : ($order->order_status === 'completed' ? 'Selesai' : ucfirst(str_replace('_',' ', $order->order_status ?? 'new')))) }}</div>
+                @if($order->pickup_method === 'delivery')
+                    <div class="mt-2 small text-muted">Alamat kirim: {{ $order->shipping_address ?? '-' }}</div>
+                    <div class="mt-2 small text-muted">Jarak: {{ $order->shipping_distance_km !== null ? number_format($order->shipping_distance_km, 2, ',', '.') . ' km' : '-' }}</div>
+                    <div class="mt-2 small text-muted">Ongkir: Rp {{ number_format($order->shipping_cost ?? 0,0,',','.') }}</div>
+                @endif
                 <div class="mt-3 fw-bold">Total: Rp {{ number_format($order->total,0,',','.') }}</div>
             </div>
         </div>

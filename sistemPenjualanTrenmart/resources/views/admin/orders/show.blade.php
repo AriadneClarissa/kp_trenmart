@@ -51,6 +51,44 @@
                             <p class="fw-bold fs-5 mb-0" style="color:#660000;">Rp {{ number_format($order->total,0,',','.') }}</p>
                         </div>
                     </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="small text-muted mb-1">Status Pesanan</p>
+                            <p class="fw-semibold mb-0">
+                                @if($order->order_status === 'processing')
+                                    Diproses
+                                @elseif($order->order_status === 'ready_to_ship')
+                                    Siap Dikirim
+                                @elseif($order->order_status === 'completed')
+                                    Selesai
+                                @elseif($order->order_status === 'payment_rejected')
+                                    Pembayaran Ditolak
+                                @else
+                                    {{ ucfirst(str_replace('_', ' ', $order->order_status ?? 'new')) }}
+                                @endif
+                            </p>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <p class="small text-muted mb-1">Langkah berikutnya</p>
+                            <p class="fw-semibold mb-0">
+                                @if($order->payment_status !== 'confirmed')
+                                    Konfirmasi pembayaran dulu.
+                                @elseif($order->order_status === 'processing')
+                                    Bisa ubah ke siap dikirim.
+                                @elseif($order->order_status === 'ready_to_ship')
+                                    Bisa tandai selesai.
+                                @else
+                                    Tidak ada aksi lanjutan.
+                                @endif
+                            </p>
+                        </div>
+                        <div class="col-12 mt-3">
+                            <p class="small text-muted mb-1">Alamat Pengiriman</p>
+                            <p class="fw-semibold mb-0">{{ $order->shipping_address ?? '-' }}</p>
+                            <p class="small text-muted mt-2 mb-0">Jarak: {{ $order->shipping_distance_km !== null ? number_format($order->shipping_distance_km, 2, ',', '.') . ' km' : '-' }} | Ongkir: Rp {{ number_format($order->shipping_cost ?? 0,0,',','.') }}</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -132,6 +170,27 @@
                     </div>
                     <div class="card-body">
                         <p class="small text-muted">Pesanan dalam status <strong>Diproses</strong>. Siap untuk dikemas dan dikirim.</p>
+                        <div class="d-grid gap-2 mt-3">
+                            @if($order->order_status === 'processing')
+                                <form action="{{ route('admin.orders.status', $order->id) }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="order_status" value="ready_to_ship">
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="bi bi-truck me-1"></i> Tandai Siap Dikirim
+                                    </button>
+                                </form>
+                            @elseif($order->order_status === 'ready_to_ship')
+                                <form action="{{ route('admin.orders.status', $order->id) }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="order_status" value="completed">
+                                    <button type="submit" class="btn btn-success w-100">
+                                        <i class="bi bi-check2-circle me-1"></i> Tandai Selesai
+                                    </button>
+                                </form>
+                            @elseif($order->order_status === 'completed')
+                                <span class="badge bg-success-subtle text-success-emphasis py-2">Pesanan sudah selesai diproses.</span>
+                            @endif
+                        </div>
                     </div>
                 </div>
             @elseif($order->payment_status === 'rejected')

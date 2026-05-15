@@ -48,7 +48,17 @@
                                 @endif
                             </td>
                             <td>
-                                <span class="badge bg-info text-dark">{{ ucfirst(str_replace('_', ' ', $order->order_status ?? 'new')) }}</span>
+                                @if($order->order_status === 'processing')
+                                    <span class="badge bg-primary">Diproses</span>
+                                @elseif($order->order_status === 'ready_to_ship')
+                                    <span class="badge bg-info text-dark">Siap Dikirim</span>
+                                @elseif($order->order_status === 'completed')
+                                    <span class="badge bg-success">Selesai</span>
+                                @elseif($order->order_status === 'payment_rejected')
+                                    <span class="badge bg-danger">Pembayaran Ditolak</span>
+                                @else
+                                    <span class="badge bg-secondary">{{ ucfirst(str_replace('_', ' ', $order->order_status ?? 'new')) }}</span>
+                                @endif
                             </td>
                             <td>
                                 <a href="{{ route('admin.orders.show', $order->id) }}" class="btn btn-sm btn-outline-primary">

@@ -17,6 +17,7 @@
 
         <form action="{{ route('bundling.store') }}" method="POST">
             @csrf
+            <input type="hidden" name="source" value="{{ $source }}">
             <div class="row">
                 {{-- Data Utama Bundling --}}
                 <div class="col-md-5">
@@ -31,6 +32,23 @@
                         <input type="text" name="name" class="form-control mb-3" 
                                placeholder="Contoh: Paket Alat Tulis Hemat" required 
                                value="{{ old('name') }}">
+
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <label class="form-label fw-bold">Mulai Promo</label>
+                                <input type="datetime-local" name="promo_start_at" class="form-control mb-3"
+                                       value="{{ old('promo_start_at', now()->format('Y-m-d\TH:i')) }}">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-bold">Selesai Promo</label>
+                                <input type="datetime-local" name="promo_end_at" class="form-control mb-3"
+                                       value="{{ old('promo_end_at') }}">
+                            </div>
+                        </div>
+
+                        <div class="small text-muted mb-2">
+                            Jika diisi, bundling hanya tampil selama periode promo ini aktif.
+                        </div>
                     </div>
                 </div>
 

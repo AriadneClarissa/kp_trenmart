@@ -8,6 +8,7 @@ use App\Http\Controllers\KeranjangController;
 use App\Http\Controllers\KatalogController; 
 use App\Http\Controllers\TentangController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\AdminLogController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\BundlingController;
@@ -55,10 +56,6 @@ Route::middleware(['auth'])->group(function () {
 
     // --- FITUR PELANGGAN ---
     Route::get('/dashboard', function () {
-        if (Auth::check() && Auth::user()->isOwner()) {
-            return redirect()->route('admin.dashboard');
-        }
-
         return redirect()->route('beranda');
     })->name('dashboard');
     Route::get('/pesanan', [\App\Http\Controllers\OrderController::class, 'index'])->name('pesanan.index');
@@ -80,6 +77,8 @@ Route::middleware(['auth'])->group(function () {
 
     // --- CHECKOUT & PEMBAYARAN ---
     Route::get('/checkout', [\App\Http\Controllers\CheckoutController::class, 'index'])->name('checkout.index');
+    Route::get('/checkout/address-suggestions', [\App\Http\Controllers\CheckoutController::class, 'addressSuggestions'])->name('checkout.address_suggestions');
+    Route::get('/checkout/shipping-quote', [\App\Http\Controllers\CheckoutController::class, 'shippingQuote'])->name('checkout.shipping_quote');
     Route::post('/checkout/place-order', [\App\Http\Controllers\CheckoutController::class, 'placeOrder'])->name('checkout.place_order');
     Route::get('/checkout/{order}/upload-proof', [\App\Http\Controllers\CheckoutController::class, 'uploadProof'])->name('checkout.upload_proof');
     Route::post('/checkout/{order}/store-proof', [\App\Http\Controllers\CheckoutController::class, 'storeProof'])->name('checkout.store_proof');
@@ -130,6 +129,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/orders/{id}', [\App\Http\Controllers\AdminOrderController::class, 'show'])->name('admin.orders.show');
         Route::post('/orders/{id}/confirm', [\App\Http\Controllers\AdminOrderController::class, 'confirmPayment'])->name('admin.orders.confirm');
         Route::post('/orders/{id}/reject', [\App\Http\Controllers\AdminOrderController::class, 'rejectPayment'])->name('admin.orders.reject');
+        Route::post('/orders/{id}/status', [\App\Http\Controllers\AdminOrderController::class, 'updateStatus'])->name('admin.orders.status');
 
         // Admin - Users & Customers
         Route::get('/users', [\App\Http\Controllers\AdminUserController::class, 'index'])->name('admin.users.index');
@@ -144,5 +144,16 @@ Route::middleware(['auth'])->group(function () {
         // Admin - Bundling
         Route::get('/admin/manage-bundling', [BundlingController::class, 'create'])->name('bundling.create');
         Route::post('/admin/manage-bundling', [BundlingController::class, 'store'])->name('bundling.store');
+        // Admin - Reports (weekly/monthly)
+        Route::get('/reports', [\App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports/monthly', [\App\Http\Controllers\ReportController::class, 'monthly'])->name('reports.monthly');
+        Route::get('/reports/weekly', [\App\Http\Controllers\ReportController::class, 'weekly'])->name('reports.weekly');
+        // Printable and PDF exports
+        Route::get('/reports/monthly/print', [\App\Http\Controllers\ReportController::class, 'printMonthly'])->name('reports.monthly.print');
+        Route::get('/reports/monthly/pdf', [\App\Http\Controllers\ReportController::class, 'pdfMonthly'])->name('reports.monthly.pdf');
+        Route::get('/reports/weekly/print', [\App\Http\Controllers\ReportController::class, 'printWeekly'])->name('reports.weekly.print');
+        Route::get('/reports/weekly/pdf', [\App\Http\Controllers\ReportController::class, 'pdfWeekly'])->name('reports.weekly.pdf');
+        // Admin - Activity Logs (owner only view)
+        Route::get('/logs', [AdminLogController::class, 'index'])->name('admin.logs.index');
     });
 });

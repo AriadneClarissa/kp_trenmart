@@ -417,25 +417,15 @@
 </nav>
 
 @if(session('success') || session('error'))
-    <div class="flash-toast-shell" id="floatingFlashMessage">
-        <div class="flash-toast-card {{ session('error') ? 'error' : 'success' }} text-white">
-            <div class="p-3 p-sm-4">
-                <div class="d-flex align-items-start justify-content-between gap-3">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="flash-toast-badge">
-                            <i class="bi {{ session('error') ? 'bi-exclamation-triangle-fill' : 'bi-check-circle-fill' }} fs-5"></i>
-                        </div>
-                                        </div>
-                                    </ul>
-                                {{ session('error') ? 'Gagal' : 'Berhasil' }}
-                            </div>
-                            <div class="flash-toast-body fw-medium">{{ session('error') ?? session('success') }}</div>
-                        </div>
-                    </div>
-                    <button type="button" class="btn-close btn-close-white ms-2" aria-label="Close" id="closeFloatingFlash"></button>
+    <div id="floatingFlashMessage" class="position-fixed top-0 start-50 translate-middle-x mt-3" style="z-index: 10600;">
+        <div class="toast show align-items-center text-white {{ session('error') ? 'bg-danger' : 'bg-success' }} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <div class="fw-bold mb-1">{{ session('error') ? 'Gagal' : 'Berhasil' }}</div>
+                    <div class="small">{{ session('error') ?? session('success') }}</div>
                 </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close" id="closeFloatingFlash"></button>
             </div>
-            <div class="flash-toast-progress"></div>
         </div>
     </div>
 @endif
@@ -535,12 +525,9 @@
         }
 
         if (flash) {
+            // auto remove after 2.5s
             setTimeout(function () {
-                flash.style.animation = 'flashToastOut 260ms ease forwards';
-
-                setTimeout(function () {
-                    flash.remove();
-                }, 260);
+                if (flash) flash.remove();
             }, 2500);
         }
     });

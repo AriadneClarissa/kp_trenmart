@@ -135,20 +135,26 @@
         {{-- KOLOM KANAN: RINGKASAN & TOMBOL KONFIRMASI --}}
         <div class="col-lg-4">
             <div class="summary-card shadow-sm">
+                @php
+                    $subtotal = $order->items->sum(function ($it) {
+                        return ($it->price ?? 0) * ($it->quantity ?? 0);
+                    });
+                    $shippingCost = $order->shipping_cost ?? 0;
+                @endphp
                 <h6 class="fw-bold mb-4"><i class="bi bi-receipt me-2"></i>Ringkasan Pembayaran</h6>
                 
                 <div class="d-flex justify-content-between mb-2 text-muted small">
                     <span>Subtotal Produk</span>
-                    <span>Rp {{ number_format($order->total, 0, ',', '.') }}</span>
+                    <span>Rp {{ number_format($subtotal, 0, ',', '.') }}</span>
                 </div>
                 <div class="d-flex justify-content-between mb-4 text-muted small">
                     <span>Biaya Pengiriman</span>
-                    <span>Rp 15.000</span>
+                    <span>Rp {{ number_format($shippingCost, 0, ',', '.') }}</span>
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h5 class="fw-bold mb-0">Total Bayar</h5>
-                    <h4 class="fw-bold text-accent mb-0">Rp {{ number_format($order->total + 15000, 0, ',', '.') }}</h4>
+                    <h4 class="fw-bold text-accent mb-0">Rp {{ number_format($order->total, 0, ',', '.') }}</h4>
                 </div>
 
                 <hr class="my-4 opacity-25">
