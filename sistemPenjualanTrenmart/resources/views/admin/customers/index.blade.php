@@ -18,6 +18,8 @@
                             <th>Nama</th>
                             <th>Email</th>
                             <th>Jenis</th>
+                            <th>No. Telepon</th>
+                            <th>Alamat</th>
                             <th>Organisasi (jika ada)</th>
                             <th>Tgl Daftar</th>
                         </tr>
@@ -29,6 +31,8 @@
                             <td>{{ $c->name }}</td>
                             <td>{{ $c->email }}</td>
                             <td>{{ strtoupper($c->customer_type ?? 'regular') }}</td>
+                            <td>{{ $c->phone_number ?? '-' }}</td>
+                            <td>{{ $c->home_address ?? '-' }}</td>
                             <td>{{ $c->organization_name ?? '-' }}</td>
                             <td>{{ $c->created_at ? $c->created_at->format('d M Y') : '-' }}</td>
                         </tr>

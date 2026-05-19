@@ -1,20 +1,18 @@
-@extends('layouts.app')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container mt-3 mt-md-4 mb-5">
     
-    {{-- 1. Banner Utama --}}
+    
     <div class="banner-wrapper mb-4 position-relative overflow-hidden" style="border-radius: 1rem;">
         <img id="bannerPreview" 
-            src="{{ (!empty($settings['tentang_banner'])) ? asset('storage/' . $settings['tentang_banner']) : (($admin && $admin->tentang_banner) ? asset('storage/' . $admin->tentang_banner) : asset('images/spanduktoko.png')) }}" 
+            src="<?php echo e((!empty($settings['tentang_banner'])) ? asset('storage/' . $settings['tentang_banner']) : (($admin && $admin->tentang_banner) ? asset('storage/' . $admin->tentang_banner) : asset('images/spanduktoko.png'))); ?>" 
             class="w-100 shadow-sm img-banner-responsive object-fit-cover" 
             style="height: 300px;" 
             alt="Banner Trenmart">
 
-        @if(Auth::check() && Auth::user()->isAdmin())
-            <form action="{{ route('admin.tentang.update') }}" method="POST" enctype="multipart/form-data" id="bannerForm">
-                @csrf
-                @method('PUT')
+        <?php if(Auth::check() && Auth::user()->isAdmin()): ?>
+            <form action="<?php echo e(route('admin.tentang.update')); ?>" method="POST" enctype="multipart/form-data" id="bannerForm">
+                <?php echo csrf_field(); ?>
+                <?php echo method_field('PUT'); ?>
                 <input type="file" name="tentang_banner" id="bannerInput" class="d-none" accept="image/*">
                 <label for="bannerInput" 
                     class="position-absolute top-50 start-50 translate-middle btn btn-light rounded-circle shadow-lg d-flex align-items-center justify-content-center hover-scale" 
@@ -25,53 +23,53 @@
                     </div>
                 </label>
             </form>
-        @endif
+        <?php endif; ?>
     </div>
 
-    {{-- 2. Panel Kontrol Admin --}}
-    @auth
-            @if(auth()->user()->isAdmin())
+    
+    <?php if(auth()->guard()->check()): ?>
+            <?php if(auth()->user()->isAdmin()): ?>
         <div class="card shadow-sm mb-5 admin-panel-card border-0 bg-light">
             <div class="card-body p-4">
                 <div class="row align-items-center">
                     <div class="col-md-6 text-center text-md-start">
                         <h5 class="fw-bold mb-1">
                             <i class="bi bi-shield-lock-fill me-2 text-danger"></i>
-                            @if(auth()->user()->isOwner())
+                            <?php if(auth()->user()->isOwner()): ?>
                                 Panel Kontrol Pemilik
-                            @else
+                            <?php else: ?>
                                 Panel Kontrol Admin
-                            @endif
+                            <?php endif; ?>
                         </h5>
                         <p class="text-muted small mb-0">Kelola stok produk dan pengaturan tampilan beranda</p>
                     </div>
                     <div class="col-md-6 text-center text-md-end mt-3 mt-md-0">
                         <div class="d-flex align-items-center justify-content-center justify-content-md-end" style="gap:12px;">
-                            <a href="{{ route('bundling.create', ['source' => 'beranda']) }}" class="btn btn-success rounded-pill px-4 shadow-sm">
+                            <a href="<?php echo e(route('bundling.create', ['source' => 'beranda'])); ?>" class="btn btn-success rounded-pill px-4 shadow-sm">
                                 <i class="bi bi-plus-lg me-2"></i> Tambah Bundling
                             </a>
 
-                            @if(auth()->user()->isOwner())
+                            <?php if(auth()->user()->isOwner()): ?>
                             <button id="btnOpenReports" class="btn btn-primary rounded-pill px-4 shadow-sm">
                                 <i class="bi bi-file-earmark-text me-2"></i> Laporan
                             </button>
-                            @endif
+                            <?php endif; ?>
 
-                            @if(auth()->user()->isOwner())
-                                <a href="{{ route('admin.logs.index') }}" class="btn btn-secondary rounded-pill px-4 shadow-sm">
+                            <?php if(auth()->user()->isOwner()): ?>
+                                <a href="<?php echo e(route('admin.logs.index')); ?>" class="btn btn-secondary rounded-pill px-4 shadow-sm">
                                     <i class="bi bi-journal-text me-2"></i> Lihat Log Aktivitas
                                 </a>
-                            @endif
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        @endif
-    @endauth
+        <?php endif; ?>
+    <?php endif; ?>
 
-    {{-- 3. GRAFIK PENJUALAN (HANYA UNTUK OWNER) --}}
-    @if(Auth::check() && Auth::user()->isOwner() && !empty($chartLabels))
+    
+    <?php if(Auth::check() && Auth::user()->isOwner() && !empty($chartLabels)): ?>
     <div class="mb-5">
         <!-- Key Metrics -->
         <div class="row g-3 mb-4">
@@ -81,7 +79,7 @@
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
                                 <p class="text-muted mb-1">Total Pendapatan</p>
-                                <h3 class="fw-bold text-primary mb-0">Rp {{ number_format($totalRevenue, 0, ',', '.') }}</h3>
+                                <h3 class="fw-bold text-primary mb-0">Rp <?php echo e(number_format($totalRevenue, 0, ',', '.')); ?></h3>
                             </div>
                             <i class="bi bi-cash-coin text-primary fs-4"></i>
                         </div>
@@ -95,7 +93,7 @@
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
                                 <p class="text-muted mb-1">Total Pesanan</p>
-                                <h3 class="fw-bold text-success mb-0">{{ $totalOrders }}</h3>
+                                <h3 class="fw-bold text-success mb-0"><?php echo e($totalOrders); ?></h3>
                             </div>
                             <i class="bi bi-bag-check text-success fs-4"></i>
                         </div>
@@ -109,7 +107,7 @@
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
                                 <p class="text-muted mb-1">Rata-rata Pesanan</p>
-                                <h3 class="fw-bold text-info mb-0">Rp {{ number_format($averageOrderValue, 0, ',', '.') }}</h3>
+                                <h3 class="fw-bold text-info mb-0">Rp <?php echo e(number_format($averageOrderValue, 0, ',', '.')); ?></h3>
                             </div>
                             <i class="bi bi-graph-up text-info fs-4"></i>
                         </div>
@@ -133,7 +131,7 @@
         </div>
 
         <!-- Status Breakdown -->
-        @if($statusBreakdown->isNotEmpty())
+        <?php if($statusBreakdown->isNotEmpty()): ?>
         <div class="row mb-4">
             <div class="col-md-6">
                 <div class="card shadow-sm border-0">
@@ -150,29 +148,29 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($statusBreakdown as $status => $count)
+                                    <?php $__currentLoopData = $statusBreakdown; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $status => $count): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <tr>
                                         <td>
-                                            @switch($status)
-                                                @case('pending')
+                                            <?php switch($status):
+                                                case ('pending'): ?>
                                                     <span class="badge bg-warning-subtle text-warning-emphasis">Menunggu</span>
-                                                    @break
-                                                @case('processing')
+                                                    <?php break; ?>
+                                                <?php case ('processing'): ?>
                                                     <span class="badge bg-info-subtle text-info-emphasis">Diproses</span>
-                                                    @break
-                                                @case('completed')
+                                                    <?php break; ?>
+                                                <?php case ('completed'): ?>
                                                     <span class="badge bg-success-subtle text-success-emphasis">Selesai</span>
-                                                    @break
-                                                @case('cancelled')
+                                                    <?php break; ?>
+                                                <?php case ('cancelled'): ?>
                                                     <span class="badge bg-danger-subtle text-danger-emphasis">Dibatalkan</span>
-                                                    @break
-                                                @default
-                                                    <span class="badge bg-secondary-subtle text-secondary-emphasis">{{ ucfirst($status) }}</span>
-                                            @endswitch
+                                                    <?php break; ?>
+                                                <?php default: ?>
+                                                    <span class="badge bg-secondary-subtle text-secondary-emphasis"><?php echo e(ucfirst($status)); ?></span>
+                                            <?php endswitch; ?>
                                         </td>
-                                        <td class="text-end fw-bold">{{ $count }}</td>
+                                        <td class="text-end fw-bold"><?php echo e($count); ?></td>
                                     </tr>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </tbody>
                             </table>
                         </div>
@@ -191,31 +189,32 @@
                 </div>
             </div>
         </div>
-        @endif
+        <?php endif; ?>
     </div>
-    @endif
+    <?php endif; ?>
 
-    {{-- 3. Section Produk Terbaru --}}
+    
     <section class="mb-5">
         <h4 class="fw-bold mb-4 text-center fs-4 fs-md-3">
             <i class="bi bi-stars text-warning me-2"></i>
-            {{ $settings['judul_terbaru'] ?? 'Produk Terbaru' }}
+            <?php echo e($settings['judul_terbaru'] ?? 'Produk Terbaru'); ?>
+
         </h4>
         
         <div class="d-flex flex-nowrap overflow-auto pb-4 custom-scrollbar-visible" style="gap: 15px; padding-left: 5px; padding-right: 5px;">
-            @forelse($produk_terbaru as $item)
+            <?php $__empty_1 = true; $__currentLoopData = $produk_terbaru; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                 <div class="card-mobile-width" style="flex: 0 0 auto;"> 
-                    @include('partials.item_produk', ['item' => $item])
+                    <?php echo $__env->make('partials.item_produk', ['item' => $item], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
                 </div>
-            @empty
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                 <div class="w-100 text-center py-4">
                     <p class="text-muted">Belum ada produk untuk ditampilkan.</p>
                 </div>
-            @endforelse
+            <?php endif; ?>
         </div>
     </section>
 
-    {{-- 4. SECTION BUNDLING --}}
+    
     <section class="mt-5 pt-3">
         <div class="text-center mb-5">
             <h4 class="fw-bold mb-2 fs-4 fs-md-3">
@@ -225,80 +224,84 @@
         </div>
 
         <div class="row g-4 justify-content-center">
-            @forelse($bundling as $b)
+            <?php $__empty_1 = true; $__currentLoopData = $bundling; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $b): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                 <div class="col-md-6 col-lg-4">
-                    {{-- Tambahkan position-relative pada card agar link mencakup seluruh area card --}}
+                    
                     <div class="card h-100 border-0 shadow-sm card-bundling-hover position-relative" style="border-radius: 20px;">
                         <div class="card-body p-3 d-flex flex-column">
                             
                             <div class="d-flex justify-content-between align-items-start mb-3">
-                                {{-- Gunakan class stretched-link di sini --}}
-                                <a href="{{ route('bundling.show', $b->id) }}" class="text-decoration-none stretched-link">
-                                    <h5 class="fw-bold text-dark mb-0 hover-maroon">{{ $b->name }}</h5>
+                                
+                                <a href="<?php echo e(route('bundling.show', $b->id)); ?>" class="text-decoration-none stretched-link">
+                                    <h5 class="fw-bold text-dark mb-0 hover-maroon"><?php echo e($b->name); ?></h5>
                                 </a>
                             </div>
 
-                            @if($b->promo_start_at || $b->promo_end_at)
+                            <?php if($b->promo_start_at || $b->promo_end_at): ?>
                                 <div class="mb-3">
                                     <span class="badge bg-warning text-dark">
-                                        Promo sampai {{ $b->promo_end_at ? $b->promo_end_at->format('d M Y H:i') : 'selama tersedia' }}
+                                        Promo sampai <?php echo e($b->promo_end_at ? $b->promo_end_at->format('d M Y H:i') : 'selama tersedia'); ?>
+
                                     </span>
                                 </div>
-                            @endif
+                            <?php endif; ?>
 
                             <div class="bg-light p-3 rounded-4 mb-4">
                                 <label class="small fw-bold text-primary mb-2 d-block">Isi Paket:</label>
                                 <ul class="list-unstyled mb-0">
-                                    @foreach($b->items as $item)
+                                    <?php $__currentLoopData = $b->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                         <li class="small d-flex align-items-center mb-2">
                                             <i class="bi bi-check-circle-fill text-success me-2"></i>
                                             <span>
-                                                {{ $item->produk->nama_produk }} 
-                                                <small class="text-muted">({{ $item->produk->merk->nama_merk ?? 'Tanpa Merk' }})</small>
+                                                <?php echo e($item->produk->nama_produk); ?> 
+                                                <small class="text-muted">(<?php echo e($item->produk->merk->nama_merk ?? 'Tanpa Merk'); ?>)</small>
                                             </span>
                                         </li>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </ul>
                             </div>
 
                             <div class="mt-auto">
                                 <div class="d-flex align-items-center gap-2 mb-1">
                                     <small class="text-muted text-decoration-line-through">
-                                        Rp {{ number_format($b->total_normal_price, 0, ',', '.') }}
+                                        Rp <?php echo e(number_format($b->total_normal_price, 0, ',', '.')); ?>
+
                                     </small>
-                                    @if($b->total_normal_price > $b->bundling_price)
+                                    <?php if($b->total_normal_price > $b->bundling_price): ?>
                                         <span class="badge bg-light text-danger border border-danger small" style="font-size: 0.7rem;">
-                                            Hemat Rp {{ number_format($b->total_normal_price - $b->bundling_price, 0, ',', '.') }}
+                                            Hemat Rp <?php echo e(number_format($b->total_normal_price - $b->bundling_price, 0, ',', '.')); ?>
+
                                         </span>
-                                    @endif
+                                    <?php endif; ?>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <h4 class="fw-bold text-danger mb-0">
-                                        Rp {{ number_format($b->bundling_price, 0, ',', '.') }}
+                                        Rp <?php echo e(number_format($b->bundling_price, 0, ',', '.')); ?>
+
                                     </h4>
                                     
-                                    {{-- Tombol Tambah (khusus pelanggan) --}}
-                                    @if(!Auth::check() || (Auth::check() && !Auth::user()->isAdmin()))
-                                        {{-- Gunakan span karena aksi klik sudah diambil alih oleh stretched-link di atas --}}
+                                    
+                                    <?php if(!Auth::check() || (Auth::check() && !Auth::user()->isAdmin())): ?>
+                                        
                                         <span class="btn-tambah-card shadow-sm d-flex align-items-center justify-content-center" style="position: relative; z-index: 2;">
                                             <i class="bi bi-plus-lg me-1"></i> Tambah
                                         </span>
-                                    @endif
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            @empty
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                 <div class="col-12 text-center py-5">
                     <p class="text-muted italic">Belum ada paket bundling untuk saat ini.</p>
                 </div>
-            @endforelse
+            <?php endif; ?>
         </div>
     </section>
 </div>
 
-{{-- SCRIPT & STYLE --}}
+
 <script>
     const bannerInput = document.getElementById('bannerInput');
     if(bannerInput) {
@@ -391,10 +394,10 @@
         const salesChart = new Chart(salesCtx, {
             type: 'line',
             data: {
-                labels: @json($chartLabels),
+                labels: <?php echo json_encode($chartLabels, 15, 512) ?>,
                 datasets: [{
                     label: 'Pendapatan (Rp)',
-                    data: @json($chartData),
+                    data: <?php echo json_encode($chartData, 15, 512) ?>,
                     borderColor: '#0d6efd',
                     backgroundColor: 'rgba(13, 110, 253, 0.1)',
                     borderWidth: 2,
@@ -441,9 +444,9 @@
         const statusChart = new Chart(statusCtx, {
             type: 'doughnut',
             data: {
-                labels: @json(array_map('ucfirst', $statusBreakdown->keys()->toArray())),
+                labels: <?php echo json_encode(array_map('ucfirst', $statusBreakdown->keys()->toArray()), 512) ?>,
                 datasets: [{
-                    data: @json($statusBreakdown->values()->toArray()),
+                    data: <?php echo json_encode($statusBreakdown->values()->toArray(), 15, 512) ?>,
                     backgroundColor: colors,
                     borderColor: '#fff',
                     borderWidth: 2
@@ -466,7 +469,7 @@
     }
 </script>
 
-@include('partials.report_modal')
+<?php echo $__env->make('partials.report_modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 <script>
 document.addEventListener('DOMContentLoaded', function(){
@@ -515,10 +518,11 @@ document.addEventListener('DOMContentLoaded', function(){
     const openReportsBtn = document.getElementById('btnOpenReports');
     if(openReportsBtn){
         openReportsBtn.addEventListener('click', function(){
-            window.open("{{ route('reports.index') }}", '_blank');
+            window.open("<?php echo e(route('reports.index')); ?>", '_blank');
         });
     }
 });
 </script>
 
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\asus\OneDrive\Documents\GitHub\kp_trenmart\sistemPenjualanTrenmart\resources\views\beranda.blade.php ENDPATH**/ ?>

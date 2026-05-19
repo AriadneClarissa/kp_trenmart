@@ -56,6 +56,10 @@ Route::middleware(['auth'])->group(function () {
 
     // --- FITUR PELANGGAN ---
     Route::get('/dashboard', function () {
+        if (Auth::check() && Auth::user()->isOwner()) {
+            return app(\App\Http\Controllers\AdminUserController::class)->index();
+        }
+
         return redirect()->route('beranda');
     })->name('dashboard');
     Route::get('/pesanan', [\App\Http\Controllers\OrderController::class, 'index'])->name('pesanan.index');
@@ -69,11 +73,10 @@ Route::middleware(['auth'])->group(function () {
 
     // --- FITUR KERANJANG ---
     Route::get('/keranjang', [KeranjangController::class, 'index'])->name('cart.index');
-    Route::post('/keranjang/tambah/{id}', [KeranjangController::class, 'store'])->name('cart.add');
     Route::put('/keranjang/update/{id}', [KeranjangController::class, 'update'])->name('cart.update');
     Route::delete('/keranjang/hapus/{id}', [KeranjangController::class, 'destroy'])->name('cart.remove');
     Route::get('/cart/sidebar-content', [ProdukController::class, 'getSidebarContent'])->name('cart.sidebar.content');
-    Route::post('/keranjang/tambah/{id}/{type}', [KeranjangController::class, 'store'])->name('cart.add');
+    Route::post('/keranjang/tambah/{id}/{type?}', [KeranjangController::class, 'store'])->name('cart.add');
 
     // --- CHECKOUT & PEMBAYARAN ---
     Route::get('/checkout', [\App\Http\Controllers\CheckoutController::class, 'index'])->name('checkout.index');
@@ -114,7 +117,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/satuan/hapus/{id}', [\App\Http\Controllers\SatuanController::class, 'destroy'])->name('satuan.destroy');
         Route::put('/tentang/update', [TentangController::class, 'update'])->name('admin.tentang.update');
         Route::post('/produk/update-status', [ProdukController::class, 'updateStatus'])->name('produk.updateStatus');
-        Route::get('/', [KatalogController::class, 'index'])->name('beranda');
+        Route::get('/', [KatalogController::class, 'index'])->name('admin.beranda');
 
         // Ubah Banner
         Route::post('/banner/update', [AuthController::class, 'updateBanner'])->name('admin.banner.update');
