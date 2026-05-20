@@ -42,7 +42,7 @@
 
             
             <?php if(auth()->guard()->check()): ?>
-                <?php if(auth()->user()->isAdmin() || auth()->user()->customer_type === 'langganan'): ?>
+                <?php if(auth()->user()->isInternalStaff() || auth()->user()->customer_type === 'langganan'): ?>
                     <p class="mb-2 fw-semibold" style="color: #f08a24; font-size: 0.85rem;">
                         Langganan: Rp <?php echo e(number_format($item->harga_jual_langganan ?? $item->harga_jual_umum, 0, ',', '.')); ?>
 
@@ -52,7 +52,7 @@
 
             
             <?php if(auth()->guard()->check()): ?>
-                <?php if(!auth()->user()->isAdmin()): ?>
+                <?php if(auth()->user()->isCustomer()): ?>
                     <form action="<?php echo e(route('cart.add', $item->kd_produk)); ?>" method="POST" class="add-to-cart-form mt-2">
                         <?php echo csrf_field(); ?>
                         <button type="submit" class="btn w-100 py-2 d-flex align-items-center justify-content-center gap-1"

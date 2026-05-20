@@ -117,6 +117,7 @@ class AdminOrderController extends Controller
 
         $order->update([
             'order_status' => $data['order_status'],
+            'completed_at' => $data['order_status'] === 'completed' ? now() : $order->completed_at,
         ]);
 
         $statusLabel = [

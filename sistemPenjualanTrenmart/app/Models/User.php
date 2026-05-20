@@ -62,6 +62,27 @@ class User extends \Illuminate\Foundation\Auth\User
         return $this->role === 'kasir';
     }
 
+    public function isCustomer(): bool
+    {
+        return $this->role === 'customer';
+    }
+
+    public function isInternalStaff(): bool
+    {
+        return $this->isAdmin() || $this->isCashier();
+    }
+
+    public function roleLabel(): string
+    {
+        return match ($this->role) {
+            'owner' => 'Pemilik',
+            'admin' => 'Administrator',
+            'kasir' => 'Kasir',
+            'customer' => $this->customer_type === 'langganan' ? 'Pelanggan Langganan' : 'Pelanggan Umum',
+            default => ucfirst((string) $this->role),
+        };
+    }
+
     // 2. Cek apakah user adalah Customer Langganan yang SUDAH DISETUJUI
     public function isVerifiedMember(): bool
     {

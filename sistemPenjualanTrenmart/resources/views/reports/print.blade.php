@@ -1,88 +1,205 @@
-@extends('layouts.app')
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ $title ?? 'Laporan Penjualan' }}</title>
+    <style>
+        @page {
+            margin: 18mm 14mm;
+        }
 
-@section('content')
-<div class="container my-5">
-    <div class="row">
-        <div class="col-12 text-center mb-4">
-            <img src="{{ asset('images/logo-trenmart.png') }}" alt="Trenmart" style="height:60px;" />
-            <h2 class="fw-bold mt-2">Laporan Penjualan</h2>
-            <div class="small text-muted">Periode: {{ $period }}</div>
-            <div class="small text-muted">Tipe Pelanggan: {{ request()->query('type','all') === 'all' ? 'Gabungan' : (request()->query('type') === 'langganan' ? 'Langganan' : 'Umum') }}</div>
-        </div>
+        body {
+            font-family: DejaVu Sans, Arial, sans-serif;
+            font-size: 11px;
+            color: #111827;
+            margin: 0;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 18px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .header .period {
+            margin-top: 6px;
+            font-size: 12px;
+        }
+
+        .meta {
+            width: 100%;
+            border-bottom: 2px solid #222;
+            margin-bottom: 14px;
+            padding-bottom: 8px;
+        }
+
+        .meta td {
+            vertical-align: top;
+        }
+
+        .meta .right {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .company-name {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        table.report {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table.report thead th {
+            background: #efefef;
+            border: 1px solid #d1d5db;
+            padding: 8px 6px;
+            font-size: 10.5px;
+            text-align: left;
+        }
+
+        table.report td {
+            border: 1px solid #e5e7eb;
+            padding: 8px 6px;
+            vertical-align: top;
+        }
+
+        table.report tfoot th {
+            border: 1px solid #d1d5db;
+            background: #e5e7eb;
+            padding: 8px 6px;
+        }
+
+        .num {
+            width: 34px;
+            text-align: center;
+        }
+
+        .order-no {
+            width: 120px;
+        }
+
+        .date {
+            width: 128px;
+            white-space: nowrap;
+        }
+
+        .customer {
+            width: 110px;
+        }
+
+        .total {
+            width: 110px;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .items ul {
+            margin: 0;
+            padding-left: 16px;
+        }
+
+        .items li {
+            margin: 0 0 2px 0;
+        }
+
+        .signature {
+            margin-top: 28px;
+            width: 100%;
+        }
+
+        .signature .box {
+            width: 220px;
+            margin-left: auto;
+            text-align: left;
+        }
+
+        .muted {
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Laporan Penjualan</h1>
+        <div class="period">{{ $period }}</div>
     </div>
 
-    <div class="mb-3 no-print">
-        <a href="{{ route('beranda') }}" class="btn btn-outline-secondary">&larr; Kembali ke Beranda</a>
-    </div>
+    <table class="meta">
+        <tr>
+            <td>
+                <div class="company-name">Trenmart</div>
+                Jl. Pasar Baru No. 123<br>
+                Telp: (021) 000-0000
+            </td>
+            <td class="right muted">Dicetak: {{ $generated_at->format('d M Y H:i') }}</td>
+        </tr>
+    </table>
 
-    <div class="mb-4">
-        <table class="table table-borderless" style="border-bottom: 3px solid #333;">
+    <table class="report">
+        <thead>
             <tr>
-                <td>
-                    <strong>Trenmart</strong><br>
-                    Jl. Pasar Baru No. 123<br>
-                    Telp: (021) 000-0000
-                </td>
-                <td class="text-end small text-muted">Dicetak: {{ $generated_at->format('d M Y H:i') }}</td>
+                <th class="num">No.</th>
+                <th class="date">Tanggal/Waktu Selesai</th>
+                <th class="order-no">No. Pesanan</th>
+                <th class="customer">Pelanggan</th>
+                <th>Isi Pesanan</th>
+                <th class="total">Total (Rp)</th>
             </tr>
-        </table>
-    </div>
-
-    <div class="mb-4">
-        <table class="table table-striped">
-            <thead>
+        </thead>
+        <tbody>
+            @php $idx = 1; $grand = 0; @endphp
+            @forelse($orders as $o)
+                @php
+                    $grand += $o->total;
+                    $completedAt = $o->completed_at ?? $o->updated_at;
+                @endphp
                 <tr>
-                    <th>No.</th>
-                    <th>No. Pesanan</th>
-                    <th>Tanggal</th>
-                    <th>Pelanggan</th>
-                    <th class="text-end">Total (Rp)</th>
-                    <th>Tipe Pelanggan</th>
+                    <td class="num">{{ $idx++ }}</td>
+                    <td class="date">{{ $completedAt ? $completedAt->format('d M Y H:i') : '-' }}</td>
+                    <td class="order-no">#{{ $o->order_number }}</td>
+                    <td class="customer">{{ $o->user?->name ?? 'Guest' }}</td>
+                    <td class="items">
+                        <ul>
+                            @forelse($o->items as $item)
+                                <li>{{ $item->produk?->nama_produk ?? $item->kd_produk }} x {{ $item->quantity }}</li>
+                            @empty
+                                <li>-</li>
+                            @endforelse
+                        </ul>
+                    </td>
+                    <td class="total">{{ number_format($o->total, 0, ',', '.') }}</td>
                 </tr>
-            </thead>
-            <tbody>
-                @php $idx = 1; $grand = 0; @endphp
-                @foreach($orders as $o)
-                    @php $grand += $o->total; @endphp
-                    <tr>
-                        <td>{{ $idx++ }}</td>
-                        <td>#{{ $o->order_number }}</td>
-                        <td>{{ $o->created_at->format('d M Y H:i') }}</td>
-                        <td>{{ $o->user?->name ?? 'Guest' }}</td>
-                        <td class="text-end">{{ number_format($o->total,0,',','.') }}</td>
-                        <td>{{ $o->user?->customer_type ?? 'umum' }}</td>
-                    </tr>
-                @endforeach
-            </tbody>
-            <tfoot>
+            @empty
                 <tr>
-                    <th colspan="4" class="text-end">Grand Total</th>
-                    <th class="text-end">Rp {{ number_format($grand,0,',','.') }}</th>
-                    <th></th>
+                    <td colspan="6" style="text-align:center; padding: 18px 6px;">Tidak ada pesanan selesai pada periode ini.</td>
                 </tr>
-            </tfoot>
-        </table>
-    </div>
+            @endforelse
+        </tbody>
+        <tfoot>
+            <tr>
+                <th colspan="5" class="total" style="text-align:right;">Grand Total</th>
+                <th class="total">Rp {{ number_format($grand, 0, ',', '.') }}</th>
+            </tr>
+        </tfoot>
+    </table>
 
-    <div class="mt-5 d-flex justify-content-between">
-        <div>
-            <p class="mb-0">Mengetahui,</p>
-            <p class="fw-bold mt-4">Pemilik Trenmart</p>
-        </div>
-        <div class="text-end">
-            @php $type = request()->query('type','all'); @endphp
-            @if(str_contains(request()->path(), 'monthly'))
-                <a href="{{ route('reports.monthly.pdf') }}?type={{ $type }}" class="btn btn-primary">Download PDF</a>
-            @else
-                <a href="{{ route('reports.weekly.pdf') }}?type={{ $type }}" class="btn btn-primary">Download PDF</a>
-            @endif
-        </div>
-    </div>
-</div>
-@endsection
-
-<style>
-    @media print {
-        .btn, .navbar, .no-print { display: none !important; }
-    }
-</style>
+    <table class="signature">
+        <tr>
+            <td>
+                Mengetahui,<br><br><br>
+                Pemilik Trenmart
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

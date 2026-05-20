@@ -30,7 +30,7 @@
                             <td>{{ $u->kd_pelanggan ?? '-' }}</td>
                             <td>{{ $u->name }}</td>
                             <td>{{ $u->email }}</td>
-                            <td>{{ strtoupper($u->role) }}</td>
+                            <td>{{ $u->roleLabel() }}</td>
                             <td>{{ $u->customer_type ?? '-' }}</td>
                             <td>{{ $u->created_at ? $u->created_at->format('d M Y') : '-' }}</td>
                         </tr>

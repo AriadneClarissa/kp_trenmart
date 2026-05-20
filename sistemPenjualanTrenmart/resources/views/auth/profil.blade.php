@@ -21,12 +21,10 @@
                 <div class="d-flex align-items-center gap-2">
                     <h3 class="fw-bold mb-0">Profil</h3>
                     @php
-                        $statusLabel = $user->isAdmin()
-                            ? 'Administrator'
-                            : ($user->customer_type === 'langganan' ? 'Pelanggan Langganan' : 'Pelanggan Umum');
-                        $statusClass = $user->isAdmin()
+                        $statusLabel = $user->roleLabel();
+                        $statusClass = $user->isOwner()
                             ? 'bg-dark'
-                            : ($user->customer_type === 'langganan' ? 'bg-warning text-dark' : 'bg-secondary');
+                            : ($user->isCashier() ? 'bg-warning text-dark' : ($user->isAdmin() ? 'bg-primary' : ($user->customer_type === 'langganan' ? 'bg-warning text-dark' : 'bg-secondary')));
                     @endphp
                     <span class="badge rounded-pill {{ $statusClass }} text-uppercase py-2 px-3 shadow-sm" style="font-size: 0.7rem; letter-spacing: 0.04em;">
                         {{ $statusLabel }}
@@ -55,7 +53,7 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label small fw-bold">Email</label>
-                                @if($user->customer_type === 'langganan' && !$user->isAdmin())
+                                @if($user->customer_type === 'langganan' && $user->isCustomer())
                                     <input type="email" name="email" class="form-control profile-input" value="{{ old('email', $user->email) }}" disabled required>
                                     <small class="text-muted d-block mt-1">Email ini bisa diganti dengan email asli Anda.</small>
                                 @else
@@ -63,7 +61,7 @@
                                 @endif
                             </div>
 
-                            @if(!$user->isAdmin())
+                                @if($user->isCustomer())
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label small fw-bold">Nomor WhatsApp</label>
                                     <input type="text" name="phone_number" class="form-control profile-input" value="{{ old('phone_number', $user->phone_number) }}" disabled required>
@@ -75,7 +73,7 @@
                                 </div>
                             @endif
 
-                            @if($user->customer_type === 'langganan' && !$user->isAdmin())
+                            @if($user->customer_type === 'langganan' && $user->isCustomer())
                                 <div class="col-12 mt-2"><hr class="opacity-25"></div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label small fw-bold">Nama Perusahaan/Toko</label>
@@ -87,10 +85,10 @@
                                 </div>
                             @endif
 
-                            @if($user->isAdmin())
+                            @if($user->isInternalStaff())
                                 <div class="col-12 mt-2">
                                     <div class="alert alert-info border-0 small">
-                                        Anda login sebagai <strong>Administrator</strong>. Anda memiliki akses penuh ke manajemen produk dan persetujuan pelanggan.
+                                        Anda login sebagai <strong>{{ $user->roleLabel() }}</strong>. Anda memiliki akses ke area internal toko sesuai role.
                                     </div>
                                 </div>
                             @endif

@@ -5,11 +5,27 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class ReportController extends Controller
 {
+    private function completedOrdersQuery(Carbon $start, Carbon $end, string $type = 'all')
+    {
+        $query = Order::with(['user', 'items.produk'])
+            ->where('order_status', 'completed')
+            ->whereBetween(DB::raw('COALESCE(completed_at, stock_deducted_at, updated_at)'), [$start, $end]);
+
+        if ($type === 'langganan') {
+            $query->whereHas('user', fn($q) => $q->where('customer_type', 'langganan'));
+        } elseif ($type === 'umum') {
+            $query->whereHas('user', fn($q) => $q->where(function($qq){ $qq->where('customer_type', '!=', 'langganan')->orWhereNull('customer_type'); }));
+        }
+
+        return $query->orderBy('completed_at', 'asc')->orderBy('created_at', 'asc');
+    }
+
     public function index(Request $request)
     {
         abort_unless(Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isOwner()), 403);
@@ -96,13 +112,7 @@ class ReportController extends Controller
 
         $type = $request->query('type', 'all');
 
-        $ordersQuery = Order::with('user')->whereBetween('created_at', [$start, $end])->where('payment_status', '!=', 'rejected');
-        if ($type === 'langganan') {
-            $ordersQuery->whereHas('user', fn($q) => $q->where('customer_type', 'langganan'));
-        } elseif ($type === 'umum') {
-            $ordersQuery->whereHas('user', fn($q) => $q->where(function($qq){ $qq->where('customer_type', '!=', 'langganan')->orWhereNull('customer_type'); }));
-        }
-        $orders = $ordersQuery->get();
+        $orders = $this->completedOrdersQuery($start, $end, $type)->get();
 
         $data = [
             'title' => 'Laporan Penjualan Bulanan',
@@ -126,13 +136,7 @@ class ReportController extends Controller
 
         $type = $request->query('type', 'all');
 
-        $ordersQuery = Order::with('user')->whereBetween('created_at', [$start, $end])->where('payment_status', '!=', 'rejected');
-        if ($type === 'langganan') {
-            $ordersQuery->whereHas('user', fn($q) => $q->where('customer_type', 'langganan'));
-        } elseif ($type === 'umum') {
-            $ordersQuery->whereHas('user', fn($q) => $q->where(function($qq){ $qq->where('customer_type', '!=', 'langganan')->orWhereNull('customer_type'); }));
-        }
-        $orders = $ordersQuery->get();
+        $orders = $this->completedOrdersQuery($start, $end, $type)->get();
 
         $data = [
             'title' => 'Laporan Penjualan Bulanan',
@@ -155,13 +159,7 @@ class ReportController extends Controller
 
         $type = $request->query('type', 'all');
 
-        $ordersQuery = Order::with('user')->whereBetween('created_at', [$start, $end])->where('payment_status', '!=', 'rejected');
-        if ($type === 'langganan') {
-            $ordersQuery->whereHas('user', fn($q) => $q->where('customer_type', 'langganan'));
-        } elseif ($type === 'umum') {
-            $ordersQuery->whereHas('user', fn($q) => $q->where(function($qq){ $qq->where('customer_type', '!=', 'langganan')->orWhereNull('customer_type'); }));
-        }
-        $orders = $ordersQuery->get();
+        $orders = $this->completedOrdersQuery($start, $end, $type)->get();
 
         $data = [
             'title' => 'Laporan Penjualan Mingguan',
@@ -182,13 +180,7 @@ class ReportController extends Controller
 
         $type = $request->query('type', 'all');
 
-        $ordersQuery = Order::with('user')->whereBetween('created_at', [$start, $end])->where('payment_status', '!=', 'rejected');
-        if ($type === 'langganan') {
-            $ordersQuery->whereHas('user', fn($q) => $q->where('customer_type', 'langganan'));
-        } elseif ($type === 'umum') {
-            $ordersQuery->whereHas('user', fn($q) => $q->where(function($qq){ $qq->where('customer_type', '!=', 'langganan')->orWhereNull('customer_type'); }));
-        }
-        $orders = $ordersQuery->get();
+        $orders = $this->completedOrdersQuery($start, $end, $type)->get();
 
         $data = [
             'title' => 'Laporan Penjualan Mingguan',

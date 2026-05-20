@@ -226,7 +226,7 @@
         </a>
         
         <div class="d-flex d-lg-none ms-auto me-2 align-items-center">
-            <?php if(!Auth::check() || (Auth::check() && !Auth::user()->isAdmin())): ?>
+            <?php if(!Auth::check() || (Auth::check() && Auth::user()->isCustomer())): ?>
                 <?php $cartCount = Auth::check() ? \App\Models\Keranjang::where('user_id', Auth::id())->sum('jumlah') : 0; ?>
                 <a href="<?php echo e(route('cart.index')); ?>" class="me-3 icon-nav position-relative">
                     <i class="bi bi-cart3"></i>
@@ -250,7 +250,7 @@
                 </li>
                 <li class="nav-item">
                     <?php if(auth()->guard()->check()): ?>
-                        <?php if(auth()->user()->isAdmin()): ?>
+                        <?php if(auth()->user()->isInternalStaff()): ?>
                             <a class="nav-link <?php echo e(Request::is('admin/produk*') ? 'active' : ''); ?>" href="<?php echo e(route('produk.index')); ?>">Produk</a>
                         <?php else: ?>
                             <a class="nav-link <?php echo e(Request::is('katalog*') ? 'active' : ''); ?>" href="<?php echo e(route('katalog')); ?>">Produk</a>
@@ -260,8 +260,8 @@
                     <?php endif; ?>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link <?php echo e(auth()->check() && auth()->user()->isAdmin() ? (Request::is('admin/orders*') ? 'active' : '') : (Request::is('pesanan*') ? 'active' : '')); ?>"
-                       href="<?php echo e(auth()->check() && auth()->user()->isAdmin() ? route('admin.orders.index') : route('pesanan.index')); ?>">
+                    <a class="nav-link <?php echo e(auth()->check() && auth()->user()->isInternalStaff() ? (Request::is('admin/orders*') ? 'active' : '') : (Request::is('pesanan*') ? 'active' : '')); ?>"
+                       href="<?php echo e(auth()->check() && auth()->user()->isInternalStaff() ? route('admin.orders.index') : route('pesanan.index')); ?>">
                         Pesanan
                     </a>
                 </li>
@@ -271,7 +271,7 @@
             </ul>
 
             <div class="d-flex flex-column flex-lg-row align-items-lg-center ms-auto">
-                <form class="d-flex mb-3 mb-lg-0 me-lg-3 w-100" action="<?php echo e(Auth::check() && Auth::user()->isAdmin() ? route('produk.index') : route('katalog')); ?>" method="GET">
+                <form class="d-flex mb-3 mb-lg-0 me-lg-3 w-100" action="<?php echo e(Auth::check() && Auth::user()->isInternalStaff() ? route('produk.index') : route('katalog')); ?>" method="GET">
                     <div class="input-group w-100">
                         <input name="search" class="form-control search-bar" type="search" placeholder="Cari produk..." value="<?php echo e(request('search')); ?>">
                         <button class="btn btn-search" type="submit"><i class="bi bi-search"></i></button>
@@ -279,7 +279,7 @@
                 </form>
 
                 <div class="d-flex align-items-center justify-content-between justify-content-lg-end">
-                    <?php if(!Auth::check() || (Auth::check() && !Auth::user()->isAdmin())): ?>
+                    <?php if(!Auth::check() || (Auth::check() && Auth::user()->isCustomer())): ?>
                         <a href="<?php echo e(route('cart.index')); ?>" class="me-3 position-relative icon-nav d-none d-lg-flex">
                             <i class="bi bi-cart3"></i>
                             <?php if(isset($cartCount) && $cartCount > 0): ?>
@@ -385,8 +385,12 @@
                                 <li>
                                     <div class="dropdown-header text-dark border-bottom mb-2">
                                         <div class="fw-bold">Halo, <?php echo e(auth()->user()->name); ?></div>
-                                        <?php if(auth()->user()->isAdmin()): ?>
-                                            <span class="badge rounded-pill bg-primary-subtle text-primary-emphasis border border-primary-subtle mt-1">Admin</span>
+                                                <?php if(auth()->user()->isOwner()): ?>
+                                                    <span class="badge rounded-pill bg-dark text-white border border-dark mt-1">Pemilik</span>
+                                                <?php elseif(auth()->user()->isAdmin()): ?>
+                                                    <span class="badge rounded-pill bg-primary-subtle text-primary-emphasis border border-primary-subtle mt-1">Admin</span>
+                                                <?php elseif(auth()->user()->isCashier()): ?>
+                                                    <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis border border-warning-subtle mt-1">Kasir</span>
                                         <?php elseif(auth()->user()->customer_type === 'langganan'): ?>
                                             <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis border border-warning-subtle mt-1">Pelanggan Langganan</span>
                                         <?php else: ?>

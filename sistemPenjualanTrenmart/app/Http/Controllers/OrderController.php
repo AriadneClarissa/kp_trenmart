@@ -72,6 +72,7 @@ class OrderController extends Controller
 
         $order->update([
             'order_status' => 'completed',
+            'completed_at' => now(),
         ]);
 
         try {

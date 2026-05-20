@@ -299,7 +299,7 @@
                                     </h4>
                                     
                                     
-                                    <?php if(!Auth::check() || (Auth::check() && !Auth::user()->isAdmin())): ?>
+                                    <?php if(!Auth::check() || (Auth::check() && Auth::user()->isCustomer())): ?>
                                         
                                         <span class="btn-tambah-card shadow-sm d-flex align-items-center justify-content-center" style="position: relative; z-index: 2;">
                                             <i class="bi bi-plus-lg me-1"></i> Tambah

@@ -296,7 +296,7 @@
                                     </h4>
                                     
                                     {{-- Tombol Tambah (khusus pelanggan) --}}
-                                    @if(!Auth::check() || (Auth::check() && !Auth::user()->isAdmin()))
+                                    @if(!Auth::check() || (Auth::check() && Auth::user()->isCustomer()))
                                         {{-- Gunakan span karena aksi klik sudah diambil alih oleh stretched-link di atas --}}
                                         <span class="btn-tambah-card shadow-sm d-flex align-items-center justify-content-center" style="position: relative; z-index: 2;">
                                             <i class="bi bi-plus-lg me-1"></i> Tambah

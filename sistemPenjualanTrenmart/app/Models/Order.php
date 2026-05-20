@@ -7,7 +7,12 @@ use Illuminate\Support\Facades\DB;
 
 class Order extends Model
 {
-    protected $fillable = ['order_number','user_id','total','payment_method_id','pickup_method','shipping_address','shipping_distance_km','shipping_cost','payment_status','order_status','payment_proof','stock_deducted_at'];
+    protected $fillable = ['order_number','user_id','total','payment_method_id','pickup_method','shipping_address','shipping_distance_km','shipping_cost','payment_status','order_status','payment_proof','stock_deducted_at','completed_at'];
+
+    protected $casts = [
+        'stock_deducted_at' => 'datetime',
+        'completed_at' => 'datetime',
+    ];
 
     public function items()
     {

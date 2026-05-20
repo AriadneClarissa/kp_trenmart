@@ -39,7 +39,7 @@
 
             {{-- Harga Langganan (Muncul untuk Admin atau User tipe Langganan) --}}
             @auth
-                @if(auth()->user()->isAdmin() || auth()->user()->customer_type === 'langganan')
+                @if(auth()->user()->isInternalStaff() || auth()->user()->customer_type === 'langganan')
                     <p class="mb-2 fw-semibold" style="color: #f08a24; font-size: 0.85rem;">
                         Langganan: Rp {{ number_format($item->harga_jual_langganan ?? $item->harga_jual_umum, 0, ',', '.') }}
                     </p>
@@ -48,7 +48,7 @@
 
             {{-- Tombol Tambah (Hanya untuk Pelanggan) --}}
             @auth
-                @if(!auth()->user()->isAdmin())
+                @if(auth()->user()->isCustomer())
                     <form action="{{ route('cart.add', $item->kd_produk) }}" method="POST" class="add-to-cart-form mt-2">
                         @csrf
                         <button type="submit" class="btn w-100 py-2 d-flex align-items-center justify-content-center gap-1"
