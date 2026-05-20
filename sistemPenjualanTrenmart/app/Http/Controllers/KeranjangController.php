@@ -6,6 +6,7 @@ use App\Models\Keranjang;
 use App\Models\Produk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\URL;
 
 class KeranjangController extends Controller
 {
@@ -14,7 +15,7 @@ class KeranjangController extends Controller
      */
     public function index()
     {
-        $previousUrl = url()->previous();
+        $previousUrl = URL::previous();
         if ($previousUrl && !str_contains($previousUrl, '/keranjang')) {
             session(['cart_back_url' => $previousUrl]);
         }
@@ -124,15 +125,27 @@ class KeranjangController extends Controller
     }
 
     /**
+     * Menghapus semua item di keranjang milik user login
+     */
+    public function clearAll()
+    {
+        Keranjang::where('user_id', Auth::id())->delete();
+
+        return back()->with('success', 'Semua item berhasil dihapus dari keranjang.');
+    }
+
+    /**
      * Update jumlah (Opsional: Jika kamu ingin tambah tombol +/- di halaman keranjang)
      */
     public function update(Request $request, $id)
     {
         $item = Keranjang::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
-        
-        if ($request->action == 'increase') {
+
+        $action = $request->input('action');
+
+        if ($action == 'increase') {
             $item->increment('jumlah');
-        } elseif ($request->action == 'decrease' && $item->jumlah > 1) {
+        } elseif ($action == 'decrease' && $item->jumlah > 1) {
             $item->decrement('jumlah');
         }
 

@@ -1,5 +1,23 @@
 <?php $__env->startSection('content'); ?>
 <div class="container mt-3 mt-md-4 mb-5">
+
+    <style>
+        .admin-quick-btn {
+            border-radius: 999px;
+            padding: 0.55rem 1.05rem;
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+            font-weight: 600;
+            line-height: 1.1;
+        }
+
+        .admin-quick-btn i {
+            font-size: 0.95rem;
+        }
+    </style>
     
     
     <div class="banner-wrapper mb-4 position-relative overflow-hidden" style="border-radius: 1rem;">
@@ -45,18 +63,18 @@
                     </div>
                     <div class="col-md-6 text-center text-md-end mt-3 mt-md-0">
                         <div class="d-flex align-items-center justify-content-center justify-content-md-end" style="gap:12px;">
-                            <a href="<?php echo e(route('bundling.create', ['source' => 'beranda'])); ?>" class="btn btn-success rounded-pill px-4 shadow-sm">
+                            <a href="<?php echo e(route('bundling.create', ['source' => 'beranda'])); ?>" class="btn btn-success shadow-sm admin-quick-btn">
                                 <i class="bi bi-plus-lg me-2"></i> Tambah Bundling
                             </a>
 
                             <?php if(auth()->user()->isOwner()): ?>
-                            <button id="btnOpenReports" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                            <button id="btnOpenReports" class="btn btn-primary shadow-sm admin-quick-btn">
                                 <i class="bi bi-file-earmark-text me-2"></i> Laporan
                             </button>
                             <?php endif; ?>
 
                             <?php if(auth()->user()->isOwner()): ?>
-                                <a href="<?php echo e(route('admin.logs.index')); ?>" class="btn btn-secondary rounded-pill px-4 shadow-sm">
+                                <a href="<?php echo e(route('admin.logs.index')); ?>" class="btn btn-secondary shadow-sm admin-quick-btn">
                                     <i class="bi bi-journal-text me-2"></i> Lihat Log Aktivitas
                                 </a>
                             <?php endif; ?>

@@ -9,7 +9,9 @@ use App\Models\BerandaSetting;
 use App\Models\Order;
 use App\Models\PaymentMethod;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class CheckoutController extends Controller
 {
@@ -77,6 +79,13 @@ class CheckoutController extends Controller
             $rows = $fallbackResponse->successful() ? $fallbackResponse->json() : [];
         }
 
+        // Log query and suggestion count to help debugging why suggestions may be empty
+        \Illuminate\Support\Facades\Log::info('addressSuggestions: query', [
+            'q' => $data['q'],
+            'initial_count' => is_array($response->successful() ? $response->json() : []) ? count($response->successful() ? $response->json() : []) : 0,
+            'final_count' => is_array($rows) ? count($rows) : 0,
+        ]);
+
         $payload = collect($rows)
             ->map(function ($row) {
                 return [
@@ -99,6 +108,8 @@ class CheckoutController extends Controller
         $data = $request->validate([
             'pickup_method' => 'required|in:delivery,pickup',
             'shipping_address' => 'nullable|string|max:500',
+            'shipping_lat' => 'nullable|numeric',
+            'shipping_lon' => 'nullable|numeric',
         ]);
 
         if ($data['pickup_method'] === 'pickup') {
@@ -116,7 +127,14 @@ class CheckoutController extends Controller
             ], 422);
         }
 
-        $quote = $this->calculateShipping($this->getStoreAddress(), $data['shipping_address']);
+        $quote = $this->calculateShipping(
+            $this->getStoreAddress(),
+            $data['shipping_address'],
+            isset($data['shipping_lat'], $data['shipping_lon']) ? [
+                'lat' => (float) $data['shipping_lat'],
+                'lon' => (float) $data['shipping_lon'],
+            ] : null
+        );
 
         return response()->json([
             'success' => true,
@@ -127,70 +145,90 @@ class CheckoutController extends Controller
 
     public function placeOrder(Request $request)
     {
-        $data = $request->validate([
-            'payment_method_id' => 'required|exists:payment_methods,id',
-            'pickup_method' => 'required|in:delivery,pickup',
-            'shipping_address' => 'nullable|string|max:500',
-        ]);
+        try {
+            $data = $request->validate([
+                'payment_method_id' => 'required|exists:payment_methods,id',
+                'pickup_method' => 'required|in:delivery,pickup',
+                'shipping_address' => 'nullable|string|max:500',
+                'shipping_lat' => 'nullable|numeric',
+                'shipping_lon' => 'nullable|numeric',
+            ]);
 
-        $user = Auth::user();
-        $cartItems = Keranjang::with(['produk', 'bundling'])->where('user_id', $user->id)->get();
+            $user = Auth::user();
+            $cartItems = Keranjang::with(['produk', 'bundling'])->where('user_id', $user->id)->get();
 
-        if ($cartItems->isEmpty()) {
-            return redirect()->route('cart.index')->with('error', 'Keranjang Anda kosong.');
-        }
-
-        $subtotal = 0;
-        foreach ($cartItems as $item) {
-            $harga = $item->bundling_id
-                ? $item->bundling->bundling_price
-                : ($item->harga_at_time ?? $item->produk->harga_jual_umum);
-            $subtotal += $harga * $item->jumlah;
-        }
-
-        $shippingAddress = trim((string) ($data['shipping_address'] ?? ''));
-        $shippingDistanceKm = 0;
-        $shippingCost = 0;
-
-        if ($data['pickup_method'] === 'delivery') {
-            if ($shippingAddress === '') {
-                return back()->withErrors(['shipping_address' => 'Alamat pengiriman wajib diisi untuk delivery.'])->withInput();
+            if ($cartItems->isEmpty()) {
+                return redirect()->route('cart.index')->with('error', 'Keranjang Anda kosong.');
             }
 
-            $quote = $this->calculateShipping($this->getStoreAddress(), $shippingAddress);
-            $shippingDistanceKm = $quote['distance_km'];
-            $shippingCost = $quote['shipping_cost'];
-        }
+            $subtotal = 0;
+            foreach ($cartItems as $item) {
+                $harga = $item->bundling_id
+                    ? $item->bundling->bundling_price
+                    : ($item->harga_at_time ?? $item->produk->harga_jual_umum);
+                $subtotal += $harga * $item->jumlah;
+            }
 
-        $order = Order::create([
-            'order_number' => 'TRM-' . now()->format('YmdHis') . '-' . Str::upper(Str::random(4)),
-            'user_id' => $user->id,
-            'total' => $subtotal + $shippingCost,
-            'payment_method_id' => $data['payment_method_id'],
-            'pickup_method' => $data['pickup_method'],
-            'shipping_address' => $data['pickup_method'] === 'delivery' ? $shippingAddress : null,
-            'shipping_distance_km' => $data['pickup_method'] === 'delivery' ? $shippingDistanceKm : null,
-            'shipping_cost' => $shippingCost,
-            'payment_status' => 'pending',
-            'order_status' => 'new',
-        ]);
+            $shippingAddress = trim((string) ($data['shipping_address'] ?? ''));
+            $shippingCoordinates = isset($data['shipping_lat'], $data['shipping_lon'])
+                ? [
+                    'lat' => (float) $data['shipping_lat'],
+                    'lon' => (float) $data['shipping_lon'],
+                ]
+                : null;
+            $shippingDistanceKm = 0;
+            $shippingCost = 0;
 
-        foreach ($cartItems as $item) {
-            $harga = $item->bundling_id
-                ? $item->bundling->bundling_price
-                : ($item->harga_at_time ?? $item->produk->harga_jual_umum);
+            $order = DB::transaction(function () use ($data, $user, $cartItems, $subtotal, $shippingAddress, $shippingCoordinates, &$shippingDistanceKm, &$shippingCost) {
+            if ($data['pickup_method'] === 'delivery') {
+                if ($shippingAddress === '') {
+                    throw new \RuntimeException('Alamat pengiriman wajib diisi untuk delivery.');
+                }
 
-            $order->items()->create([
-                'kd_produk' => $item->kd_produk,
-                'quantity' => $item->jumlah,
-                'price' => $harga,
+                $quote = $this->calculateShipping($this->getStoreAddress(), $shippingAddress, $shippingCoordinates);
+                $shippingDistanceKm = $quote['distance_km'];
+                $shippingCost = $quote['shipping_cost'];
+            }
+
+            $order = Order::create([
+                'order_number' => 'TRM-' . now()->format('YmdHis') . '-' . Str::upper(Str::random(4)),
+                'user_id' => $user->id,
+                'total' => $subtotal + $shippingCost,
+                'payment_method_id' => $data['payment_method_id'],
+                'pickup_method' => $data['pickup_method'],
+                'shipping_address' => $data['pickup_method'] === 'delivery' ? $shippingAddress : null,
+                'shipping_distance_km' => $data['pickup_method'] === 'delivery' ? $shippingDistanceKm : null,
+                'shipping_cost' => $shippingCost,
+                'payment_status' => 'pending',
+                'order_status' => 'new',
             ]);
+
+            foreach ($cartItems as $item) {
+                $harga = $item->bundling_id
+                    ? $item->bundling->bundling_price
+                    : ($item->harga_at_time ?? $item->produk->harga_jual_umum);
+
+                $order->items()->create([
+                    'kd_produk' => $item->kd_produk,
+                    'quantity' => $item->jumlah,
+                    'price' => $harga,
+                ]);
+            }
+
+            $order->load('items.produk');
+            $order->deductStockForCompletedOrder();
+
+            return $order;
+            });
+
+            // Jangan hapus keranjang di sini - hapus setelah payment proof diverifikasi
+            // Ini agar user bisa kembali dan keranjang masih tersedia
+
+            return redirect()->route('checkout.upload_proof', $order->id)->with('success', 'Pesanan berhasil dibuat. Silakan unggah bukti pembayaran.');
+        } catch (\Throwable $e) {
+            report($e);
+            return back()->withInput()->with('error', $e->getMessage() ?: 'Gagal membuat pesanan.');
         }
-
-        // Jangan hapus keranjang di sini - hapus setelah payment proof diverifikasi
-        // Ini agar user bisa kembali dan keranjang masih tersedia
-
-        return redirect()->route('checkout.upload_proof', $order->id)->with('success', 'Pesanan berhasil dibuat. Silakan unggah bukti pembayaran.');
     }
 
     // HALAMAN UPLOAD BUKTI (Setelah buat order)
@@ -214,8 +252,9 @@ class CheckoutController extends Controller
         if ($request->hasFile('bukti_pembayaran')) {
             $path = $request->file('bukti_pembayaran')->store('bukti_transfer', 'public');
             
+            // Save to the `payment_proof` column which the Order model expects
             $order->update([
-                'bukti_pembayaran' => $path,
+                'payment_proof' => $path,
                 'status' => 'menunggu_verifikasi',
                 'payment_status' => 'waiting_confirmation',
             ]);
@@ -238,18 +277,33 @@ class CheckoutController extends Controller
         return view('checkout.waiting', compact('order'));
     }
 
-    private function getStoreAddress(): string
+    public function getStoreAddress(): string
     {
-        return BerandaSetting::where('key', 'tentang_alamat')->value('value')
-            ?: 'Jl. Pasar Baru No. 123, Indonesia';
+        // Tetapkan alamat toko Trenmart secara eksplisit agar perhitungan jarak konsisten.
+        // Jika Anda ingin mengubahnya lewat dashboard, ganti return ini menjadi nilai dari BerandaSetting.
+        return 'Jl. Jenderal Ahmad Yani, Tangga Takat, Kec. Seberang Ulu II, Kota Palembang, Sumatera Selatan 30265';
     }
 
-    private function calculateShipping(string $storeAddress, string $customerAddress): array
+    public function calculateShipping(string $storeAddress, string $customerAddress, ?array $customerCoordinates = null): array
     {
         $storeCoordinates = $this->geocodeAddress($storeAddress);
-        $customerCoordinates = $this->geocodeAddress($customerAddress);
+        $customerCoordinates = $customerCoordinates ?: $this->geocodeAddress($customerAddress);
+
+        // Log hasil geocoding untuk membantu diagnosis alamat yang ambiguous atau gagal.
+        Log::info('calculateShipping: geocode results', [
+            'store_address' => $storeAddress,
+            'store_coordinates' => $storeCoordinates,
+            'customer_address' => $customerAddress,
+            'customer_coordinates' => $customerCoordinates,
+            'customer_coordinates_source' => $customerCoordinates ? 'provided_or_geocoded' : 'missing',
+        ]);
 
         if (!$storeCoordinates || !$customerCoordinates) {
+            Log::warning('calculateShipping: geocoding failed, applying fallback shipping cost', [
+                'store_address' => $storeAddress,
+                'customer_address' => $customerAddress,
+            ]);
+
             return [
                 'distance_km' => null,
                 'shipping_cost' => 15000,
@@ -266,6 +320,13 @@ class CheckoutController extends Controller
         $shippingCost = $distanceKm < 5
             ? 0
             : max(0, (int) floor($distanceKm / 5) * 5000);
+
+        // Log computed distance and cost for observability
+        Log::info('calculateShipping: computed', [
+            'distance_km' => $distanceKm,
+            'rounded_distance_km' => round($distanceKm, 2),
+            'shipping_cost' => $shippingCost,
+        ]);
 
         return [
             'distance_km' => round($distanceKm, 2),

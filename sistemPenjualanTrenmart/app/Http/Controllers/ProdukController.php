@@ -161,7 +161,7 @@ class ProdukController extends Controller
     // --- Bagian Manajemen Admin ---
 
     public function createBeranda() { return $this->createForm('beranda'); }
-    public function create() { return $this->createForm('layar_produk'); }
+    public function create() { abort_unless(Auth::check() && Auth::user()->isAdmin(), 403); return $this->createForm('layar_produk'); }
 
     private function createForm($source)
     {
@@ -175,6 +175,8 @@ class ProdukController extends Controller
 
     public function store(Request $request)
     {
+        abort_unless(Auth::check() && Auth::user()->isAdmin(), 403);
+
         // 1. Validasi Input
         $request->validate([
             'kd_produk'       => 'required|unique:produk,kd_produk',
@@ -244,7 +246,7 @@ class ProdukController extends Controller
                 'actor_id' => Auth::id(),
                 'action' => 'create_product',
                 'details' => 'Produk: ' . ($produk->nama_produk ?? '') . ' (kd: ' . ($produk->kd_produk ?? '') . ')',
-                'ip_address' => request()->ip(),
+                'ip_address' => $request->ip(),
                 'subject_type' => 'produk',
                 'subject_id' => $produk->kd_produk,
             ]);
@@ -290,6 +292,8 @@ class ProdukController extends Controller
 
     public function edit($kd_produk)
     {
+        abort_unless(Auth::check() && Auth::user()->isAdmin(), 403);
+
         $produk = Produk::where('kd_produk', $kd_produk)->firstOrFail();
         $kategoris = Kategori::all();
         $merks = Merk::all();
@@ -299,6 +303,8 @@ class ProdukController extends Controller
 
     public function update(Request $request, $kd_produk)
     {
+        abort_unless(Auth::check() && Auth::user()->isAdmin(), 403);
+
         $request->validate([
             'nama_produk'          => 'required|string|max:255',
             'harga_jual_umum'      => 'required|numeric',
@@ -367,7 +373,7 @@ class ProdukController extends Controller
                 'actor_id' => Auth::id(),
                 'action' => 'update_product',
                 'details' => 'Updated produk ' . $produk->nama_produk . ' (kd: ' . $produk->kd_produk . ')',
-                'ip_address' => request()->ip(),
+                'ip_address' => $request->ip(),
                 'subject_type' => 'produk',
                 'subject_id' => $produk->kd_produk,
             ]);
@@ -378,8 +384,10 @@ class ProdukController extends Controller
         return redirect()->route('produk.index')->with('success', 'Produk berhasil diperbarui!');
     }
 
-    public function destroy($kd_produk)
+    public function destroy(Request $request, $kd_produk)
     {
+        abort_unless(Auth::check() && Auth::user()->isAdmin(), 403);
+
         $produk = Produk::where('kd_produk', $kd_produk)->firstOrFail();
         
         // Hapus file gambar
@@ -392,7 +400,7 @@ class ProdukController extends Controller
                 'actor_id' => Auth::id(),
                 'action' => 'delete_product',
                 'details' => 'Deleted produk ' . $produk->nama_produk . ' (kd: ' . $produk->kd_produk . ')',
-                'ip_address' => request()->ip(),
+                'ip_address' => $request->ip(),
                 'subject_type' => 'produk',
                 'subject_id' => $produk->kd_produk,
             ]);
@@ -427,6 +435,8 @@ class ProdukController extends Controller
 
     public function updateStatus(Request $request)
     {
+        abort_unless(Auth::check() && Auth::user()->isAdmin(), 403);
+
         // 1. Validasi dengan menangkap pesan error agar tidak langsung 500
         $request->validate([
             // Sesuaikan 'produk' dengan nama tabel asli di SQL Server Anda

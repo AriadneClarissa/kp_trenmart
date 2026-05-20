@@ -19,19 +19,40 @@ class AdminOrderController extends Controller
     public function show($id)
     {
         $order = Order::with(['user', 'items.produk','paymentMethod','messages.user'])->findOrFail($id);
-        return view('admin.orders.show', compact('order'));
+
+        $computedDistance = null;
+        if ($order->shipping_distance_km === null && $order->shipping_address) {
+            try {
+                $checkout = app(\App\Http\Controllers\CheckoutController::class);
+                $quote = $checkout->calculateShipping($checkout->getStoreAddress(), $order->shipping_address);
+                $computedDistance = $quote['distance_km'] ?? null;
+
+                // Persist computed distance and shipping cost if missing
+                if ($computedDistance !== null) {
+                    $order->update([
+                        'shipping_distance_km' => $quote['distance_km'],
+                        'shipping_cost' => $quote['shipping_cost'] ?? $order->shipping_cost,
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                report($e);
+                $computedDistance = null;
+            }
+        }
+
+        return view('admin.orders.show', compact('order', 'computedDistance'));
     }
 
-    public function confirmPayment($id)
+    public function confirmPayment(Request $request, $id)
     {
-        abort_unless(Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isOwner()), 403);
+        abort_unless(Auth::check() && (Auth::user()->isAdmin() || (method_exists(Auth::user(), 'isCashier') && Auth::user()->isCashier())), 403);
         $order = Order::findOrFail($id);
         $order->update([
             'payment_status' => 'confirmed',
             'order_status' => 'processing'
         ]);
 
-        $this->logOrderAction($order, 'confirm_payment', 'Pembayaran dikonfirmasi dan status pesanan diubah menjadi diproses');
+        $this->logOrderAction($order, 'confirm_payment', 'Pembayaran dikonfirmasi dan status pesanan diubah menjadi diproses', $request);
 
         if ($order->user) {
             $order->user->notify(new OrderActivityNotification(
@@ -47,16 +68,16 @@ class AdminOrderController extends Controller
         return back()->with('success','Pembayaran telah dikonfirmasi.');
     }
 
-    public function rejectPayment($id)
+    public function rejectPayment(Request $request, $id)
     {
-        abort_unless(Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isOwner()), 403);
+        abort_unless(Auth::check() && (Auth::user()->isAdmin() || (method_exists(Auth::user(), 'isCashier') && Auth::user()->isCashier())), 403);
         $order = Order::findOrFail($id);
         $order->update([
             'payment_status' => 'rejected',
             'order_status' => 'payment_rejected'
         ]);
 
-        $this->logOrderAction($order, 'reject_payment', 'Pembayaran ditolak');
+        $this->logOrderAction($order, 'reject_payment', 'Pembayaran ditolak', $request);
 
         if ($order->user) {
             $order->user->notify(new OrderActivityNotification(
@@ -74,7 +95,7 @@ class AdminOrderController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
-        abort_unless(Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isOwner()), 403);
+        abort_unless(Auth::check() && (Auth::user()->isAdmin() || (method_exists(Auth::user(), 'isCashier') && Auth::user()->isCashier())), 403);
         $data = $request->validate([
             'order_status' => 'required|in:processing,ready_to_ship,completed',
         ]);
@@ -83,6 +104,15 @@ class AdminOrderController extends Controller
 
         if ($order->payment_status !== 'confirmed') {
             return back()->with('error', 'Pesanan hanya bisa diproses setelah pembayaran dikonfirmasi.');
+        }
+
+        if ($data['order_status'] === 'completed') {
+            try {
+                $order->deductStockForCompletedOrder();
+            } catch (\Throwable $e) {
+                report($e);
+                return back()->with('error', $e->getMessage() ?: 'Gagal mengurangi stok produk.');
+            }
         }
 
         $order->update([
@@ -95,7 +125,7 @@ class AdminOrderController extends Controller
             'completed' => 'selesai diproses',
         ][$data['order_status']] ?? $data['order_status'];
 
-        $this->logOrderAction($order, 'update_order_status', 'Status pesanan diubah menjadi ' . $statusLabel);
+        $this->logOrderAction($order, 'update_order_status', 'Status pesanan diubah menjadi ' . $statusLabel, $request);
 
         if ($order->user) {
             $order->user->notify(new OrderActivityNotification(
@@ -111,14 +141,14 @@ class AdminOrderController extends Controller
         return back()->with('success', 'Status pesanan berhasil diperbarui.');
     }
 
-    private function logOrderAction(Order $order, string $action, string $details): void
+    private function logOrderAction(Order $order, string $action, string $details, Request $request): void
     {
         try {
             ActivityLog::create([
                 'actor_id' => Auth::id(),
                 'action' => $action,
                 'details' => $details . ' (#' . $order->order_number . ')',
-                'ip_address' => request()->ip(),
+                'ip_address' => $request->ip(),
                 'subject_type' => 'order',
                 'subject_id' => $order->id,
             ]);

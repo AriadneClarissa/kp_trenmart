@@ -57,6 +57,11 @@ class User extends \Illuminate\Foundation\Auth\User
         return $this->role === 'owner';
     }
 
+    public function isCashier(): bool
+    {
+        return $this->role === 'kasir';
+    }
+
     // 2. Cek apakah user adalah Customer Langganan yang SUDAH DISETUJUI
     public function isVerifiedMember(): bool
     {

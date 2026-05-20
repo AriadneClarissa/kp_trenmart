@@ -133,6 +133,17 @@
     }
 
     .password-wrapper { position: relative; }
+    .no-native-password-reveal::-ms-reveal,
+    .no-native-password-reveal::-ms-clear {
+        display: none;
+    }
+
+    .no-native-password-reveal::-webkit-credentials-auto-fill-button,
+    .no-native-password-reveal::-webkit-password-toggle-button {
+        display: none !important;
+        visibility: hidden;
+    }
+
     .password-toggle { 
         position: absolute; 
         right: 15px; 
@@ -186,14 +197,14 @@
             <form action="<?php echo e(route('login')); ?>" method="POST">
                 <?php echo csrf_field(); ?>
                 <div class="mb-3">
-                    <label class="form-label">Email Pengguna</label>
-                    <input type="email" name="email" class="form-control form-control-custom" placeholder="Masukkan email Anda" value="<?php echo e(old('email')); ?>" required autofocus>
+                    <label class="form-label">Email atau Kode Pelanggan</label>
+                    <input type="text" name="login" class="form-control form-control-custom" placeholder="Masukkan email atau kode pelanggan" value="<?php echo e(old('login')); ?>" required autofocus>
                 </div>
 
                 <div class="mb-4">
                     <label class="form-label">Kata Sandi</label>
                     <div class="password-wrapper">
-                        <input type="password" name="password" id="password" class="form-control form-control-custom" placeholder="Masukkan kata sandi" required>
+                        <input type="password" name="password" id="password" class="form-control form-control-custom no-native-password-reveal" placeholder="Masukkan kata sandi" required>
                         <i class="bi bi-eye password-toggle" onclick="togglePassword()"></i>
                     </div>
                 </div>

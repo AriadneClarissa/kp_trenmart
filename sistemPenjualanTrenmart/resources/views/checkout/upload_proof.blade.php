@@ -200,11 +200,12 @@
 
     // Fungsi validasi sebelum submit form
     function validateAndSubmit() {
-        const file = document.getElementById('bukti_tf').value;
-        if (!file) {
+        const fileInput = document.getElementById('bukti_tf');
+        if (!fileInput || !fileInput.files || !fileInput.files.length) {
             alert("Harap pilih foto bukti transfer terlebih dahulu!");
             return;
         }
+
         document.getElementById('final-form').submit();
     }
 </script>

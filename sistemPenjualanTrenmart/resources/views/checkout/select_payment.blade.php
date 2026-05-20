@@ -167,6 +167,25 @@
         transition: all 0.2s;
     }
 
+    .search-btn {
+        position: absolute;
+        right: 44px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--maroon-trenmart);
+        cursor: pointer;
+        font-size: 1.05rem;
+        z-index: 20;
+        padding: 6px;
+        transition: all 0.2s;
+    }
+
+    .search-btn.loading {
+        animation: spin 1s linear infinite;
+    }
+
     .geolocation-btn:hover {
         transform: translateY(-50%) scale(1.15);
         color: #600000;
@@ -248,6 +267,8 @@
                 @csrf
                 <input type="hidden" name="shipping_cost" id="shipping_cost" value="{{ $shippingPreview['shipping_cost'] ?? 0 }}">
                 <input type="hidden" name="shipping_distance_km" id="shipping_distance_km" value="{{ $shippingPreview['distance_km'] ?? '' }}">
+                <input type="hidden" name="shipping_lat" id="shipping_lat" value="">
+                <input type="hidden" name="shipping_lon" id="shipping_lon" value="">
                 <div class="card card-custom p-4">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h6 class="fw-bold m-0">Pilih Metode Transfer Bank</h6>
@@ -311,6 +332,9 @@
                         <div class="address-input-wrapper">
                             <div class="address-autocomplete-wrap">
                                 <input type="text" name="shipping_address" id="shipping_address" class="form-control" autocomplete="off" placeholder="Masukkan alamat lengkap rumah / tujuan pengiriman" value="{{ old('shipping_address', $customerAddress ?? auth()->user()->home_address) }}">
+                                <button type="button" id="search-address-btn" class="search-btn" title="Cari alamat yang diketik">
+                                    <i class="bi bi-search"></i>
+                                </button>
                                 <button type="button" id="geolocation-btn" class="geolocation-btn" title="Gunakan lokasi saat ini">
                                     <i class="bi bi-geo-alt-fill"></i>
                                 </button>
@@ -351,9 +375,12 @@
                     <span>Subtotal</span>
                     <span class="fw-bold text-dark">Rp {{ number_format($total, 0, ',', '.') }}</span>
                 </div>
-                <div class="d-flex justify-content-between mb-4 small text-muted">
+                <div class="d-flex justify-content-between mb-1 small text-muted">
                     <span>Ongkos Kirim</span>
                     <span class="fw-bold text-dark" id="shipping-cost-label">Rp {{ number_format($shippingPreview['shipping_cost'] ?? 0, 0, ',', '.') }}</span>
+                </div>
+                <div class="mb-3">
+                    <div class="small text-muted" id="shipping-distance-text">Jarak: {{ isset($shippingPreview['distance_km']) && $shippingPreview['distance_km'] !== null ? number_format($shippingPreview['distance_km'], 2, ',', '.') . ' km' : '-' }}</div>
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -404,24 +431,66 @@
 
         try {
             const url = `{{ route('checkout.address_suggestions') }}?q=${encodeURIComponent(query)}`;
-            console.log('📡 Fetching:', url);
-            
+            console.log('📡 Fetching server suggestions:', url);
+
             const response = await fetch(url);
             const data = await response.json();
-            
-            console.log('✅ Response:', data);
+
+            console.log('✅ Server response:', data);
 
             if (data.success && Array.isArray(data.suggestions) && data.suggestions.length > 0) {
-                console.log('📍 Got', data.suggestions.length, 'suggestions');
+                console.log('📍 Got', data.suggestions.length, 'server suggestions');
                 renderSuggestions(data.suggestions);
-            } else {
-                console.warn('⚠️ Empty suggestions');
-                hideSuggestionList();
+                return data.suggestions;
             }
-        } catch (error) {
-            console.error('❌ Error:', error);
+
+            console.warn('⚠️ Server returned no suggestions, trying client-side Nominatim fallback');
+
+            // Client-side fallback directly to Nominatim (helps when server-side fails or is blocked)
+            const fallbackUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=jsonv2&limit=6&countrycodes=id`;
+            try {
+                const fbResp = await fetch(fallbackUrl);
+                const fbData = await fbResp.json();
+                const fbSuggestions = (fbData || []).map(item => ({ label: item.display_name || '', lat: item.lat || null, lon: item.lon || null }));
+                if (fbSuggestions.length > 0) {
+                    console.log('📡 Fallback got', fbSuggestions.length, 'suggestions');
+                    renderSuggestions(fbSuggestions);
+                    return fbSuggestions;
+                }
+            } catch (fbErr) {
+                console.warn('Fallback Nominatim error:', fbErr);
+            }
+
             hideSuggestionList();
+            return [];
+        } catch (error) {
+            console.error('❌ Error fetching server suggestions:', error);
+
+            // Try direct client-side Nominatim as last resort
+            try {
+                const fallbackUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=jsonv2&limit=6&countrycodes=id`;
+                const fbResp = await fetch(fallbackUrl);
+                const fbData = await fbResp.json();
+                const fbSuggestions = (fbData || []).map(item => ({ label: item.display_name || '', lat: item.lat || null, lon: item.lon || null }));
+                if (fbSuggestions.length > 0) {
+                    renderSuggestions(fbSuggestions);
+                    return fbSuggestions;
+                }
+            } catch (fbErr) {
+                console.error('Fallback Nominatim error after server failure:', fbErr);
+            }
+
+            hideSuggestionList();
+            return [];
         }
+    }
+
+    function setShippingCoordinates(lat, lon) {
+        const latInput = document.getElementById('shipping_lat');
+        const lonInput = document.getElementById('shipping_lon');
+
+        if (latInput) latInput.value = lat ?? '';
+        if (lonInput) lonInput.value = lon ?? '';
     }
 
     // ===== RENDER SUGGESTIONS DROPDOWN =====
@@ -450,6 +519,7 @@
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
                 input.value = item.label;
+                setShippingCoordinates(item.lat, item.lon);
                 hideSuggestionList();
                 refreshShippingQuote();
             });
@@ -490,6 +560,8 @@
     async function refreshShippingQuote() {
         const method = document.querySelector('input[name="pickup_method"]:checked')?.value || 'delivery';
         const address = document.getElementById('shipping_address')?.value || '';
+        const shippingLat = document.getElementById('shipping_lat')?.value || '';
+        const shippingLon = document.getElementById('shipping_lon')?.value || '';
         const shippingLabel = document.getElementById('shipping-cost-label');
         const totalLabel = document.getElementById('total-pay-label');
         const hiddenShipping = document.getElementById('shipping_cost');
@@ -503,6 +575,8 @@
             totalLabel.innerText = 'Rp ' + new Intl.NumberFormat('id-ID').format(subtotal);
             hiddenShipping.value = 0;
             hiddenDistance.value = '';
+                const distTextEl = document.getElementById('shipping-distance-text');
+                if (distTextEl) distTextEl.innerText = 'Jarak: -';
             return;
         }
 
@@ -514,17 +588,37 @@
         }
 
         try {
-            const url = `{{ route('checkout.shipping_quote') }}?pickup_method=${method}&shipping_address=${encodeURIComponent(address)}`;
+            const params = new URLSearchParams({
+                pickup_method: method,
+                shipping_address: address,
+            });
+
+            if (shippingLat && shippingLon) {
+                params.set('shipping_lat', shippingLat);
+                params.set('shipping_lon', shippingLon);
+            }
+
+            const url = `{{ route('checkout.shipping_quote') }}?${params.toString()}`;
             const response = await fetch(url);
             const data = await response.json();
 
             if (data.success) {
                 const cost = data.shipping_cost || 0;
+                const distance = data.distance_km ?? '';
                 const total = subtotal + cost;
                 shippingLabel.innerText = 'Rp ' + new Intl.NumberFormat('id-ID').format(cost);
                 totalLabel.innerText = 'Rp ' + new Intl.NumberFormat('id-ID').format(total);
                 hiddenShipping.value = cost;
-                hiddenDistance.value = data.distance_km ?? '';
+                hiddenDistance.value = distance;
+                const distTextEl = document.getElementById('shipping-distance-text');
+                if (distTextEl) {
+                    if (distance !== '' && distance !== null) {
+                        // show with 2 decimals and Indonesian decimal separator
+                        distTextEl.innerText = 'Jarak: ' + Number(distance).toFixed(2).replace('.', ',') + ' km';
+                    } else {
+                        distTextEl.innerText = 'Jarak: -';
+                    }
+                }
             }
         } catch (error) {
             console.error('Shipping quote error:', error);
@@ -535,11 +629,24 @@
     async function detectUserLocation() {
         const btn = document.getElementById('geolocation-btn');
         if (!navigator.geolocation) {
-            alert('Geolocation tidak didukung');
+            alert('Geolocation tidak didukung oleh browser Anda.');
+            return;
+        }
+        // Check secure context: geolocation requires HTTPS except on localhost
+        const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+        if (!location.protocol.startsWith('https') && !isLocal) {
+            alert('Geolocation hanya tersedia pada koneksi HTTPS. Silakan buka aplikasi lewat HTTPS atau gunakan localhost.');
             return;
         }
 
+        const statusEl = document.getElementById('geolocation-status');
+        if (statusEl) {
+            statusEl.classList.add('show');
+            statusEl.innerText = 'Mencari lokasi...';
+        }
+
         btn.classList.add('loading');
+
         navigator.geolocation.getCurrentPosition(
             async (position) => {
                 const lat = position.coords.latitude;
@@ -554,25 +661,49 @@
                     );
                     const data = await response.json();
                     const address = data.display_name || '';
-                    
+
                     if (address) {
                         document.getElementById('shipping_address').value = address;
+                        setShippingCoordinates(lat, lon);
+                        if (statusEl) statusEl.innerText = 'Lokasi terdeteksi';
                         btn.classList.remove('loading');
                         btn.classList.add('success');
                         refreshShippingQuote();
                         setTimeout(() => btn.classList.remove('success'), 2000);
+                        setTimeout(() => { if (statusEl) statusEl.classList.remove('show'); }, 2500);
+                    } else {
+                        console.warn('Reverse geocode returned no address');
+                        if (statusEl) statusEl.innerText = 'Gagal menentukan alamat dari koordinat';
+                        btn.classList.remove('loading');
                     }
                 } catch (e) {
                     console.error('Reverse geocode error:', e);
+                    if (statusEl) statusEl.innerText = 'Gagal reverse geocode';
                     btn.classList.remove('loading');
                 }
             },
             (error) => {
                 console.error('Geolocation error:', error);
                 btn.classList.remove('loading');
-                alert('Gagal mendapatkan lokasi');
+                if (statusEl) {
+                    statusEl.innerText = error && error.message ? error.message : 'Gagal mendapatkan lokasi';
+                }
+                // Provide user-friendly messages for common error codes
+                switch (error.code) {
+                    case error.PERMISSION_DENIED:
+                        alert('Akses lokasi ditolak. Izinkan penggunaan lokasi di browser Anda untuk fitur ini.');
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        alert('Lokasi tidak tersedia. Coba lagi atau gunakan pencarian alamat.');
+                        break;
+                    case error.TIMEOUT:
+                        alert('Permintaan lokasi memakan waktu terlalu lama. Coba lagi.');
+                        break;
+                    default:
+                        alert('Gagal mendapatkan lokasi');
+                }
             },
-            { enableHighAccuracy: true, timeout: 8000 }
+            { enableHighAccuracy: true, timeout: 10000 }
         );
     }
 
@@ -630,6 +761,56 @@
                 e.preventDefault();
                 detectUserLocation();
             });
+        }
+
+        // Search button - lookup the typed address and pick the first suggestion
+        const searchBtn = document.getElementById('search-address-btn');
+        if (searchBtn) {
+            searchBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                console.log('🔎 search-address-btn clicked');
+                const query = shippingAddress.value || '';
+                if (!query || query.trim().length < 3) {
+                    alert('Ketik minimal 3 huruf alamat untuk mencari.');
+                    return;
+                }
+
+                searchBtn.classList.add('loading');
+                try {
+                    // Fetch suggestions and if any, use the first one
+                    const suggestions = await fetchAddressSuggestions(query);
+                    console.log('🔎 suggestions length:', Array.isArray(suggestions) ? suggestions.length : 'no-array');
+                    if (Array.isArray(suggestions) && suggestions.length > 0) {
+                        const first = suggestions[0];
+                        shippingAddress.value = first.label || query;
+                        hideSuggestionList();
+                        refreshShippingQuote();
+                    } else {
+                        alert('Tidak menemukan alamat yang cocok. Coba ubah kata kunci.');
+                    }
+                } catch (err) {
+                    console.error('Error during address search click handler:', err);
+                    alert('Terjadi kesalahan saat mencari alamat. Cek console untuk detail.');
+                } finally {
+                    searchBtn.classList.remove('loading');
+                }
+            });
+        }
+
+        // Allow Enter to trigger search
+        if (shippingAddress) {
+            shippingAddress.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const btn = document.getElementById('search-address-btn');
+                    if (btn) btn.click();
+                }
+            });
+
+            shippingAddress.addEventListener('input', () => {
+                // If user changes the text manually after picking a suggestion, clear stale coordinates.
+                setShippingCoordinates('', '');
+            }, { passive: true });
         }
 
         // Delivery option toggles

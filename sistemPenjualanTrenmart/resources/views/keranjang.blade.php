@@ -91,9 +91,13 @@
                 <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
                     <h6 class="fw-bold mb-0">Produk ({{ count($items) }} item)</h6>
                     @if(count($items) > 0)
-                        <button class="btn btn-link text-danger btn-link-custom p-0 d-flex align-items-center">
-                            <i class="bi bi-trash-fill me-1"></i> Hapus Semua
-                        </button>
+                        <form action="{{ route('cart.clear') }}" method="POST" class="m-0">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-link text-danger btn-link-custom p-0 d-flex align-items-center" onclick="return confirm('Hapus semua item di keranjang?');">
+                                <i class="bi bi-trash-fill me-1"></i> Hapus Semua
+                            </button>
+                        </form>
                     @endif
                 </div>
 
@@ -108,13 +112,21 @@
                     </div>
 
                     <div class="text-end">
-                        <div class="qty-container mb-2">
-                            <button class="btn-qty" type="button">-</button>
+                        <form action="{{ route('cart.update', $item->id) }}" method="POST" class="qty-container mb-2">
+                            @csrf
+                            @method('PUT')
+                            <button class="btn-qty" type="submit" name="action" value="decrease">-</button>
                             <input type="text" class="qty-input" value="{{ $item->jumlah }}" readonly>
-                            <button class="btn-qty" type="button">+</button>
-                        </div>
+                            <button class="btn-qty" type="submit" name="action" value="increase">+</button>
+                        </form>
                         <div class="fw-bold d-block">Rp {{ number_format($item->harga_at_time * $item->jumlah, 0, ',', '.') }}</div>
-                        <button class="btn btn-link p-0 text-muted mt-1 small shadow-none"><i class="bi bi-trash"></i></button>
+                        <form action="{{ route('cart.remove', $item->id) }}" method="POST" class="m-0 mt-1">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-link p-0 text-muted small shadow-none" onclick="return confirm('Hapus produk ini dari keranjang?');">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
                     </div>
                 </div>
                 @empty

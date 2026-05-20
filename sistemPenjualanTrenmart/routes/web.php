@@ -64,6 +64,7 @@ Route::middleware(['auth'])->group(function () {
     })->name('dashboard');
     Route::get('/pesanan', [\App\Http\Controllers\OrderController::class, 'index'])->name('pesanan.index');
     Route::get('/pesanan/{order}', [\App\Http\Controllers\OrderController::class, 'show'])->name('pesanan.show');
+    Route::post('/pesanan/{order}/selesai', [\App\Http\Controllers\OrderController::class, 'markAsCompleted'])->name('pesanan.complete');
     Route::post('/pesanan/{order}/message', [\App\Http\Controllers\OrderMessageController::class, 'store'])->name('orders.messages.store');
     Route::post('/notifikasi/tandai-semua', [NotificationController::class, 'markAllRead'])->name('notifications.mark_all_read');
     Route::get('/profil', [AuthController::class, 'profile'])->name('profile.edit');
@@ -75,6 +76,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/keranjang', [KeranjangController::class, 'index'])->name('cart.index');
     Route::put('/keranjang/update/{id}', [KeranjangController::class, 'update'])->name('cart.update');
     Route::delete('/keranjang/hapus/{id}', [KeranjangController::class, 'destroy'])->name('cart.remove');
+        Route::delete('/keranjang/hapus-semua', [KeranjangController::class, 'clearAll'])->name('cart.clear');
     Route::get('/cart/sidebar-content', [ProdukController::class, 'getSidebarContent'])->name('cart.sidebar.content');
     Route::post('/keranjang/tambah/{id}/{type?}', [KeranjangController::class, 'store'])->name('cart.add');
 

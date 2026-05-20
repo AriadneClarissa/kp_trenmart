@@ -86,7 +86,10 @@
                         <div class="col-12 mt-3">
                             <p class="small text-muted mb-1">Alamat Pengiriman</p>
                             <p class="fw-semibold mb-0">{{ $order->shipping_address ?? '-' }}</p>
-                            <p class="small text-muted mt-2 mb-0">Jarak: {{ $order->shipping_distance_km !== null ? number_format($order->shipping_distance_km, 2, ',', '.') . ' km' : '-' }} | Ongkir: Rp {{ number_format($order->shipping_cost ?? 0,0,',','.') }}</p>
+                            @php
+                                $displayDistance = $order->shipping_distance_km ?? ($computedDistance ?? null);
+                            @endphp
+                            <p class="small text-muted mt-2 mb-0">Jarak: {{ $displayDistance !== null ? number_format($displayDistance, 2, ',', '.') . ' km' : '-' }} | Ongkir: Rp {{ number_format($order->shipping_cost ?? 0,0,',','.') }}</p>
                         </div>
                     </div>
                 </div>
@@ -118,14 +121,30 @@
             </div>
 
             <!-- Proof Card -->
-            @if($order->payment_proof)
+            @php
+                $proofPath = $order->payment_proof ?? $order->bukti_pembayaran ?? null;
+                $proofExists = $proofPath ? \Illuminate\Support\Facades\Storage::disk('public')->exists($proofPath) : false;
+                $proofMime = $proofExists ? (\Illuminate\Support\Facades\Storage::disk('public')->mimeType($proofPath) ?: 'image/jpeg') : null;
+                $proofBase64 = $proofExists ? base64_encode(\Illuminate\Support\Facades\Storage::disk('public')->get($proofPath)) : null;
+            @endphp
+            @if($proofBase64)
                 <div class="card mb-3">
                     <div class="card-header bg-light">
                         <h6 class="mb-0 fw-bold">Bukti Transfer</h6>
                     </div>
                     <div class="card-body">
-                        <img src="{{ asset('storage/' . $order->payment_proof) }}" 
+                        <img src="data:{{ $proofMime }};base64,{{ $proofBase64 }}" 
                              style="max-width:100%;max-height:400px;border-radius:10px;" alt="Bukti Transfer">
+                    </div>
+                </div>
+            @elseif($proofPath)
+                <div class="card mb-3">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0 fw-bold">Bukti Transfer</h6>
+                    </div>
+                    <div class="card-body text-warning">
+                        Bukti transfer tercatat di data pesanan, tetapi file gambar tidak ditemukan di storage.
+                        <div class="small text-muted mt-1">Path: {{ $proofPath }}</div>
                     </div>
                 </div>
             @endif

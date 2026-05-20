@@ -87,7 +87,7 @@ class AdminUserController extends Controller
                 'actor_id' => Auth::id(),
                 'action' => 'create_internal_user',
                 'details' => 'Created user ' . $admin->email . ' with role ' . $data['role'],
-                'ip_address' => request()->ip(),
+                'ip_address' => $request->ip(),
                 'subject_type' => 'user',
                 'subject_id' => $admin->id,
             ]);

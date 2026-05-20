@@ -8,7 +8,6 @@ use App\Models\User;
 use App\Notifications\OrderActivityNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 
 class OrderMessageController extends Controller
@@ -32,33 +31,33 @@ class OrderMessageController extends Controller
 
         $notificationTitle = 'Pesan baru pada pesanan #' . $order->order_number;
         $notificationBody = Str::limit($request->message, 100);
-        $notificationUrl = Auth::user()->isAdmin()
-            ? route('admin.orders.show', $order->id)
-            : route('pesanan.show', $order->id);
 
-        if (Auth::user()->isAdmin()) {
-            $customer = $order->user()->first();
+        $recipients = collect();
 
-            if ($customer) {
-                $customer->notify(new OrderActivityNotification(
-                    title: $notificationTitle,
-                    body: 'Admin membalas chat: ' . $notificationBody,
-                    url: route('pesanan.show', $order->id),
-                    type: 'chat',
-                    orderNumber: $order->order_number,
-                    actorName: Auth::user()->name,
-                ));
-            }
-        } else {
-            $admins = User::where('role', 'admin')->get();
+        $customer = $order->user()->first();
+        if ($customer && $customer->id !== Auth::id()) {
+            $recipients->push($customer);
+        }
 
-            Notification::send($admins, new OrderActivityNotification(
+        $staffRecipients = User::whereIn('role', ['owner', 'admin', 'kasir'])
+            ->where('id', '!=', Auth::id())
+            ->get();
+
+        $recipients = $recipients->merge($staffRecipients)->unique('id')->values();
+
+        $actorName = Auth::user()->name ?? 'User';
+        $bodyPrefix = Auth::user()->isAdmin() || Auth::user()->isCashier() || Auth::user()->isOwner()
+            ? 'Balasan chat dari ' . $actorName . ': '
+            : $actorName . ' mengirim chat: ';
+
+        foreach ($recipients as $recipient) {
+            $recipient->notify(new OrderActivityNotification(
                 title: $notificationTitle,
-                body: Auth::user()->name . ' mengirim chat: ' . $notificationBody,
-                url: route('admin.orders.show', $order->id),
+                body: $bodyPrefix . $notificationBody,
+                url: $recipient->isAdmin() ? route('admin.orders.show', $order->id) : route('pesanan.show', $order->id),
                 type: 'chat',
                 orderNumber: $order->order_number,
-                actorName: Auth::user()->name,
+                actorName: $actorName,
             ));
         }
 

@@ -57,22 +57,30 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email'    => ['required', 'email'],
+            'login'    => ['required', 'string', 'max:255'],
             'password' => ['required'],
         ]);
 
-        // Di logic Login
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            $user = Auth::user();
+        $user = User::where('email', $credentials['login'])
+            ->orWhere('kd_pelanggan', $credentials['login'])
+            ->first();
+
+        if ($user && Hash::check($credentials['password'], $user->password)) {
+            Auth::login($user, $request->boolean('remember'));
 
             if ($user->status === 'rejected') {
                 Auth::logout();
                 return redirect()->route('login')->with('error', 'Akun Anda ditolak oleh admin.');
             }
+
+            if ($user->isCashier()) {
+                return redirect()->route('admin.orders.index');
+            }
+
             return redirect()->intended(route('beranda'));
         }
 
-        return back()->withErrors(['email' => 'Email atau password tidak sesuai.'])->onlyInput('email');
+        return back()->withErrors(['login' => 'Email atau kode pelanggan tidak sesuai.'])->onlyInput('login');
     }
 
     /**
@@ -147,6 +155,10 @@ class AuthController extends Controller
             return redirect()->route('beranda');
         }
 
+        if (method_exists($user, 'isCashier') && $user->isCashier()) {
+            return redirect()->route('admin.orders.index');
+        }
+
         // Jika Admin biasa
         if ($user->isAdmin()) {
             return redirect()->route('beranda');
@@ -203,7 +215,9 @@ class AuthController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        $rules = ['name' => 'required|string|max:255'];
+        $rules = [
+            'name' => 'required|string|max:255',
+        ];
 
         if (!$user->isAdmin()) {
             $rules['phone_number'] = 'required|string|min:10|max:15';
@@ -211,11 +225,14 @@ class AuthController extends Controller
         }
 
         if ($user->customer_type === 'langganan' && !$user->isAdmin()) {
+            $rules['email'] = 'required|email|max:255|unique:users,email,' . $user->id;
             $rules['organization_name'] = 'required|string|max:255';
             $rules['organization_type'] = 'required|string|max:255';
         }
 
-        $user->update($request->validate($rules));
+        $validated = $request->validate($rules);
+
+        $user->update($validated);
         return back()->with('success', 'Profil berhasil diperbarui!');
     }
 

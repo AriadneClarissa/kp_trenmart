@@ -1,7 +1,7 @@
-@extends('layouts.app')
 
-@section('content')
-@include('admin._header', ['activePage' => 'users'])
+
+<?php $__env->startSection('content'); ?>
+<?php echo $__env->make('admin._header', ['activePage' => 'users'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 <div class="container-fluid">
     <div class="mb-4">
@@ -9,8 +9,8 @@
     </div>
 
     <div class="card p-4 shadow-sm" style="max-width: 600px;">
-        <form action="{{ route('admin.admins.store') }}" method="POST">
-            @csrf
+        <form action="<?php echo e(route('admin.admins.store')); ?>" method="POST">
+            <?php echo csrf_field(); ?>
             <div class="row g-3">
                 <div class="col-md-12">
                     <label class="form-label" id="name-label">Nama Lengkap Admin</label>
@@ -48,7 +48,7 @@
                     <button type="submit" class="btn btn-primary me-2" id="submit-button">
                         <i class="bi bi-check-circle me-1"></i> Buat Akun Admin
                     </button>
-                    <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">
+                    <a href="<?php echo e(route('admin.users.index')); ?>" class="btn btn-secondary">
                         <i class="bi bi-x-circle me-1"></i> Batal
                     </a>
                 </div>
@@ -56,19 +56,19 @@
         </form>
     </div>
 
-    @if ($errors->any())
+    <?php if($errors->any()): ?>
     <div class="alert alert-danger mt-3" role="alert">
         <strong>Error:</strong>
         <ul class="mb-0">
-            @foreach ($errors->all() as $error)
-            <li>{{ $error }}</li>
-            @endforeach
+            <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <li><?php echo e($error); ?></li>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </ul>
     </div>
-    @endif
+    <?php endif; ?>
 </div>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
     function updateAdminFormCopy(role) {
         const title = document.getElementById('form-title');
@@ -100,5 +100,7 @@
         });
     });
 </script>
-@endpush
-@endsection
+<?php $__env->stopPush(); ?>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\asus\OneDrive\Documents\GitHub\kp_trenmart\sistemPenjualanTrenmart\resources\views/admin/admins/create.blade.php ENDPATH**/ ?>

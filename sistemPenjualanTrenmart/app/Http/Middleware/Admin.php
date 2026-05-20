@@ -18,13 +18,13 @@ public function handle(Request $request, Closure $next): Response
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        // Pastikan fungsi isAdmin() ada di Model User
-        if ($user->isAdmin() || (method_exists($user, 'isOwner') && $user->isOwner())) {
+        // Izinkan owner, admin, dan kasir masuk ke area panel
+        if ($user->isAdmin() || (method_exists($user, 'isCashier') && $user->isCashier())) {
             return $next($request);
         }
     }
 
-    // Jika bukan admin, lempar ke beranda dengan pesan error
-    return redirect('/')->with('error', 'Akses ditolak! Anda bukan Admin.');
+    // Jika bukan admin/kasir, lempar ke beranda dengan pesan error
+    return redirect('/')->with('error', 'Akses ditolak!');
     }   
 }

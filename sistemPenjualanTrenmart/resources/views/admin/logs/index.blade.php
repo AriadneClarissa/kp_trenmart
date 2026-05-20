@@ -2,7 +2,12 @@
 
 @section('content')
 <div class="container">
-    <h1>Log Aktivitas Internal</h1>
+    <div class="d-flex justify-content-between align-items-center mb-3 gap-3 flex-wrap">
+        <h1 class="mb-0">Log Aktivitas Internal</h1>
+        <a href="{{ route('beranda') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-house-door me-1"></i> Kembali ke Beranda
+        </a>
+    </div>
 
     <div class="card">
         <div class="card-body p-0">
@@ -20,7 +25,7 @@
                     @forelse($logs as $log)
                     <tr>
                         <td>{{ $log->id }}</td>
-                        <td>{{ $log->created_at->format('Y-m-d H:i:s') }}</td>
+                        <td>{{ $log->created_at->copy()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s') }}</td>
                         <td>{{ $log->actor ? $log->actor->name . ' (' . $log->actor->email . ')' : 'System' }}</td>
                         <td>{{ $log->action }}</td>
                         <td style="max-width:420px;overflow-wrap:break-word">{{ $log->details }}</td>
