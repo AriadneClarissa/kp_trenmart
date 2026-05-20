@@ -19,6 +19,7 @@ class User extends \Illuminate\Foundation\Auth\User
         'role',           
         'customer_type',  
         'is_approved',    
+        'kd_pelanggan',
         'phone_number',
         'home_address',   
         'google_id',

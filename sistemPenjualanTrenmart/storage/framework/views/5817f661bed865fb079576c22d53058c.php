@@ -15,6 +15,7 @@
                     <thead class="table-light">
                         <tr>
                             <th>#</th>
+                            <th>Kode Pelanggan</th>
                             <th>Nama</th>
                             <th>Email</th>
                             <th>Role</th>
@@ -26,6 +27,7 @@
                         <?php $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $u): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <tr>
                             <td><?php echo e($u->id); ?></td>
+                            <td><?php echo e($u->kd_pelanggan ?? '-'); ?></td>
                             <td><?php echo e($u->name); ?></td>
                             <td><?php echo e($u->email); ?></td>
                             <td><?php echo e(strtoupper($u->role)); ?></td>

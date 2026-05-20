@@ -15,6 +15,7 @@
                     <thead class="table-light">
                         <tr>
                             <th>#</th>
+                            <th>Kode Pelanggan</th>
                             <th>Nama</th>
                             <th>Email</th>
                             <th>Jenis</th>
@@ -28,6 +29,7 @@
                         @foreach($customers as $c)
                         <tr>
                             <td>{{ $c->id }}</td>
+                            <td>{{ $c->kd_pelanggan ?? '-' }}</td>
                             <td>{{ $c->name }}</td>
                             <td>{{ $c->email }}</td>
                             <td>{{ strtoupper($c->customer_type ?? 'regular') }}</td>

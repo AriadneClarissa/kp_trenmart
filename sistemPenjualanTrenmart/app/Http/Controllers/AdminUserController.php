@@ -36,19 +36,20 @@ class AdminUserController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
+            'kd_pelanggan' => 'required|string|max:50|unique:users,kd_pelanggan',
             'customer_type' => 'required|in:regular,langganan',
             'organization_name' => 'nullable|string|max:255',
             'organization_type' => 'nullable|string|max:255',
-            'send_email' => 'nullable|boolean',
         ]);
 
         // Default password generated or provided
         $defaultPassword = $request->input('default_password') ?: \Illuminate\Support\Str::random(10);
+        $generatedEmail = strtolower(trim($data['kd_pelanggan'])) . '@trenmart.local';
 
         $user = User::create([
             'name' => $data['name'],
-            'email' => $data['email'],
+            'email' => $generatedEmail,
+            'kd_pelanggan' => $data['kd_pelanggan'],
             'password' => \Illuminate\Support\Facades\Hash::make($defaultPassword),
             'role' => 'customer',
             'customer_type' => $data['customer_type'],
@@ -56,17 +57,6 @@ class AdminUserController extends Controller
             'organization_type' => $data['organization_type'] ?? null,
             'is_approved' => true,
         ]);
-
-        // Optional: send email with credentials
-        if ($request->boolean('send_email')) {
-            try {
-                \Illuminate\Support\Facades\Mail::raw("Halo {$user->name},\n\nAkun Anda telah dibuat.\nEmail: {$user->email}\nPassword: {$defaultPassword}\n\nSilakan masuk di: " . url('/login') . " dan segera ganti kata sandi melalui halaman profil.", function ($m) use ($user) {
-                    $m->to($user->email)->subject('Akun Pelanggan Trenmart');
-                });
-            } catch (\Throwable $e) {
-                report($e);
-            }
-        }
 
         return redirect()->route('admin.users.index')->with('success', 'Akun pelanggan berhasil dibuat.');
     }

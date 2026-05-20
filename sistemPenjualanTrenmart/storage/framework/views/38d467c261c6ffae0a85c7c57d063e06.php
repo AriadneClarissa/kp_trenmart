@@ -16,6 +16,8 @@
                             <th>Nama</th>
                             <th>Email</th>
                             <th>Jenis</th>
+                            <th>No. Telepon</th>
+                            <th>Alamat</th>
                             <th>Organisasi (jika ada)</th>
                             <th>Tgl Daftar</th>
                         </tr>
@@ -27,6 +29,8 @@
                             <td><?php echo e($c->name); ?></td>
                             <td><?php echo e($c->email); ?></td>
                             <td><?php echo e(strtoupper($c->customer_type ?? 'regular')); ?></td>
+                            <td><?php echo e($c->phone_number ?? '-'); ?></td>
+                            <td><?php echo e($c->home_address ?? '-'); ?></td>
                             <td><?php echo e($c->organization_name ?? '-'); ?></td>
                             <td><?php echo e($c->created_at ? $c->created_at->format('d M Y') : '-'); ?></td>
                         </tr>

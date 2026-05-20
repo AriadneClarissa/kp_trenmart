@@ -15,6 +15,7 @@
                     <thead class="table-light">
                         <tr>
                             <th>#</th>
+                            <th>Kode Pelanggan</th>
                             <th>Nama</th>
                             <th>Email</th>
                             <th>Role</th>
@@ -26,6 +27,7 @@
                         @foreach($users as $u)
                         <tr>
                             <td>{{ $u->id }}</td>
+                            <td>{{ $u->kd_pelanggan ?? '-' }}</td>
                             <td>{{ $u->name }}</td>
                             <td>{{ $u->email }}</td>
                             <td>{{ strtoupper($u->role) }}</td>

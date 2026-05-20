@@ -1,7 +1,5 @@
-@extends('layouts.app')
-
-@section('content')
-@include('admin._header', ['activePage' => 'users'])
+<?php $__env->startSection('content'); ?>
+<?php echo $__env->make('admin._header', ['activePage' => 'users'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 <div class="container-fluid">
     <div class="mb-4">
@@ -9,8 +7,8 @@
     </div>
 
     <div class="card p-4 shadow-sm">
-        <form action="{{ route('admin.users.store') }}" method="POST">
-            @csrf
+        <form action="<?php echo e(route('admin.users.store')); ?>" method="POST">
+            <?php echo csrf_field(); ?>
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label">Nama</label>
@@ -44,7 +42,7 @@
                 </div>
 
                 <div class="col-12 text-end">
-                    <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary me-2">Batal</a>
+                    <a href="<?php echo e(route('admin.users.index')); ?>" class="btn btn-outline-secondary me-2">Batal</a>
                     <button class="btn btn-primary">Buat Akun</button>
                 </div>
             </div>
@@ -78,4 +76,6 @@ function validateEmail(input) {
     }
 }
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\asus\OneDrive\Documents\GitHub\kp_trenmart\sistemPenjualanTrenmart\resources\views/admin/users/create.blade.php ENDPATH**/ ?>
