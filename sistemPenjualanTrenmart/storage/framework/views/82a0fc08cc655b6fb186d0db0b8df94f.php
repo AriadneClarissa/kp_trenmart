@@ -22,7 +22,7 @@
     
     <div class="banner-wrapper mb-4 position-relative overflow-hidden" style="border-radius: 1rem;">
         <img id="bannerPreview" 
-            src="<?php echo e((!empty($settings['tentang_banner'])) ? asset('storage/' . $settings['tentang_banner']) : (($admin && $admin->tentang_banner) ? asset('storage/' . $admin->tentang_banner) : asset('images/spanduktoko.png'))); ?>" 
+            src="<?php echo e((!empty($settings['tentang_banner'])) ? \App\Helpers\StorageProxy::url($settings['tentang_banner']) : (($admin && $admin->tentang_banner) ? \App\Helpers\StorageProxy::url($admin->tentang_banner) : asset('images/spanduktoko.png'))); ?>" 
             class="w-100 shadow-sm img-banner-responsive object-fit-cover" 
             style="height: 300px;" 
             alt="Banner Trenmart">

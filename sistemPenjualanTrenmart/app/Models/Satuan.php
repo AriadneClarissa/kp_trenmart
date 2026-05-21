@@ -12,7 +12,7 @@ class Satuan extends Model
     protected $keyType = 'string';
     public $timestamps = true; 
 
-    protected $fillable = ['kd_satuan', 'nama_satuan', 'is_hidden'];
+    protected $fillable = ['kd_satuan', 'nama_satuan', 'stok_minimal', 'is_hidden'];
 
     public function produk()
     {

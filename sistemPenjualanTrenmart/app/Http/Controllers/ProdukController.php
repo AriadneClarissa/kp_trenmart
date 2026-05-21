@@ -9,6 +9,7 @@ use App\Models\BerandaSetting;
 use App\Models\User;
 use App\Models\Bundling;
 use App\Models\Order;
+use App\Models\Satuan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
@@ -158,6 +159,35 @@ class ProdukController extends Controller
         }
     }
 
+    private function resolveStokMinimalBySatuan(Request $request): int
+    {
+        if ($request->filled('stok_minimal')) {
+            return (int) $request->stok_minimal;
+        }
+
+        $satuanModel = null;
+
+        if ($request->filled('kd_satuan')) {
+            $satuanModel = Satuan::find($request->kd_satuan);
+        }
+
+        if ($satuanModel && $satuanModel->stok_minimal !== null) {
+            return (int) $satuanModel->stok_minimal;
+        }
+
+        $satuanName = strtolower((string) ($request->satuan ?? $satuanModel?->nama_satuan ?? ''));
+
+        if (str_contains($satuanName, 'pcs')) {
+            return 250;
+        }
+
+        if (str_contains($satuanName, 'lusin') || str_contains($satuanName, 'dozen')) {
+            return 10;
+        }
+
+        return 0;
+    }
+
     // --- Bagian Manajemen Admin ---
 
     public function createBeranda() { return $this->createForm('beranda'); }
@@ -188,29 +218,14 @@ class ProdukController extends Controller
         ]);
 
         // 2. Siapkan data awal
-        // Tentukan stok_minimal default berdasarkan satuan jika tidak diisi
-        $stok_minimal = $request->stok_minimal ?? null;
-        if (is_null($stok_minimal)) {
-            $satuanName = $request->satuan ?? null;
-            if (!$satuanName && $request->kd_satuan) {
-                $satuanModel = \App\Models\Satuan::find($request->kd_satuan);
-                $satuanName = $satuanModel?->nama_satuan;
-            }
-            $satuanName = strtolower($satuanName ?? '');
-            if (str_contains($satuanName, 'pcs')) {
-                $stok_minimal = 250;
-            } elseif (str_contains($satuanName, 'lusin') || str_contains($satuanName, 'dozen')) {
-                $stok_minimal = 10;
-            } else {
-                $stok_minimal = 0;
-            }
-        }
+        $stok_minimal = $this->resolveStokMinimalBySatuan($request);
 
         $data = [
             'kd_produk'            => $request->kd_produk,
             'kd_kategori'          => $request->kd_kategori,
             'kd_merk'              => $request->kd_merk,
             'kd_satuan'            => $request->kd_satuan,
+            'satuan'               => $request->satuan ?? (isset($request->kd_satuan) ? Satuan::find($request->kd_satuan)?->nama_satuan : null),
             'nama_produk'          => $request->nama_produk,
             'deskripsi'            => $request->deskripsi,
             'harga_jual_umum'      => $request->harga_jual_umum,
@@ -261,7 +276,10 @@ class ProdukController extends Controller
 
     public function produkIndex(Request $request)
     {
-        $query = Produk::with(['merk', 'kategori', 'satuanModel']);
+        // Join satuan to allow ordering by satuan.stok_minimal when produk.stok_minimal is not set
+        $query = Produk::with(['merk', 'kategori', 'satuanModel'])
+             ->leftJoin('satuan', 'produk.kd_satuan', '=', 'satuan.kd_satuan')
+             ->select('produk.*');
 
         if ($request->filled('search')) {
             $query->where('nama_produk', 'like', '%' . $request->search . '%');
@@ -277,9 +295,9 @@ class ProdukController extends Controller
 
         // Untuk halaman tabel manajemen stok admin
         // Prioritaskan produk yang stoknya di bawah stok_minimal agar muncul paling atas
-        $produk = $query->orderByRaw('(stok_tersedia < COALESCE(stok_minimal, 0)) DESC')
-                 ->orderBy('created_at', 'desc')
-                 ->get();
+        $produk = $query->orderByRaw("(produk.stok_tersedia <= COALESCE(produk.stok_minimal, satuan.stok_minimal, 0)) DESC")
+             ->orderBy('produk.created_at', 'desc')
+             ->get();
         foreach ($produk as $item) {
             $this->setHargaTampil($item);
         }
@@ -315,23 +333,7 @@ class ProdukController extends Controller
 
         $produk = Produk::where('kd_produk', $kd_produk)->firstOrFail();
         
-        // Tentukan stok_minimal default berdasarkan satuan jika tidak diisi
-        $stok_minimal = $request->stok_minimal ?? null;
-        if (is_null($stok_minimal)) {
-            $satuanName = $request->satuan ?? null;
-            if (!$satuanName && $request->kd_satuan) {
-                $satuanModel = \App\Models\Satuan::find($request->kd_satuan);
-                $satuanName = $satuanModel?->nama_satuan;
-            }
-            $satuanName = strtolower($satuanName ?? '');
-            if (str_contains($satuanName, 'pcs')) {
-                $stok_minimal = 250;
-            } elseif (str_contains($satuanName, 'lusin') || str_contains($satuanName, 'dozen')) {
-                $stok_minimal = 10;
-            } else {
-                $stok_minimal = 0;
-            }
-        }
+        $stok_minimal = $this->resolveStokMinimalBySatuan($request);
 
         $updateData = [
             'nama_produk'          => $request->nama_produk,
@@ -339,6 +341,7 @@ class ProdukController extends Controller
             'kd_kategori'          => $request->kd_kategori,
             'kd_merk'              => $request->kd_merk,
             'kd_satuan'            => $request->kd_satuan,
+            'satuan'               => $request->satuan ?? (isset($request->kd_satuan) ? Satuan::find($request->kd_satuan)?->nama_satuan : null),
             'harga_jual_umum'      => $request->harga_jual_umum,
             'harga_jual_langganan' => $request->harga_jual_langganan ?? $request->harga_jual_umum,
             'stok_tersedia'        => $request->stok_tersedia,

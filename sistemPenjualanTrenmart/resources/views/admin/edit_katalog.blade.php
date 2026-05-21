@@ -196,12 +196,13 @@
                         <tbody>
                             @forelse($produk as $p)
                                 @php
-                                    $isLowStock = ($p->stok_minimal ?? 0) > 0 && $p->stok_tersedia < ($p->stok_minimal ?? 0);
+                                    $stokMinimal = $p->stok_minimal ?? $p->satuanModel?->stok_minimal ?? 0;
+                                    $isLowStock = $stokMinimal > 0 && $p->stok_tersedia <= $stokMinimal;
                                 @endphp
                                 <tr class="{{ $isLowStock ? 'table-danger' : '' }}">
                                     <td>
                                         <div class="rounded-3 bg-light d-flex align-items-center justify-content-center" style="width: 52px; height: 52px; overflow: hidden;">
-                                            <img src="{{ asset('storage/' . $p->gambar) }}" alt="{{ $p->nama_produk }}" style="width: 100%; height: 100%; object-fit: contain;">
+                                            <img src="{{ \App\Helpers\StorageProxy::url($p->gambar) }}" alt="{{ $p->nama_produk }}" style="width: 100%; height: 100%; object-fit: contain;">
                                         </div>
                                     </td>
                                     <td class="fw-semibold">{{ $p->kd_produk }}</td>
@@ -227,7 +228,7 @@
                                         <span class="fw-semibold">{{ $p->stok_tersedia }}</span>
                                         <span class="text-muted small d-block">{{ $p->satuan ?? 'pcs' }}</span>
                                         @if($isLowStock)
-                                            <div class="small text-danger fw-bold">Stok di bawah minimal ({{ $p->stok_minimal }})</div>
+                                            <div class="small text-danger fw-bold">Stok mencapai batas warning ({{ $stokMinimal }})</div>
                                         @endif
                                     </td>
                                     <td>{{ $p->satuanModel?->nama_satuan ?? $p->satuan ?? '-' }}</td>
@@ -360,9 +361,19 @@
                 <div class="modal-body px-4">
                     <form id="formTambahSatuan">
                         @csrf
-                        <div class="input-group mb-3 shadow-sm border rounded-pill overflow-hidden">
-                            <input type="text" id="inputNamaSatuan" name="nama_satuan" class="form-control border-0 px-3" placeholder="Tambah satuan baru (pcs, box, rim, lusin, dll)..." required>
-                            <button class="btn btn-success border-0 px-4" type="submit"><i class="bi bi-plus-lg"></i></button>
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-8">
+                                <div class="input-group shadow-sm border rounded-pill overflow-hidden h-100">
+                                    <input type="text" id="inputNamaSatuan" name="nama_satuan" class="form-control border-0 px-3" placeholder="Nama satuan, mis. pcs, box, rim" required>
+                                    <button class="btn btn-success border-0 px-4" type="submit"><i class="bi bi-plus-lg"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="input-group shadow-sm border rounded-pill overflow-hidden h-100">
+                                    <span class="input-group-text bg-white border-0 ps-3 text-muted small">Batas</span>
+                                    <input type="number" id="inputStokMinimalSatuan" name="stok_minimal" min="0" step="1" class="form-control border-0 px-3" placeholder="0" required>
+                                </div>
+                            </div>
                         </div>
                     </form>
                     <div class="input-group mb-2 shadow-sm border rounded-pill overflow-hidden bg-light">
@@ -375,7 +386,10 @@
                     <div class="list-group border shadow-sm rounded-3 overflow-hidden" id="containerListSatuan" style="max-height: 250px; overflow-y: auto;">
                         @foreach($satuan as $sat)
                             <div class="list-group-item d-flex justify-content-between align-items-center bg-light item-satuan" data-search="{{ strtolower($sat->nama_satuan) }}">
-                                <span class="nama-satuan-text">{{ $sat->nama_satuan }}</span>
+                                <div>
+                                    <span class="nama-satuan-text fw-semibold">{{ $sat->nama_satuan }}</span>
+                                    <div class="small text-muted">Batas warning: {{ $sat->stok_minimal ?? 0 }}</div>
+                                </div>
                                 <button type="button" class="btn btn-sm btn-white border btn-toggle-visible-satuan" data-id="{{ $sat->kd_satuan }}">
                                     <i class="bi {{ $sat->is_hidden ? 'bi-eye-slash-fill text-danger' : 'bi-eye-fill text-primary' }}"></i>
                                 </button>
@@ -575,9 +589,10 @@ $(document).ready(function() {
         e.preventDefault();
         $.post("{{ route('satuan.store') }}", $(this).serialize(), function(res) {
             if(res.success) {
-                $('#containerListSatuan').prepend(`<div class="list-group-item d-flex justify-content-between align-items-center bg-light item-satuan" data-search="${res.data.nama_satuan.toLowerCase()}"><span class="nama-satuan-text">${res.data.nama_satuan}</span><button type="button" class="btn btn-sm btn-white border btn-toggle-visible-satuan" data-id="${res.data.kd_satuan}"><i class="bi bi-eye-fill text-primary"></i></button></div>`);
+                $('#containerListSatuan').prepend(`<div class="list-group-item d-flex justify-content-between align-items-center bg-light item-satuan" data-search="${res.data.nama_satuan.toLowerCase()}"><div><span class="nama-satuan-text fw-semibold">${res.data.nama_satuan}</span><div class="small text-muted">Batas warning: ${res.data.stok_minimal ?? 0}</div></div><button type="button" class="btn btn-sm btn-white border btn-toggle-visible-satuan" data-id="${res.data.kd_satuan}"><i class="bi bi-eye-fill text-primary"></i></button></div>`);
                 $('select[name="kd_satuan"]').append(`<option value="${res.data.kd_satuan}">${res.data.nama_satuan}</option>`);
                 $('#inputNamaSatuan').val('');
+                $('#inputStokMinimalSatuan').val('');
             }
         }).fail(function(xhr) {
             const pesan = xhr.responseJSON?.message || 'Satuan gagal ditambahkan. Coba lagi.';

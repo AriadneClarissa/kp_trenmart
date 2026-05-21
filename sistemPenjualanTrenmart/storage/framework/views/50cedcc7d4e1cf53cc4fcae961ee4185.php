@@ -1,6 +1,11 @@
 <div class="col">
     <div class="card h-100 border-0 shadow-sm p-2 product-card" style="border-radius: 16px; position: relative; cursor: pointer;"
             onclick="if(event.target.closest('form')) return; window.location.href='<?php echo e(route('produk.detail', ['id' => $item->kd_produk, 'from' => 'beranda'])); ?>'">
+
+        <?php
+            $stokMinimal = $item->stok_minimal ?? $item->satuanModel?->stok_minimal ?? 0;
+            $isLowStock = $stokMinimal > 0 && $item->stok_tersedia <= $stokMinimal;
+        ?>
         
         
         <?php if($item->stok_tersedia > 0): ?>
@@ -11,10 +16,18 @@
             </div>
         <?php endif; ?>
 
+        <?php if($isLowStock): ?>
+            <div class="position-absolute" style="top: 44px; left: 12px; z-index: 10;">
+                <span class="badge bg-warning text-dark px-2 py-1" style="border-radius: 7px; font-size: 0.68rem;">
+                    Warning Stok
+                </span>
+            </div>
+        <?php endif; ?>
+
         
         <div class="d-flex align-items-center justify-content-center bg-light mb-3"
              style="height: 150px; border-radius: 12px; overflow: hidden;">
-            <img src="<?php echo e(asset('storage/' . $item->gambar)); ?>"
+              <img src="<?php echo e(\App\Helpers\StorageProxy::url($item->gambar)); ?>"
                  class="img-fluid"
                  alt="<?php echo e($item->nama_produk); ?>"
                  style="max-height: 100%; object-fit: contain; mix-blend-mode: multiply;">

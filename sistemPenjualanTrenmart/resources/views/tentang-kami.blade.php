@@ -28,7 +28,7 @@
                     <h4 class="fw-bold mb-3"><i class="bi bi-image me-2 text-danger"></i>Foto Banner Toko</h4>
                     <div class="border rounded-4 p-3" style="border-style: dashed !important;">
                         @if(!empty($data['tentang_banner']))
-                            <img src="{{ asset('storage/' . $data['tentang_banner']) }}" alt="Banner Toko" class="img-fluid rounded-4 mb-3" style="max-height: 320px; width: 100%; object-fit: cover;">
+                            <img src="{{ \App\Helpers\StorageProxy::url($data['tentang_banner']) }}" alt="Banner Toko" class="img-fluid rounded-4 mb-3" style="max-height: 320px; width: 100%; object-fit: cover;">
                         @endif
                         <input type="file" class="form-control @error('tentang_banner') is-invalid @enderror" name="tentang_banner" accept="image/png,image/jpeg,image/jpg,image/webp">
                         <small class="text-muted">JPG, PNG, WEBP - Maks. 5 MB</small>
@@ -163,7 +163,7 @@
     @else
         <div class="text-center mb-5">
             @if(!empty($data['tentang_banner']))
-                <img src="{{ asset('storage/' . $data['tentang_banner']) }}" alt="Banner {{ $data['tentang_nama_toko'] }}" class="img-fluid rounded-4 shadow-sm w-100" style="max-height: 360px; object-fit: cover;">
+                <img src="{{ \App\Helpers\StorageProxy::url($data['tentang_banner']) }}" alt="Banner {{ $data['tentang_nama_toko'] }}" class="img-fluid rounded-4 shadow-sm w-100" style="max-height: 360px; object-fit: cover;">
             @endif
         </div>
 

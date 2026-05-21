@@ -40,7 +40,7 @@ class CheckoutController extends Controller
         $paymentMethods = PaymentMethod::all();
 
         $storeAddress = $this->getStoreAddress();
-        $customerAddress = Auth::user()->home_address;
+        $customerAddress = (string) (Auth::user()->home_address ?? '');
         $shippingPreview = $this->calculateShipping($storeAddress, $customerAddress);
 
         // 4. Kirim semua variabel ke view select_payment
@@ -262,7 +262,7 @@ class CheckoutController extends Controller
             // BARU HAPUS KERANJANG setelah payment proof sukses diunggah
             Keranjang::where('user_id', $user->id)->delete();
 
-            return redirect()->route('checkout.waiting', $order->id)
+            return redirect()->route('pesanan.show', $order->id)
                              ->with('success', 'Bukti transfer berhasil diunggah!');
         }
 

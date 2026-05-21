@@ -1,6 +1,6 @@
-@extends('layouts.app')
 
-@push('styles')
+
+<?php $__env->startPush('styles'); ?>
 <style>
     .order-shell {
         background: linear-gradient(180deg, #ffffff 0%, #fffafa 100%);
@@ -129,13 +129,13 @@
         margin-top: 8px;
     }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container mt-5">
-    <h4 class="fw-bold">Pesanan {{ $order->order_number }}</h4>
+    <h4 class="fw-bold">Pesanan <?php echo e($order->order_number); ?></h4>
 
-    @php
+    <?php
         $stepLabels = ['Terkonfirmasi', 'Diproses', 'Siap Dikirim', 'Selesai'];
         $currentStep = 0;
 
@@ -158,29 +158,30 @@
             return '';
         };
 
-    @endphp
+    ?>
 
     <div class="card mt-3 p-4 order-shell">
         <div class="d-flex justify-content-between align-items-start mb-3 gap-3 flex-wrap">
             <div>
-                <div class="fw-bold">{{ $order->order_number }}</div>
-                <div class="small text-muted">{{ $order->created_at->format('d M Y \p\u\k\u\l H:i') }}</div>
+                <div class="fw-bold"><?php echo e($order->order_number); ?></div>
+                <div class="small text-muted"><?php echo e($order->created_at->format('d M Y \p\u\k\u\l H:i')); ?></div>
             </div>
             <div class="text-end">
                 <div class="status-pill status-pill--info d-block mt-2" style="justify-content:center;">
-                    {{ $order->order_status === 'processing' ? 'Diproses' : ($order->order_status === 'ready_to_ship' ? 'Siap Dikirim' : ($order->order_status === 'completed' ? 'Selesai' : ucfirst(str_replace('_',' ', $order->order_status ?? 'new')))) }}
+                    <?php echo e($order->order_status === 'processing' ? 'Diproses' : ($order->order_status === 'ready_to_ship' ? 'Siap Dikirim' : ($order->order_status === 'completed' ? 'Selesai' : ucfirst(str_replace('_',' ', $order->order_status ?? 'new'))))); ?>
+
                 </div>
-                <div class="fw-bold mt-2">Rp {{ number_format($order->total,0,',','.') }}</div>
-                @if($order->payment_status === 'confirmed' && in_array($order->order_status, ['ready_to_ship', 'processing'], true))
-                    <form action="{{ route('pesanan.complete', $order->id) }}" method="POST" class="mt-3">
-                        @csrf
+                <div class="fw-bold mt-2">Rp <?php echo e(number_format($order->total,0,',','.')); ?></div>
+                <?php if($order->payment_status === 'confirmed' && in_array($order->order_status, ['ready_to_ship', 'processing'], true)): ?>
+                    <form action="<?php echo e(route('pesanan.complete', $order->id)); ?>" method="POST" class="mt-3">
+                        <?php echo csrf_field(); ?>
                         <button type="submit" class="btn btn-success btn-sm w-100" onclick="return confirm('Tandai pesanan ini sudah selesai diterima?');">
                             <i class="bi bi-check2-circle me-1"></i> Pesanan Selesai
                         </button>
                     </form>
-                @elseif($order->order_status === 'completed')
+                <?php elseif($order->order_status === 'completed'): ?>
                     <div class="mt-3 badge rounded-pill bg-success-subtle text-success-emphasis py-2 px-3">Pesanan sudah selesai</div>
-                @endif
+                <?php endif; ?>
             </div>
         </div>
 
@@ -191,28 +192,29 @@
                     <div class="status-note">Ikuti tahapan pesanan sampai selesai. Tahap aktif ditandai merah.</div>
                 </div>
                 <div class="small text-muted">
-                    Terakhir diperbarui: {{ $order->updated_at->format('d M Y H:i') }}
+                    Terakhir diperbarui: <?php echo e($order->updated_at->format('d M Y H:i')); ?>
+
                 </div>
             </div>
 
             <div class="order-stepper mt-4">
-                @foreach($stepLabels as $index => $label)
-                    @php $stepState = $stepClass($index + 1); @endphp
-                    <div class="order-step {{ $stepState }}">
-                        <div class="order-step-circle">{{ $index + 1 }}</div>
-                        <div class="order-step-label">{{ $label }}</div>
+                <?php $__currentLoopData = $stepLabels; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <?php $stepState = $stepClass($index + 1); ?>
+                    <div class="order-step <?php echo e($stepState); ?>">
+                        <div class="order-step-circle"><?php echo e($index + 1); ?></div>
+                        <div class="order-step-label"><?php echo e($label); ?></div>
                     </div>
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>
 
             <div class="status-note mt-3">
-                @if($order->payment_status === 'confirmed')
+                <?php if($order->payment_status === 'confirmed'): ?>
                     Pesanan telah dikonfirmasi dan siap masuk ke proses berikutnya.
-                @elseif($order->payment_status === 'waiting_confirmation')
+                <?php elseif($order->payment_status === 'waiting_confirmation'): ?>
                     Menunggu konfirmasi pembayaran dari admin.
-                @elseif($order->payment_status === 'rejected')
+                <?php elseif($order->payment_status === 'rejected'): ?>
                     Pembayaran ditolak. Silakan unggah ulang bukti transfer.
-                @endif
+                <?php endif; ?>
             </div>
         </div>
 
@@ -220,56 +222,58 @@
             <div class="col-md-8">
                 <h6 class="fw-semibold">Produk</h6>
                 <div class="mt-2">
-                    @foreach($order->items as $it)
+                    <?php $__currentLoopData = $order->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $it): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <div class="card mb-2 p-2" style="border-radius:10px;">
                             <div class="d-flex align-items-center">
-                                <img src="{{ \App\Helpers\StorageProxy::url($it->produk->gambar ?? 'images/no-image.png') }}" style="width:64px;height:64px;object-fit:cover;border-radius:8px;" alt="">
+                                <img src="<?php echo e(asset('storage/' . ($it->produk->gambar ?? 'images/no-image.png'))); ?>" style="width:64px;height:64px;object-fit:cover;border-radius:8px;" alt="">
                                 <div class="ms-3">
-                                    <div class="fw-semibold">{{ $it->produk->nama_produk ?? '-' }}</div>
-                                    <div class="small text-muted">{{ $it->quantity }} × Rp {{ number_format($it->price,0,',','.') }}</div>
+                                    <div class="fw-semibold"><?php echo e($it->produk->nama_produk ?? '-'); ?></div>
+                                    <div class="small text-muted"><?php echo e($it->quantity); ?> × Rp <?php echo e(number_format($it->price,0,',','.')); ?></div>
                                 </div>
-                                <div class="ms-auto fw-bold">Rp {{ number_format($it->price * $it->quantity,0,',','.') }}</div>
+                                <div class="ms-auto fw-bold">Rp <?php echo e(number_format($it->price * $it->quantity,0,',','.')); ?></div>
                             </div>
                         </div>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </div>
 
                 <h6 class="mt-4 fw-semibold">Bukti Transfer</h6>
-                @php
+                <?php
                     $proofPath = $order->payment_proof ?? $order->bukti_pembayaran ?? null;
                     $proofExists = $proofPath ? \Illuminate\Support\Facades\Storage::disk('public')->exists($proofPath) : false;
                     $proofMime = $proofExists ? (\Illuminate\Support\Facades\Storage::disk('public')->mimeType($proofPath) ?: 'image/jpeg') : null;
                     $proofBase64 = $proofExists ? base64_encode(\Illuminate\Support\Facades\Storage::disk('public')->get($proofPath)) : null;
-                @endphp
-                @if($proofBase64)
+                ?>
+                <?php if($proofBase64): ?>
                     <div class="mt-2">
-                        <img src="data:{{ $proofMime }};base64,{{ $proofBase64 }}" style="max-width:220px;border-radius:10px;" alt="Bukti Transfer">
+                        <img src="data:<?php echo e($proofMime); ?>;base64,<?php echo e($proofBase64); ?>" style="max-width:220px;border-radius:10px;" alt="Bukti Transfer">
                     </div>
-                @elseif($proofPath)
+                <?php elseif($proofPath): ?>
                     <div class="text-warning">Bukti transfer tercatat di data pesanan, tetapi file gambar tidak ditemukan di storage.</div>
-                    <div class="small text-muted mt-1">Path: {{ $proofPath }}</div>
-                @else
+                    <div class="small text-muted mt-1">Path: <?php echo e($proofPath); ?></div>
+                <?php else: ?>
                     <div class="text-muted">Belum ada bukti transfer.</div>
-                @endif
+                <?php endif; ?>
             </div>
 
             <div class="col-md-4">
                 <h6 class="fw-semibold">Detail Pesanan</h6>
-                <div class="mt-2 small text-muted">Metode: {{ $order->paymentMethod->name ?? '-' }}</div>
-                <div class="mt-2 small text-muted">Status pembayaran: {{ $order->payment_status }}</div>
-                <div class="mt-2 small text-muted">Status pesanan: {{ $order->order_status === 'processing' ? 'Diproses' : ($order->order_status === 'ready_to_ship' ? 'Siap Dikirim' : ($order->order_status === 'completed' ? 'Selesai' : ucfirst(str_replace('_',' ', $order->order_status ?? 'new')))) }}</div>
-                    @if($order->pickup_method === 'delivery')
-                    <div class="mt-2 small text-muted">Alamat kirim: {{ $order->shipping_address ?? '-' }}</div>
-                    @php
+                <div class="mt-2 small text-muted">Metode: <?php echo e($order->paymentMethod->name ?? '-'); ?></div>
+                <div class="mt-2 small text-muted">Status pembayaran: <?php echo e($order->payment_status); ?></div>
+                <div class="mt-2 small text-muted">Status pesanan: <?php echo e($order->order_status === 'processing' ? 'Diproses' : ($order->order_status === 'ready_to_ship' ? 'Siap Dikirim' : ($order->order_status === 'completed' ? 'Selesai' : ucfirst(str_replace('_',' ', $order->order_status ?? 'new'))))); ?></div>
+                    <?php if($order->pickup_method === 'delivery'): ?>
+                    <div class="mt-2 small text-muted">Alamat kirim: <?php echo e($order->shipping_address ?? '-'); ?></div>
+                    <?php
                         $displayDistance = $order->shipping_distance_km ?? ($computedDistance ?? null);
-                    @endphp
-                    <div class="mt-2 small text-muted">Jarak: {{ $displayDistance !== null ? number_format($displayDistance, 2, ',', '.') . ' km' : '-' }}</div>
-                    <div class="mt-2 small text-muted">Ongkir: Rp {{ number_format($order->shipping_cost ?? 0,0,',','.') }}</div>
-                @endif
-                <div class="mt-3 fw-bold">Total: Rp {{ number_format($order->total,0,',','.') }}</div>
+                    ?>
+                    <div class="mt-2 small text-muted">Jarak: <?php echo e($displayDistance !== null ? number_format($displayDistance, 2, ',', '.') . ' km' : '-'); ?></div>
+                    <div class="mt-2 small text-muted">Ongkir: Rp <?php echo e(number_format($order->shipping_cost ?? 0,0,',','.')); ?></div>
+                <?php endif; ?>
+                <div class="mt-3 fw-bold">Total: Rp <?php echo e(number_format($order->total,0,',','.')); ?></div>
             </div>
         </div>
     </div>
-    @include('partials.order_chat', ['order' => $order])
+    <?php echo $__env->make('partials.order_chat', ['order' => $order], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\asus\OneDrive\Documents\GitHub\kp_trenmart\sistemPenjualanTrenmart\resources\views/pesanan/show.blade.php ENDPATH**/ ?>

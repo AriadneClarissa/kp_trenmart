@@ -105,7 +105,7 @@
                     <?php $__currentLoopData = $order->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $it): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <div class="row mb-3 pb-3 border-bottom" style="<?php if($loop->last): ?>border-bottom:none!important;<?php endif; ?>">
                             <div class="col-auto">
-                                <img src="<?php echo e(asset('storage/' . ($it->produk->gambar ?? 'images/no-image.png'))); ?>" 
+                                        <img src="<?php echo e(\App\Helpers\StorageProxy::url($it->produk->gambar ?? 'images/no-image.png')); ?>" 
                                      style="width:60px;height:60px;object-fit:cover;border-radius:8px;" alt="">
                             </div>
                             <div class="col">

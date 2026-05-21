@@ -16,6 +16,7 @@ class Produk extends Model
         'kd_kategori', 
         'kd_merk', 
         'kd_satuan',
+        'satuan',
         'nama_produk', 
         'deskripsi',           
         'harga_jual_umum',     

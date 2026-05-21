@@ -159,7 +159,7 @@
 
                 <hr class="my-4 opacity-25">
 
-                <button type="button" onclick="validateAndSubmit()" class="btn-bayar-final shadow-sm">
+                <button type="button" id="confirm-btn" onclick="validateAndSubmit()" class="btn-bayar-final shadow-sm">
                     Konfirmasi Pembayaran <i class="bi bi-check-all ms-2"></i>
                 </button>
 
@@ -198,12 +198,25 @@
         });
     }
 
-    // Fungsi validasi sebelum submit form
+    // Fungsi validasi sebelum submit form (mencegah klik ganda)
     function validateAndSubmit() {
         const fileInput = document.getElementById('bukti_tf');
+        const btn = document.getElementById('confirm-btn');
+
         if (!fileInput || !fileInput.files || !fileInput.files.length) {
             alert("Harap pilih foto bukti transfer terlebih dahulu!");
             return;
+        }
+
+        if (btn.disabled) return; // sudah diklik sebelumnya
+
+        // Disable button dan tampilkan feedback singkat
+        try {
+            btn.disabled = true;
+            btn.style.opacity = '0.7';
+            btn.innerText = 'Mengunggah...';
+        } catch (e) {
+            // ignore
         }
 
         document.getElementById('final-form').submit();

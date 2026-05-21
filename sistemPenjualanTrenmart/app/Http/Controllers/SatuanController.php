@@ -16,6 +16,7 @@ class SatuanController extends Controller
         // 1. Validasi Input
         $request->validate([
             'nama_satuan' => 'required|string|max:255|unique:satuan,nama_satuan',
+            'stok_minimal' => 'required|integer|min:0',
         ]);
 
         // 2. Format menjadi Kapital Awal Kata
@@ -25,6 +26,7 @@ class SatuanController extends Controller
         $satuan = Satuan::create([
             'kd_satuan' => Str::slug($nama_format), 
             'nama_satuan' => $nama_format,
+            'stok_minimal' => (int) $request->stok_minimal,
             'is_hidden' => false // Default tampil
         ]);
 
@@ -47,8 +49,10 @@ class SatuanController extends Controller
     public function search(Request $request)
     {
         $search = $request->get('q');
-        $satuan = Satuan::where('nama_satuan', 'LIKE', "%$search%")->get();
-        
+        $satuan = Satuan::where('nama_satuan', 'LIKE', "%$search%")
+            ->orderBy('nama_satuan')
+            ->get();
+
         return response()->json($satuan);
     }
 
@@ -59,13 +63,13 @@ class SatuanController extends Controller
     {
         // Cari satuan berdasarkan Primary Key
         $satuan = Satuan::findOrFail($id);
-        
+
         // Mengubah status: jika true jadi false, jika false jadi true
-        $satuan->is_hidden = !$satuan->is_hidden; 
+        $satuan->is_hidden = !$satuan->is_hidden;
         $satuan->save();
 
         return response()->json([
-            'success' => true, 
+            'success' => true,
             'is_hidden' => $satuan->is_hidden
         ]);
     }

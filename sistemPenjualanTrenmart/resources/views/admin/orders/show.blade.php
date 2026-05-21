@@ -104,7 +104,7 @@
                     @foreach($order->items as $it)
                         <div class="row mb-3 pb-3 border-bottom" style="@if($loop->last)border-bottom:none!important;@endif">
                             <div class="col-auto">
-                                <img src="{{ asset('storage/' . ($it->produk->gambar ?? 'images/no-image.png')) }}" 
+                                        <img src="{{ \App\Helpers\StorageProxy::url($it->produk->gambar ?? 'images/no-image.png') }}" 
                                      style="width:60px;height:60px;object-fit:cover;border-radius:8px;" alt="">
                             </div>
                             <div class="col">

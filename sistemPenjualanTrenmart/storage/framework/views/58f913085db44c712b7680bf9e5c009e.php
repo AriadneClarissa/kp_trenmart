@@ -152,13 +152,20 @@
                         <?php if(auth()->check() && !auth()->user()->isAdmin()): ?>
                             onclick="if(event.target.closest('form') || event.target.closest('button') || event.target.closest('a')) return; window.location.href='<?php echo e(route('produk.detail', ['id' => $p->kd_produk, 'from' => 'katalog'])); ?>'"
                         <?php endif; ?>>
+                        <?php
+                            $stokMinimal = $p->stok_minimal ?? $p->satuanModel?->stok_minimal ?? 0;
+                            $isLowStock = $stokMinimal > 0 && $p->stok_tersedia <= $stokMinimal;
+                        ?>
                         <div class="img-container">
                             <?php if($p->stok_tersedia > 0): ?>
                                 <span class="badge bg-success badge-stok shadow-sm">Tersedia</span>
                             <?php else: ?>
                                 <span class="badge bg-danger badge-stok shadow-sm">Habis</span>
                             <?php endif; ?>
-                            <img src="<?php echo e(asset('storage/' . $p->gambar)); ?>" class="img-fluid" style="height: 150px; object-fit: contain;" alt="<?php echo e($p->nama_produk); ?>">
+                            <?php if($isLowStock): ?>
+                                <span class="badge bg-warning text-dark badge-stok shadow-sm" style="top: 44px;">Warning Stok</span>
+                            <?php endif; ?>
+                            <img src="<?php echo e(\App\Helpers\StorageProxy::url($p->gambar)); ?>" class="img-fluid" style="height: 150px; object-fit: contain;" alt="<?php echo e($p->nama_produk); ?>">
                         </div>
                         
                         <div class="product-info text-center">

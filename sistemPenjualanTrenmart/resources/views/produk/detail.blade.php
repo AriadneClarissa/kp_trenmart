@@ -26,7 +26,7 @@
 
                                             <div class="d-flex align-items-center justify-content-center h-100 position-relative">
                                                 @if($item->produk && $item->produk->gambar)
-                                                    <img src="{{ asset('storage/' . $item->produk->gambar) }}" 
+                                                    <img src="{{ \App\Helpers\StorageProxy::url($item->produk->gambar) }}" 
                                                          class="img-fluid main-product-image" 
                                                          alt="{{ $item->produk->nama_produk }}"
                                                          style="max-height: 100%; object-fit: contain; mix-blend-mode: multiply;">
@@ -53,7 +53,7 @@
                             <div class="row mt-3 g-2 justify-content-center">
                                 @foreach($produk->items as $index => $item)
                                 <div class="col-2">
-                                    <img src="{{ asset('storage/' . $item->produk->gambar) }}" 
+                                     <img src="{{ \App\Helpers\StorageProxy::url($item->produk->gambar) }}" 
                                          class="img-fluid border rounded cursor-pointer opacity-hover" 
                                          onclick="goToSlide({{ $index }})" 
                                          style="height: 50px; width: 100%; object-fit: cover;">
@@ -68,20 +68,20 @@
                             <div class="carousel-inner" style="height: 450px;">
                                 <div class="carousel-item active h-100">
                                     <div class="d-flex align-items-center justify-content-center h-100">
-                                        <img src="{{ asset('storage/' . $produk->gambar) }}" class="img-fluid main-product-image" alt="{{ $produk->nama_produk }}" style="max-height: 100%; object-fit: contain; mix-blend-mode: multiply;">
+                                        <img src="{{ \App\Helpers\StorageProxy::url($produk->gambar) }}" class="img-fluid main-product-image" alt="{{ $produk->nama_produk }}" style="max-height: 100%; object-fit: contain; mix-blend-mode: multiply;">
                                     </div>
                                 </div>
                                 @if($produk->foto_2)
                                 <div class="carousel-item h-100">
                                     <div class="d-flex align-items-center justify-content-center h-100">
-                                        <img src="{{ asset('storage/' . $produk->foto_2) }}" class="img-fluid main-product-image" style="max-height: 100%; object-fit: contain; mix-blend-mode: multiply;">
+                                        <img src="{{ \App\Helpers\StorageProxy::url($produk->foto_2) }}" class="img-fluid main-product-image" style="max-height: 100%; object-fit: contain; mix-blend-mode: multiply;">
                                     </div>
                                 </div>
                                 @endif
                                 @if($produk->foto_3)
                                 <div class="carousel-item h-100">
                                     <div class="d-flex align-items-center justify-content-center h-100">
-                                        <img src="{{ asset('storage/' . $produk->foto_3) }}" class="img-fluid main-product-image" style="max-height: 100%; object-fit: contain; mix-blend-mode: multiply;">
+                                        <img src="{{ \App\Helpers\StorageProxy::url($produk->foto_3) }}" class="img-fluid main-product-image" style="max-height: 100%; object-fit: contain; mix-blend-mode: multiply;">
                                     </div>
                                 </div>
                                 @endif

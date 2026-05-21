@@ -23,7 +23,7 @@
                     <div class="mt-3">
                         @foreach($order->items as $it)
                             <div class="d-flex align-items-center mb-2">
-                                <img src="{{ asset('storage/' . ($it->produk->gambar ?? 'images/no-image.png')) }}" style="width:56px;height:56px;object-fit:cover;border-radius:8px;" alt="">
+                                <img src="{{ \App\Helpers\StorageProxy::url($it->produk->gambar ?? 'images/no-image.png') }}" style="width:56px;height:56px;object-fit:cover;border-radius:8px;" alt="">
                                 <div class="ms-3">
                                     <div class="fw-semibold">{{ $it->produk->nama_produk ?? '-' }}</div>
                                     <div class="small text-muted">{{ $it->quantity }} × Rp {{ number_format($it->price,0,',','.') }}</div>

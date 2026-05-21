@@ -1,6 +1,4 @@
-@extends('layouts.app')
-
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
     :root { 
         --maroon-trenmart: #800000; 
@@ -64,14 +62,14 @@
     .text-accent { color: var(--accent-red); }
     .btn-link-custom { text-decoration: none; font-weight: 600; font-size: 0.85rem; }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container main-container pb-5">
     
-    {{-- Header: Ikon Keranjang Belanja Warna Hitam Tanpa Bentuk Bulat --}}
+    
     <div class="mb-3">
-        <a href="{{ route('katalog') }}" class="text-muted text-decoration-none small">
+        <a href="<?php echo e(route('katalog')); ?>" class="text-muted text-decoration-none small">
             <i class="bi bi-chevron-left"></i> Kembali ke Belanja
         </a>
         <div class="d-flex align-items-center mt-1">
@@ -83,78 +81,78 @@
 
     <div class="row cart-wrapper g-4">
         
-        {{-- KOLOM KIRI: DAFTAR BARANG --}}
+        
         <div class="col-lg-8">
-            {{-- List Produk --}}
+            
             <div class="card card-custom p-4">
-                {{-- JUMLAH ITEM & HAPUS SEMUA: Sekarang tepat di atas list produk --}}
+                
                 <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
-                    <h6 class="fw-bold mb-0">Produk ({{ count($items) }} item)</h6>
-                    @if(count($items) > 0)
-                        <form action="{{ route('cart.clear') }}" method="POST" class="m-0">
-                            @csrf
-                            @method('DELETE')
+                    <h6 class="fw-bold mb-0">Produk (<?php echo e(count($items)); ?> item)</h6>
+                    <?php if(count($items) > 0): ?>
+                        <form action="<?php echo e(route('cart.clear')); ?>" method="POST" class="m-0">
+                            <?php echo csrf_field(); ?>
+                            <?php echo method_field('DELETE'); ?>
                             <button type="submit" class="btn btn-link text-danger btn-link-custom p-0 d-flex align-items-center" onclick="return confirm('Hapus semua item di keranjang?');">
                                 <i class="bi bi-trash-fill me-1"></i> Hapus Semua
                             </button>
                         </form>
-                    @endif
+                    <?php endif; ?>
                 </div>
 
-                @forelse($items as $item)
-                <div class="d-flex align-items-center py-3 border-bottom {{ $loop->last ? 'border-0' : '' }}">
-                    <img src="{{ \App\Helpers\StorageProxy::url($item->produk->gambar ?? 'images/no-image.png') }}" class="product-img me-3">
+                <?php $__empty_1 = true; $__currentLoopData = $items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                <div class="d-flex align-items-center py-3 border-bottom <?php echo e($loop->last ? 'border-0' : ''); ?>">
+                    <img src="<?php echo e(\App\Helpers\StorageProxy::url($item->produk->gambar ?? 'images/no-image.png')); ?>" class="product-img me-3">
                     
                     <div class="flex-grow-1">
-                        <h6 class="fw-bold mb-0">{{ $item->produk->nama_produk }}</h6>
-                        <p class="text-muted small mb-1">{{ $item->produk->merk->nama_merk ?? 'Trenmart' }}</p>
-                        <h6 class="text-accent fw-bold mb-0">Rp {{ number_format($item->harga_at_time, 0, ',', '.') }}</h6>
+                        <h6 class="fw-bold mb-0"><?php echo e($item->produk->nama_produk); ?></h6>
+                        <p class="text-muted small mb-1"><?php echo e($item->produk->merk->nama_merk ?? 'Trenmart'); ?></p>
+                        <h6 class="text-accent fw-bold mb-0">Rp <?php echo e(number_format($item->harga_at_time, 0, ',', '.')); ?></h6>
                     </div>
 
                     <div class="text-end">
-                        <form action="{{ route('cart.update', $item->id) }}" method="POST" class="qty-container mb-2">
-                            @csrf
-                            @method('PUT')
+                        <form action="<?php echo e(route('cart.update', $item->id)); ?>" method="POST" class="qty-container mb-2">
+                            <?php echo csrf_field(); ?>
+                            <?php echo method_field('PUT'); ?>
                             <button class="btn-qty" type="submit" name="action" value="decrease">-</button>
-                            <input type="text" class="qty-input" value="{{ $item->jumlah }}" readonly>
+                            <input type="text" class="qty-input" value="<?php echo e($item->jumlah); ?>" readonly>
                             <button class="btn-qty" type="submit" name="action" value="increase">+</button>
                         </form>
-                        <div class="fw-bold d-block">Rp {{ number_format($item->harga_at_time * $item->jumlah, 0, ',', '.') }}</div>
-                        <form action="{{ route('cart.remove', $item->id) }}" method="POST" class="m-0 mt-1">
-                            @csrf
-                            @method('DELETE')
+                        <div class="fw-bold d-block">Rp <?php echo e(number_format($item->harga_at_time * $item->jumlah, 0, ',', '.')); ?></div>
+                        <form action="<?php echo e(route('cart.remove', $item->id)); ?>" method="POST" class="m-0 mt-1">
+                            <?php echo csrf_field(); ?>
+                            <?php echo method_field('DELETE'); ?>
                             <button type="submit" class="btn btn-link p-0 text-muted small shadow-none" onclick="return confirm('Hapus produk ini dari keranjang?');">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </form>
                     </div>
                 </div>
-                @empty
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                 <div class="text-center py-5 text-muted">Keranjang Anda kosong</div>
-                @endforelse
+                <?php endif; ?>
             </div>
 
         </div>
 
-        {{-- KOLOM KANAN: RINGKASAN PESANAN (STICKY) --}}
+        
         <div class="col-lg-4">
             <div class="summary-card shadow-sm">
                 <h6 class="fw-bold mb-4">Ringkasan Pesanan</h6>
                 
                 <div id="items-list">
-                    @foreach($items as $item)
+                    <?php $__currentLoopData = $items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <div class="d-flex justify-content-between mb-2 small text-muted">
-                        <span class="text-truncate" style="max-width: 160px;">{{ $item->produk->nama_produk }} ×{{ $item->jumlah }}</span>
-                        <span>Rp {{ number_format($item->harga_at_time * $item->jumlah, 0, ',', '.') }}</span>
+                        <span class="text-truncate" style="max-width: 160px;"><?php echo e($item->produk->nama_produk); ?> ×<?php echo e($item->jumlah); ?></span>
+                        <span>Rp <?php echo e(number_format($item->harga_at_time * $item->jumlah, 0, ',', '.')); ?></span>
                     </div>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </div>
                 
                 <hr class="my-4 opacity-25">
                 
                 <div class="d-flex justify-content-between mb-2 text-muted small">
                     <span>Subtotal</span>
-                    <span class="fw-bold text-dark">Rp {{ number_format($total, 0, ',', '.') }}</span>
+                    <span class="fw-bold text-dark">Rp <?php echo e(number_format($total, 0, ',', '.')); ?></span>
                 </div>
                 <div class="d-flex justify-content-between mb-4 text-muted small">
                     <span>Ongkos Kirim</span>
@@ -163,19 +161,20 @@
 
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h5 class="fw-bold mb-0">Total Bayar</h5>
-                    <h4 class="fw-bold text-accent mb-0" id="total-label">Rp {{ number_format($total, 0, ',', '.') }}</h4>
+                    <h4 class="fw-bold text-accent mb-0" id="total-label">Rp <?php echo e(number_format($total, 0, ',', '.')); ?></h4>
                 </div>
 
-                @if(count($items) > 0)
-                <a href="{{ route('checkout.index') }}" class="btn-checkout shadow-sm">
+                <?php if(count($items) > 0): ?>
+                <a href="<?php echo e(route('checkout.index')); ?>" class="btn-checkout shadow-sm">
                     Lanjut ke Pembayaran <i class="bi bi-chevron-right ms-2"></i>
                 </a>
-                @else
+                <?php else: ?>
                 <button class="btn btn-secondary w-100 py-3 fw-bold border-0 opacity-50" disabled style="border-radius:12px;">Keranjang Kosong</button>
-                @endif
+                <?php endif; ?>
             </div>
         </div>
 
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\asus\OneDrive\Documents\GitHub\kp_trenmart\sistemPenjualanTrenmart\resources\views/keranjang.blade.php ENDPATH**/ ?>

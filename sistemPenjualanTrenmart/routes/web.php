@@ -14,9 +14,13 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\BundlingController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\StorageProxyController;
 
 // --- 1. HALAMAN PUBLIK ---
 Route::get('/', [ProdukController::class, 'index'])->name('beranda');
+
+// Proxy route to serve storage/app/public files when public/storage is missing
+Route::get('/storage-proxy/{path}', [StorageProxyController::class, 'show'])->where('path', '.*');
 Route::get('/bundling/{id}', [BundlingController::class, 'show'])->name('bundling.show'); 
 Route::get('/katalog', [ProdukController::class, 'katalog'])->name('katalog');
 Route::get('/produk/detail/{id}', [ProdukController::class, 'show'])->name('produk.detail');

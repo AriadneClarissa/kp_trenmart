@@ -152,13 +152,20 @@
                         @if(auth()->check() && !auth()->user()->isAdmin())
                             onclick="if(event.target.closest('form') || event.target.closest('button') || event.target.closest('a')) return; window.location.href='{{ route('produk.detail', ['id' => $p->kd_produk, 'from' => 'katalog']) }}'"
                         @endif>
+                        @php
+                            $stokMinimal = $p->stok_minimal ?? $p->satuanModel?->stok_minimal ?? 0;
+                            $isLowStock = $stokMinimal > 0 && $p->stok_tersedia <= $stokMinimal;
+                        @endphp
                         <div class="img-container">
                             @if($p->stok_tersedia > 0)
                                 <span class="badge bg-success badge-stok shadow-sm">Tersedia</span>
                             @else
                                 <span class="badge bg-danger badge-stok shadow-sm">Habis</span>
                             @endif
-                            <img src="{{ asset('storage/' . $p->gambar) }}" class="img-fluid" style="height: 150px; object-fit: contain;" alt="{{ $p->nama_produk }}">
+                            @if($isLowStock)
+                                <span class="badge bg-warning text-dark badge-stok shadow-sm" style="top: 44px;">Warning Stok</span>
+                            @endif
+                            <img src="{{ \App\Helpers\StorageProxy::url($p->gambar) }}" class="img-fluid" style="height: 150px; object-fit: contain;" alt="{{ $p->nama_produk }}">
                         </div>
                         
                         <div class="product-info text-center">

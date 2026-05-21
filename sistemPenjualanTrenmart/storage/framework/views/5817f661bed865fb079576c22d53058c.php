@@ -30,7 +30,7 @@
                             <td><?php echo e($u->kd_pelanggan ?? '-'); ?></td>
                             <td><?php echo e($u->name); ?></td>
                             <td><?php echo e($u->email); ?></td>
-                            <td><?php echo e(strtoupper($u->role)); ?></td>
+                            <td><?php echo e($u->roleLabel()); ?></td>
                             <td><?php echo e($u->customer_type ?? '-'); ?></td>
                             <td><?php echo e($u->created_at ? $u->created_at->format('d M Y') : '-'); ?></td>
                         </tr>
