@@ -15,6 +15,7 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\BundlingController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\AdminShippingSettingController;
 use App\Http\Controllers\StorageProxyController;
 
 // --- 1. HALAMAN PUBLIK ---
@@ -173,5 +174,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/merk/toggle-hidden', [MerkController::class, 'toggleHidden'])->name('merk.toggle');
         Route::post('/satuan/toggle-hidden', [SatuanController::class, 'toggleHidden'])->name('satuan.toggle');
 
+        // Shipping Settings
+        Route::get('/shipping', [AdminShippingSettingController::class, 'edit'])->name('admin.shipping.edit');
+        Route::post('/shipping', [AdminShippingSettingController::class, 'update'])->name('admin.shipping.update');
     });
 });

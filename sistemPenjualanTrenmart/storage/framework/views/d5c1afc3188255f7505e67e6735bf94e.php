@@ -399,6 +399,9 @@
                                     </div>
                                 </li>
                                 <li><a class="dropdown-item rounded-3" href="<?php echo e(route('profile.edit')); ?>"><i class="bi bi-person me-2"></i>Profil</a></li>
+                                <?php if(auth()->user()->isAdmin()): ?>
+                                    <li><a class="dropdown-item rounded-3" href="<?php echo e(route('admin.shipping.edit')); ?>"><i class="bi bi-truck me-2"></i>Pengaturan Ongkir</a></li>
+                                <?php endif; ?>
                                 <?php if(auth()->user()->isOwner()): ?>
                                     <li><a class="dropdown-item rounded-3 text-primary" href="<?php echo e(route('dashboard')); ?>"><i class="bi bi-speedometer2 me-2"></i>Dashboard Pemilik</a></li>
                                 <?php endif; ?>

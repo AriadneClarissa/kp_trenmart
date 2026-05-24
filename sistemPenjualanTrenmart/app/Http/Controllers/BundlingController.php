@@ -131,7 +131,7 @@ class BundlingController extends Controller
                 $images->push($item->produk->gambar);
             }
         }
-
+        /** @var \App\Models\Bundling $bundling */
         $stok_tersedia = $bundling->items->min(function ($item) {
             return $item->produk->stok_tersedia ?? 0;
         });

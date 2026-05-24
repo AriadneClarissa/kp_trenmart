@@ -1,6 +1,4 @@
-@extends('layouts.app')
-
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
     :root { 
         --maroon-trenmart: #800000; 
@@ -247,13 +245,13 @@
     .btn-checkout-custom:hover { background: #600000; transform: translateY(-2px); }
     .text-accent { color: var(--maroon-trenmart); }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container main-container pb-5">
     
     <div class="mb-4">
-        <a href="{{ route('cart.index') }}" class="text-muted text-decoration-none small">
+        <a href="<?php echo e(route('cart.index')); ?>" class="text-muted text-decoration-none small">
             <i class="bi bi-chevron-left"></i> Kembali ke Keranjang
         </a>
         <h3 class="fw-bold mt-2"><i class="bi bi-wallet2 me-2"></i>Pembayaran</h3>
@@ -261,12 +259,12 @@
 
     <div class="row g-4">
         
-        {{-- KOLOM KIRI: PILIHAN PEMBAYARAN --}}
+        
         <div class="col-lg-8">
-            <form action="{{ route('checkout.place_order') }}" method="POST" id="payment-form">
-                @csrf
-                <input type="hidden" name="shipping_cost" id="shipping_cost" value="{{ $shippingPreview['shipping_cost'] ?? 0 }}">
-                <input type="hidden" name="shipping_distance_km" id="shipping_distance_km" value="{{ $shippingPreview['distance_km'] ?? '' }}">
+            <form action="<?php echo e(route('checkout.place_order')); ?>" method="POST" id="payment-form">
+                <?php echo csrf_field(); ?>
+                <input type="hidden" name="shipping_cost" id="shipping_cost" value="<?php echo e($shippingPreview['shipping_cost'] ?? 0); ?>">
+                <input type="hidden" name="shipping_distance_km" id="shipping_distance_km" value="<?php echo e($shippingPreview['distance_km'] ?? ''); ?>">
                 <input type="hidden" name="shipping_lat" id="shipping_lat" value="">
                 <input type="hidden" name="shipping_lon" id="shipping_lon" value="">
                 <div class="card card-custom p-4">
@@ -274,20 +272,21 @@
                         <h6 class="fw-bold m-0">Pilih Metode Transfer Bank</h6>
                     </div>
                     
-                    @foreach($paymentMethods as $method)
-                    <div class="payment-option {{ $loop->first ? 'active' : '' }}" onclick="selectBank(this, 'pm{{ $method->id }}')">
+                    <?php $__currentLoopData = $paymentMethods; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $method): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <div class="payment-option <?php echo e($loop->first ? 'active' : ''); ?>" onclick="selectBank(this, 'pm<?php echo e($method->id); ?>')">
                         <div class="d-flex align-items-center justify-content-between">
                             <div class="d-flex align-items-center">
                                 <div class="bank-logo-wrapper me-3">
-                                    {{ strtoupper(substr($method->name, 0, 3)) }}
+                                    <?php echo e(strtoupper(substr($method->name, 0, 3))); ?>
+
                                 </div>
                                 <div>
-                                    <div class="fw-bold small">Transfer {{ $method->name }}</div>
+                                    <div class="fw-bold small">Transfer <?php echo e($method->name); ?></div>
                                 </div>
                             </div>
                             
-                            <input type="radio" name="payment_method_id" id="pm{{ $method->id }}" value="{{ $method->id }}" 
-                                   class="d-none" {{ $loop->first ? 'checked' : '' }}>
+                            <input type="radio" name="payment_method_id" id="pm<?php echo e($method->id); ?>" value="<?php echo e($method->id); ?>" 
+                                   class="d-none" <?php echo e($loop->first ? 'checked' : ''); ?>>
                             
                             <div class="custom-radio-dot"></div>
                         </div>
@@ -296,20 +295,22 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <div class="text-muted small mb-1">Nomor Rekening:</div>
-                                    <div class="fw-bold text-dark fs-5" id="num-{{ $method->id }}" style="letter-spacing: 1px;">
-                                        {{ $method->account_number }}
+                                    <div class="fw-bold text-dark fs-5" id="num-<?php echo e($method->id); ?>" style="letter-spacing: 1px;">
+                                        <?php echo e($method->account_number); ?>
+
                                     </div>
                                     <div class="small text-muted mt-1">
-                                        a/n {{ $method->account_name ?? 'Data tidak tersedia' }}
+                                        a/n <?php echo e($method->account_name ?? 'Data tidak tersedia'); ?>
+
                                     </div>
                                 </div>
-                                <button type="button" class="copy-btn" onclick="copyText('num-{{ $method->id }}', this)">
+                                <button type="button" class="copy-btn" onclick="copyText('num-<?php echo e($method->id); ?>', this)">
                                     <i class="bi bi-clipboard me-1"></i> Salin
                                 </button>
                             </div>
                         </div>
                     </div>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </div>
 
                 <div class="card card-custom p-4 mt-3">
@@ -333,7 +334,7 @@
                         <label class="form-label small fw-bold text-muted">Alamat Pengiriman</label>
                         <div class="address-input-wrapper">
                             <div class="address-autocomplete-wrap">
-                                <input type="text" name="shipping_address" id="shipping_address" class="form-control" autocomplete="off" placeholder="Masukkan alamat lengkap rumah / tujuan pengiriman" value="{{ old('shipping_address', $customerAddress ?? auth()->user()->home_address) }}">
+                                <input type="text" name="shipping_address" id="shipping_address" class="form-control" autocomplete="off" placeholder="Masukkan alamat lengkap rumah / tujuan pengiriman" value="<?php echo e(old('shipping_address', $customerAddress ?? auth()->user()->home_address)); ?>">
                                 <button type="button" id="search-address-btn" class="search-btn" title="Cari alamat yang diketik">
                                     <i class="bi bi-search"></i>
                                 </button>
@@ -345,49 +346,49 @@
                             <div class="geolocation-status" id="geolocation-status"></div>
                         </div>
                         <div class="address-hint" id="address-hint">Gunakan tombol lokasi <i class="bi bi-geo-alt-fill"></i> atau ketik minimal 3 huruf untuk rekomendasi alamat.</div>
-                        <small class="text-muted d-block mt-2">Alamat toko: {{ $storeAddress }}</small>
+                        <small class="text-muted d-block mt-2">Alamat toko: <?php echo e($storeAddress); ?></small>
                         <small class="text-muted d-block">Jika jarak di bawah 5 km, ongkir gratis.</small>
                     </div>
                 </div>
             </form>
         </div>
 
-        {{-- KOLOM KANAN: RINGKASAN PESANAN --}}
+        
         <div class="col-lg-4">
             <div class="summary-card">
                 <h6 class="fw-bold mb-4">Ringkasan Pesanan</h6>
                 
                 <div class="cart-items-preview mb-3">
-                    @foreach($cartItems as $item)
-                        @php
+                    <?php $__currentLoopData = $cartItems; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <?php
                             // Tentukan nama dan harga berdasarkan tipe (Reguler/Bundling)
                             $namaProduk = $item->bundling_id ? $item->bundling->name : ($item->produk->nama_produk ?? 'Produk');
                             $hargaSatuan = $item->bundling_id ? $item->bundling->bundling_price : ($item->harga_at_time ?? $item->produk->harga_jual_umum);
-                        @endphp
+                        ?>
                         <div class="d-flex justify-content-between mb-2 small text-muted">
-                            <span class="text-truncate" style="max-width: 180px;">{{ $namaProduk }} ×{{ $item->jumlah }}</span>
-                            <span>Rp {{ number_format($hargaSatuan * $item->jumlah, 0, ',', '.') }}</span>
+                            <span class="text-truncate" style="max-width: 180px;"><?php echo e($namaProduk); ?> ×<?php echo e($item->jumlah); ?></span>
+                            <span>Rp <?php echo e(number_format($hargaSatuan * $item->jumlah, 0, ',', '.')); ?></span>
                         </div>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </div>
                 
                 <hr class="my-4 opacity-25">
                 
                 <div class="d-flex justify-content-between mb-2 small text-muted">
                     <span>Subtotal</span>
-                    <span class="fw-bold text-dark">Rp {{ number_format($total, 0, ',', '.') }}</span>
+                    <span class="fw-bold text-dark">Rp <?php echo e(number_format($total, 0, ',', '.')); ?></span>
                 </div>
                 <div class="d-flex justify-content-between mb-1 small text-muted">
                     <span>Ongkos Kirim</span>
-                    <span class="fw-bold text-dark" id="shipping-cost-label">Rp {{ number_format($shippingPreview['shipping_cost'] ?? 0, 0, ',', '.') }}</span>
+                    <span class="fw-bold text-dark" id="shipping-cost-label">Rp <?php echo e(number_format($shippingPreview['shipping_cost'] ?? 0, 0, ',', '.')); ?></span>
                 </div>
                 <div class="mb-3">
-                    <div class="small text-muted" id="shipping-distance-text">Jarak: {{ isset($shippingPreview['distance_km']) && $shippingPreview['distance_km'] !== null ? number_format($shippingPreview['distance_km'], 2, ',', '.') . ' km' : '-' }}</div>
+                    <div class="small text-muted" id="shipping-distance-text">Jarak: <?php echo e(isset($shippingPreview['distance_km']) && $shippingPreview['distance_km'] !== null ? number_format($shippingPreview['distance_km'], 2, ',', '.') . ' km' : '-'); ?></div>
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h5 class="fw-bold mb-0">Total Bayar</h5>
-                    <h4 class="fw-bold text-accent mb-0" id="total-pay-label">Rp {{ number_format($total + ($shippingPreview['shipping_cost'] ?? 0), 0, ',', '.') }}</h4>
+                    <h4 class="fw-bold text-accent mb-0" id="total-pay-label">Rp <?php echo e(number_format($total + ($shippingPreview['shipping_cost'] ?? 0), 0, ',', '.')); ?></h4>
                 </div>
 
                 <button type="button" onclick="submitPaymentForm()" class="btn-checkout-custom shadow-sm">
@@ -402,9 +403,9 @@
 
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
     console.log('✅ Script loaded');
     
@@ -432,7 +433,7 @@
         }
 
         try {
-            const url = `{{ route('checkout.address_suggestions') }}?q=${encodeURIComponent(query)}`;
+            const url = `<?php echo e(route('checkout.address_suggestions')); ?>?q=${encodeURIComponent(query)}`;
             console.log('📡 Fetching server suggestions:', url);
 
             const response = await fetch(url);
@@ -568,7 +569,7 @@
         const totalLabel = document.getElementById('total-pay-label');
         const hiddenShipping = document.getElementById('shipping_cost');
         const hiddenDistance = document.getElementById('shipping_distance_km');
-        const subtotal = {{ $total }};
+        const subtotal = <?php echo e($total); ?>;
 
         console.log('💰 refreshShippingQuote:', method, 'address:', address.substring(0, 30));
 
@@ -600,7 +601,7 @@
                 params.set('shipping_lon', shippingLon);
             }
 
-            const url = `{{ route('checkout.shipping_quote') }}?${params.toString()}`;
+            const url = `<?php echo e(route('checkout.shipping_quote')); ?>?${params.toString()}`;
             const response = await fetch(url);
             const data = await response.json();
 
@@ -872,4 +873,5 @@
         console.log('✅ Checkout initialized');
     });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\Lenovo LOQ\Documents\GitHub\kp_trenmart\sistemPenjualanTrenmart\resources\views/checkout/select_payment.blade.php ENDPATH**/ ?>
