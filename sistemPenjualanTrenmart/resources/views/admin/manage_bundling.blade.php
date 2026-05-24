@@ -103,8 +103,8 @@
                                        required value="{{ old('bundling_price') }}">
                             </div>
                         </div>
-                        <div class="d-grid mt-3">
-                            <a href="{{ $source == 'beranda' ? route('beranda') : route('produk.index') }}" class="btn btn-outline-secondary px-4 fw-bold">Batal</a>
+                        <div class="d-grid gap-2 mt-3">
+                            <a href="{{ $source == 'beranda' ? route('beranda') : route('produk.index') }}" class="btn btn-outline-secondary px-4 fw-bold py-2">Batal</a>
                             <button type="submit" class="btn btn-primary py-3 fw-bold rounded-3 shadow-sm">
                                 <i class="bi bi-check-lg me-2"></i>Simpan Paket Bundling
                             </button>
@@ -201,30 +201,34 @@
     }
 
     // --- LOGIC PENCARIAN AJAX DENGAN HARGA ---
+    // --- LOGIC PENCARIAN AJAX DENGAN HARGA ---
     $('#inputNamaProduk, #inputMerkProduk').on('keyup', function() {
         let nama = $('#inputNamaProduk').val();
         let merk = $('#inputMerkProduk').val();
 
         if (nama.length >= 3 || merk.length >= 3) {
             $.ajax({
-                url: "{{ route('admin.produk.search_ajax') }}",
+                url: "{{ route('bundling.search_ajax') }}", // Pastikan nama route ini sesuai di web.php
                 method: "GET",
                 data: { 
-                    q: $('#inputNamaProduk').val(), // Ambil live value nama
-                    merk: $('#inputMerkProduk').val() // Ambil live value merk
+                    q: $('#inputNamaProduk').val(),
+                    merk: $('#inputMerkProduk').val()
                 },
                 success: function(data) {
                     let html = '';
                     if (data.length > 0) {
                         data.forEach(function(item) {
+                            // Mengambil nilai price langsung dari respons Controller
                             let rawPrice = item.price; 
-                        
+                            
+                            // Format ke Rupiah
                             let formattedPrice = new Intl.NumberFormat('id-ID', {
                                 style: 'currency', 
                                 currency: 'IDR', 
                                 minimumFractionDigits: 0
                             }).format(rawPrice);
 
+                            // Gunakan item.text, item.id, item.merk, dan rawPrice
                             html += `
                                 <a href="javascript:void(0)" class="list-group-item list-group-item-action item-pencarian" 
                                     data-id="${item.id}" 
@@ -244,6 +248,9 @@
                     } else {
                         $('#hasilPencarian').html('<div class="list-group-item text-danger small">Produk tidak ditemukan.</div>').show();
                     }
+                },
+                error: function(xhr) {
+                    console.log("Error AJAX: ", xhr.responseText);
                 }
             });
         } else {

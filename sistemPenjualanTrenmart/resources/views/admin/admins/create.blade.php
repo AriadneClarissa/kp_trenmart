@@ -13,13 +13,13 @@
             @csrf
             <div class="row g-3">
                 <div class="col-md-12">
-                    <label class="form-label" id="name-label">Nama Lengkap Admin</label>
-                    <input type="text" name="name" class="form-control" id="name-input" placeholder="Nama admin" required>
+                    <label class="form-label" id="name-label">Nama Lengkap</label>
+                    <input type="text" name="name" class="form-control" id="name-input" placeholder="Nama" required>
                 </div>
                 
                 <div class="col-md-12">
-                    <label class="form-label" id="email-label">Email Admin</label>
-                    <input type="email" name="email" class="form-control" id="email-input" placeholder="Email admin" required>
+                    <label class="form-label" id="email-label">Email</label>
+                    <input type="email" name="email" class="form-control" id="email-input" placeholder="Email" required>
                 </div>
 
                 <div class="col-md-12">

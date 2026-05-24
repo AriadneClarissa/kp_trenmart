@@ -32,4 +32,13 @@ class KategoriController extends Controller
 
         return redirect()->back()->with('success', 'Kategori berhasil ditambah!');
     }
+    public function toggleHidden(Request $request)
+    {
+        \Log::info('Toggle Kategori diklik untuk ID: ' . $request->id); // Tambahkan ini
+        $data = Kategori::where('kd_kategori', $request->id)->firstOrFail();
+        $data->is_hidden = !$data->is_hidden; 
+        $data->save();
+
+        return response()->json(['success' => true, 'is_hidden' => (bool)$data->is_hidden]);
+    }
 }

@@ -26,9 +26,14 @@ class ProdukController extends Controller
     public function index()
     {
         $settings = BerandaSetting::all()->pluck('value', 'key'); 
-
-        // Mengambil produk terbaru (8 item)
-        $produk_terbaru = Produk::latest()->take(8)->get();
+        $produk_terbaru = Produk::where('status', 'aktif')
+        ->whereHas('kategori', function($q) { $q->where('is_hidden', 0); })
+        ->whereHas('merk', function($q) { $q->where('is_hidden', 0); })
+        ->whereHas('satuan', function($q) { $q->where('is_hidden', 0); })
+        ->latest()
+        ->take(8)
+        ->get();
+        
         foreach ($produk_terbaru as $item) { 
             $this->setHargaTampil($item); 
         }
@@ -115,10 +120,14 @@ class ProdukController extends Controller
 
     public function katalog(Request $request)
     {
-        $kategori = Kategori::all();
+        $kategori = Kategori::where('is_hidden', 0)->get();
         $merk = Merk::where('is_hidden', 0)->get(); 
 
-        $query = Produk::with(['kategori', 'merk']);
+         $query = Produk::query()
+        ->where('status', 'aktif')
+        ->whereHas('kategori', function($q) { $q->where('is_hidden', 0); })
+        ->whereHas('merk', function($q) { $q->where('is_hidden', 0); })
+        ->whereHas('satuan', function($q) { $q->where('is_hidden', 0); });
 
         // Filter Pencarian Nama
         if ($request->filled('search')) {
@@ -136,7 +145,7 @@ class ProdukController extends Controller
         }
 
         $produk = $query->latest()->get();
-        
+
         // PENTING: Memproses harga agar tidak muncul Rp 0 di halaman katalog
         foreach ($produk as $item) {
             $this->setHargaTampil($item);
@@ -277,7 +286,7 @@ class ProdukController extends Controller
     public function produkIndex(Request $request)
     {
         // Join satuan to allow ordering by satuan.stok_minimal when produk.stok_minimal is not set
-        $query = Produk::with(['merk', 'kategori', 'satuanModel'])
+        $query = Produk::with(['merk', 'kategori', 'satuan'])
              ->leftJoin('satuan', 'produk.kd_satuan', '=', 'satuan.kd_satuan')
              ->select('produk.*');
 
@@ -417,10 +426,14 @@ class ProdukController extends Controller
 
     public function show($id)
     {
-        $produk = Produk::where('kd_produk', $id)->firstOrFail();
-        $this->setHargaTampil($produk);
+        $query = Produk::where('kd_produk', $id);
+        if (!Auth::check() || !Auth::user()->isAdmin()) {
+            $query->where('status', 'aktif');
+        }
+        $produk = $query->firstOrFail();
         
-        // Kirim is_bundling false agar sistem tahu ini produk biasa
+        $this->setHargaTampil($produk);
+
         return view('produk.detail', compact('produk'))->with('is_bundling', false);
     }
 

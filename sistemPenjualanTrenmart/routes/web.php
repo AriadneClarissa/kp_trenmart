@@ -4,6 +4,7 @@ use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\MerkController;
+use App\Http\Controllers\SatuanController;
 use App\Http\Controllers\KeranjangController;
 use App\Http\Controllers\KatalogController; 
 use App\Http\Controllers\TentangController;
@@ -153,16 +154,24 @@ Route::middleware(['auth'])->group(function () {
         // Admin - Bundling
         Route::get('/admin/manage-bundling', [BundlingController::class, 'create'])->name('bundling.create');
         Route::post('/admin/manage-bundling', [BundlingController::class, 'store'])->name('bundling.store');
+        Route::get('/bundling/search-ajax', [BundlingController::class, 'searchAjax'])->name('bundling.search_ajax');
+
         // Admin - Reports (weekly/monthly)
         Route::get('/reports', [\App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
         Route::get('/reports/monthly', [\App\Http\Controllers\ReportController::class, 'monthly'])->name('reports.monthly');
         Route::get('/reports/weekly', [\App\Http\Controllers\ReportController::class, 'weekly'])->name('reports.weekly');
+        
         // Printable and PDF exports
         Route::get('/reports/monthly/print', [\App\Http\Controllers\ReportController::class, 'printMonthly'])->name('reports.monthly.print');
         Route::get('/reports/monthly/pdf', [\App\Http\Controllers\ReportController::class, 'pdfMonthly'])->name('reports.monthly.pdf');
         Route::get('/reports/weekly/print', [\App\Http\Controllers\ReportController::class, 'printWeekly'])->name('reports.weekly.print');
         Route::get('/reports/weekly/pdf', [\App\Http\Controllers\ReportController::class, 'pdfWeekly'])->name('reports.weekly.pdf');
-        // Admin - Activity Logs (owner only view)
         Route::get('/logs', [AdminLogController::class, 'index'])->name('admin.logs.index');
+
+        // Toggle hidden/unhide
+        Route::post('/kategori/toggle-hidden', [KategoriController::class, 'toggleHidden'])->name('kategori.toggle');
+        Route::post('/merk/toggle-hidden', [MerkController::class, 'toggleHidden'])->name('merk.toggle');
+        Route::post('/satuan/toggle-hidden', [SatuanController::class, 'toggleHidden'])->name('satuan.toggle');
+
     });
 });

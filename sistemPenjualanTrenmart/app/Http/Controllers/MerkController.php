@@ -81,4 +81,13 @@ class MerkController extends Controller
 
         return redirect()->back()->with('success', 'Merk berhasil dihapus!');
     }
+    public function toggleHidden(Request $request)
+    {
+        // Contoh untuk Kategori, ulangi untuk Merk & Satuan
+        $data = Merk::where('kd_merk', $request->id)->firstOrFail();
+        $data->is_hidden = !$data->is_hidden; // Membalik nilai (true jadi false, dst)
+        $data->save();
+
+        return response()->json(['success' => true, 'is_hidden' => $data->is_hidden]);
+    }
 }

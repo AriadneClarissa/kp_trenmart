@@ -38,8 +38,8 @@
                 </select>
             </div>
 
-            <div class="col-md-3 text-end">
-                <label class="form-label small d-block">Aksi</label>
+            <div class="col-md-3 text-start">
+                <label class="form-label small d-block mb-2">Aksi</label>
                 <div class="btn-group">
                     <button id="btnViewPrint" class="btn btn-outline-primary">Tampilkan</button>
                     <button id="btnDownloadPdf" class="btn btn-primary">Download PDF</button>

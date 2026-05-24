@@ -28,22 +28,6 @@
             class="w-100 shadow-sm img-banner-responsive object-fit-cover" 
             style="height: 300px;" 
             alt="Banner Trenmart">
-
-        @if(Auth::check() && Auth::user()->isAdmin())
-            <form action="{{ route('admin.tentang.update') }}" method="POST" enctype="multipart/form-data" id="bannerForm">
-                @csrf
-                @method('PUT')
-                <input type="file" name="tentang_banner" id="bannerInput" class="d-none" accept="image/*">
-                <label for="bannerInput" 
-                    class="position-absolute top-50 start-50 translate-middle btn btn-light rounded-circle shadow-lg d-flex align-items-center justify-content-center hover-scale" 
-                    style="width: 80px; height: 80px; opacity: 0.9; cursor: pointer; border: 3px solid white; z-index: 10;">
-                    <div class="text-center">
-                        <i class="bi bi-camera-fill fs-3 text-dark"></i>
-                        <div style="font-size: 10px; font-weight: bold; color: #333;">Ubah Foto</div>
-                    </div>
-                </label>
-            </form>
-        @endif
     </div>
 
     {{-- 2. Panel Kontrol Admin --}}
@@ -214,6 +198,7 @@
     @endif
 
     {{-- 3. Section Produk Terbaru --}}
+    @if(!auth()->check() || !auth()->user()->isOwner())
     <section class="mb-5">
         <h4 class="fw-bold mb-4 text-center fs-4 fs-md-3">
             <i class="bi bi-stars text-warning me-2"></i>
@@ -232,8 +217,10 @@
             @endforelse
         </div>
     </section>
+    @endif
 
     {{-- 4. SECTION BUNDLING --}}
+    @if(!auth()->check() || !auth()->user()->isOwner())
     <section class="mt-5 pt-3">
         <div class="text-center mb-5">
             <h4 class="fw-bold mb-2 fs-4 fs-md-3">
@@ -314,6 +301,7 @@
             @endforelse
         </div>
     </section>
+    @endif
 </div>
 
 {{-- SCRIPT & STYLE --}}

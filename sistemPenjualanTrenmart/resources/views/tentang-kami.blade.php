@@ -1,5 +1,6 @@
 @extends('layouts.app')
 
+
 @section('content')
 <div class="container my-4 my-md-5">
     @if(session('success'))
@@ -271,7 +272,14 @@
 
         removeBtn.closest('.feature-row').remove();
     });
-})();
+    document.getElementById('btnToggleEdit').addEventListener('click', function() {
+        const container = document.getElementById('formContainer');
+        container.classList.add('editing');
+        
+        // Opsional: Scroll ke atas agar user tahu mode edit sudah aktif
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }); 
+});
 </script>
 @endif
 @endpush

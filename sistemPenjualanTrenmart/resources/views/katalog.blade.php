@@ -35,8 +35,29 @@
     /* --- TOP FILTER PILL --- */
     .top-filter-pill { background: white; border-radius: 50px; padding: 8px 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid #eee; display: flex; align-items: center; width: 100%; }
     .top-filter-input { border: none; background: transparent; outline: none; width: 100%; font-size: 14px; padding-left: 10px; }
-    .top-select-filter { border: none; background: white; border-radius: 50px; padding: 10px 20px; cursor: pointer; color: #666; font-size: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); width: 100%; border: 1px solid #eee; }
-
+    .top-select-filter { 
+        border: none; 
+        background: white; 
+        border-radius: 50px; 
+        /* Padding kanan ditingkatkan menjadi 45px agar teks tidak menabrak panah */
+        padding: 10px 45px 10px 20px; 
+        cursor: pointer; 
+        color: #666; 
+        font-size: 14px; 
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
+        width: 100%; 
+        border: 1px solid #eee; 
+        
+        /* Mengatur panah custom */
+        appearance: none; 
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        /* Geser panah 15px dari sisi kanan */
+        background-position: right 15px center; 
+        background-size: 14px;
+    }
     /* --- CARD PRODUK --- */
     .card-produk { border-radius: 25px !important; transition: 0.3s; border: none; box-shadow: 0 4px 20px rgba(0,0,0,0.06); height: 100%; overflow: hidden; background: white; display: flex; flex-direction: column; }
     .card-produk:hover { transform: translateY(-8px); box-shadow: 0 12px 30px rgba(0,0,0,0.1); }

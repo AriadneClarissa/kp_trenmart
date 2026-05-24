@@ -69,7 +69,11 @@
         background-color: #fff5f5;
         font-weight: 500;
     }
-    
+    .list-group {
+    display: block !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    }
     /* Tombol Admin Panel */
     .sidebar-header-admin { font-weight: bold; font-size: 0.9rem; border-bottom: 1px solid #eee; padding: 12px 20px; background-color: #fff9e6; color: #333; }
     .btn-admin-panel { width: 100%; border-radius: 12px; font-weight: 600; font-size: 13px; padding: 10px; margin-bottom: 10px; border: none; color: white; display: block; text-align: center; text-decoration: none; }
@@ -77,7 +81,24 @@
     /* Filter Bar Pill Style (Atas) */
     .filter-pill { background: white; border-radius: 50px; padding: 8px 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid #eee; display: flex; align-items: center; width: 100%; }
     .input-filter { border: none; background: transparent; outline: none; padding: 8px 0; width: 100%; font-size: 14px; padding-left: 10px; }
-    .select-filter { border: none; background: white; border-radius: 50px; padding: 10px 20px; cursor: pointer; color: #666; font-size: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); width: 100%; border: 1px solid #eee; }
+    .select-filter { 
+            border: none; 
+            background: white; 
+            border-radius: 50px; 
+            padding: 10px 40px 10px 20px; /* Tambahkan padding-right agar tidak bertabrakan dengan panah */
+            cursor: pointer; 
+            color: #666; 
+            font-size: 14px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
+            width: 100%; 
+            border: 1px solid #eee; 
+            
+            /* Menambahkan kustomisasi panah agar tidak menempel di pojok kanan */
+            appearance: none; 
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 15px center; /* Kamu bisa atur angka 15px ini sesuai keinginan */
+            background-size: 14px;}
 
     /* Card Produk Style */
     .card-produk { border-radius: 25px !important; transition: 0.3s; border: none; box-shadow: 0 4px 20px rgba(0,0,0,0.06); height: 100%; overflow: hidden; background: white; display: flex; flex-direction: column; }
@@ -99,6 +120,12 @@
         text-align: center;
         min-height: 260px;
     }
+    .main-container {
+    max-width: 1500px !important; /* Membatasi lebar maksimal di 1400px */
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    margin: 0 auto !important; /* Memastikan posisinya tetap tepat di tengah layar */
+}
     
 </style>
 @endpush
@@ -123,13 +150,15 @@
                             Panel Admin
                         @endif
                     </div>
-                    <button class="btn btn-sm btn-primary" style="background-color: #55bdff; border: none;" data-bs-toggle="modal" data-bs-target="#modalKelolaKategori">
+                    <button type="button" class="btn btn-sm btn-primary" style="background-color: #55bdff; border: none;" data-bs-toggle="modal" data-bs-target="#modalKelolaKategori">
                         <i class="bi bi-plus-circle me-1"></i> Kelola Kategori
                     </button>
-                    <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalKelolaMerk">
+
+                    <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalKelolaMerk">
                         <i class="bi bi-plus-circle me-1"></i> Kelola Merk
                     </button>
-                    <button class="btn btn-sm btn-warning" style="border: none; color: white;" data-bs-toggle="modal" data-bs-target="#modalKelolaSatuan">
+
+                    <button type="button" class="btn btn-sm btn-warning" style="border: none; color: white;" data-bs-toggle="modal" data-bs-target="#modalKelolaSatuan">
                         <i class="bi bi-plus-circle me-1"></i> Kelola Satuan
                     </button>
                     <a href="{{ route('produk.create') }}" class="btn btn-sm btn-danger">
@@ -208,9 +237,6 @@
                                     <td class="fw-semibold">{{ $p->kd_produk }}</td>
                                     <td>
                                         <div class="fw-semibold text-dark">{{ $p->nama_produk }}</div>
-                                        @if(!empty($p->deskripsi))
-                                            <div class="small text-muted text-truncate" style="max-width: 260px;">{{ $p->deskripsi }}</div>
-                                        @endif
                                     </td>
                                     <td>{{ $p->merk->nama_merk ?? 'Tanpa Merk' }}</td>
                                     <td>{{ $p->kategori->nama_kategori ?? '-' }}</td>
@@ -293,19 +319,28 @@
                     <div id="searchKategoriRekomendasi" class="list-group shadow-sm rounded-3 overflow-hidden mb-3 d-none" style="max-height: 180px; overflow-y: auto;"></div>
                     <div class="small text-muted mb-2 d-none" id="kategoriNoResult">Tidak ada kategori yang cocok.</div>
                     <div class="small text-muted mb-2 d-none" id="kategoriHint">Ketik nama kategori untuk melihat rekomendasi.</div>
-                    <div class="list-group border shadow-sm rounded-3 overflow-hidden" id="containerListKategori" style="max-height: 250px; overflow-y: auto;">
-                        @foreach($kategori as $kat)
-                            <div class="list-group-item d-flex justify-content-between align-items-center bg-light item-kategori" data-search="{{ strtolower($kat->nama_kategori) }}">
-                                <span class="nama-kategori-text">{{ $kat->nama_kategori }}</span>
-                                <button type="button" class="btn btn-sm btn-white border btn-toggle-visible-kat" data-id="{{ $kat->kd_kategori }}">
-                                    <i class="bi {{ $kat->is_hidden ? 'bi-eye-slash-fill text-danger' : 'bi-eye-fill text-primary' }}"></i>
-                                </button>
-                            </div>
-                        @endforeach
+                    <div class="list-group border shadow-sm rounded-3" 
+                        id="containerListKategori" 
+                        style="max-height: 300px; overflow-y: auto !important; display: block !important;">
+                        
+                        @if(isset($kategori) && count($kategori) > 0)
+                            @foreach($kategori as $kat)
+                                <div class="list-group-item d-flex justify-content-between align-items-center bg-light item-kategori" data-search="{{ strtolower($kat->nama_kategori) }}">
+                                    <span class="nama-kategori-text">{{ $kat->nama_kategori }}</span>
+                                    <button type="button" class="btn btn-sm btn-white border btn-toggle-visible-kat" data-id="{{ $kat->kd_kategori }}">
+                                        <i class="bi {{ $kat->is_hidden ? 'bi-eye-slash-fill text-danger' : 'bi-eye-fill text-primary' }}"></i>
+                                    </button>
+                                </div>
+                            @endforeach
+                        @else
+                            <div class="list-group-item text-muted">Data kategori kosong.</div>
+                        @endif
                     </div>
                 </div>
                 <div class="modal-footer border-0 pb-4">
-                    <button class="btn btn-danger w-100 py-2 fw-bold rounded-pill" onclick="window.location.reload();">Selesai</button>
+                    <button type="button" class="btn btn-danger w-100 py-2 fw-bold rounded-pill" data-bs-dismiss="modal">
+                        Selesai
+                    </button>
                 </div>
             </div>
         </div>
@@ -345,7 +380,9 @@
                     </div>
                 </div>
                 <div class="modal-footer border-0 pb-4">
-                    <button class="btn btn-danger w-100 py-2 fw-bold rounded-pill" onclick="window.location.reload();">Selesai</button>
+                    <button type="button" class="btn btn-danger w-100 py-2 fw-bold rounded-pill" data-bs-dismiss="modal">
+                        Selesai
+                    </button>
                 </div>
             </div>
         </div>
@@ -398,7 +435,9 @@
                     </div>
                 </div>
                 <div class="modal-footer border-0 pb-4">
-                    <button class="btn btn-danger w-100 py-2 fw-bold rounded-pill" onclick="window.location.reload();">Selesai</button>
+                    <button type="button" class="btn btn-danger w-100 py-2 fw-bold rounded-pill" data-bs-dismiss="modal">
+                        Selesai
+                    </button>
                 </div>
             </div>
         </div>
@@ -410,6 +449,45 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
+    // 1. Setup CSRF Token sekali saja untuk semua request AJAX
+    $.ajaxSetup({
+        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
+    });
+
+    // 2. Event tunggal untuk semua tombol toggle (Kategori, Merk, Satuan)
+    // Menggunakan $(document).off().on() untuk memastikan tidak ada event yang ganda
+    $(document).off('click', '.btn-toggle-visible-kat, .btn-toggle-visible, .btn-toggle-visible-satuan')
+               .on('click', '.btn-toggle-visible-kat, .btn-toggle-visible, .btn-toggle-visible-satuan', function(e) {
+        e.preventDefault();
+        
+        const btn = $(this);
+        const id = btn.data('id');
+        const icon = btn.find('i');
+        
+        let url = "";
+        if (btn.hasClass('btn-toggle-visible-kat')) url = "{{ route('kategori.toggle') }}";
+        else if (btn.hasClass('btn-toggle-visible')) url = "{{ route('merk.toggle') }}";
+        else if (btn.hasClass('btn-toggle-visible-satuan')) url = "{{ route('satuan.toggle') }}";
+
+        $.ajax({
+            url: url,
+            method: "POST",
+            data: { id: id },
+            success: function(res) {
+                if(res.success) {
+                    // Update tampilan icon secara aman
+                    if(res.is_hidden) {
+                        icon.attr('class', 'bi bi-eye-slash-fill text-danger');
+                    } else {
+                        icon.attr('class', 'bi bi-eye-fill text-primary');
+                    }
+                }
+            },
+            error: function(xhr) {
+                console.log("Error:", xhr.responseText);
+            }
+        });
+    });
     const kategoriIndexUrl = "{{ route('produk.index') }}";
 
     function setupSearchRecommendation(inputSelector, buttonSelector, listSelector, itemSelector, textSelector, recommendationSelector, noResultSelector, hintSelector) {
@@ -568,7 +646,6 @@ $(document).ready(function() {
         })
             .fail(function(xhr) {
                 const pesan = xhr.responseJSON?.message || 'Kategori gagal ditambahkan. Coba lagi.';
-                alert(pesan);
             });
     });
 
@@ -596,59 +673,46 @@ $(document).ready(function() {
             }
         }).fail(function(xhr) {
             const pesan = xhr.responseJSON?.message || 'Satuan gagal ditambahkan. Coba lagi.';
-            alert(pesan);
         });
     });
-});
 
     // AJAX Update Status Produk
     $(document).ready(function() {
         $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
         });
 
-        $('.status-dropdown').on('change', function() {
+        // Gunakan .off('change') sebelum .on('change') untuk mencegah duplikasi
+        $('.status-dropdown').off('change').on('change', function() {
             const dropdown = $(this);
             const status = dropdown.val();
             const id = dropdown.data('id');
 
-            // Visual feedback
             dropdown.prop('disabled', true);
 
             $.ajax({
                 url: "{{ route('produk.updateStatus') }}",
-                method: "POST", // Sesuai dengan route di web.php
-                data: {
-                    id: id,
-                    status: status
-                    // _token tidak perlu ditulis lagi karena sudah ada di headers (ajaxSetup)
-                },
+                method: "POST",
+                data: { id: id, status: status },
                 success: function(response) {
                     dropdown.prop('disabled', false);
                     
-                    // Update warna teks berdasarkan status
-                    if(status === 'aktif') {
-                        dropdown.removeClass('text-danger').addClass('text-success');
-                    } else {
-                        dropdown.removeClass('text-success').addClass('text-danger');
-                    }
+                    // Update warna
+                    dropdown.removeClass('text-success text-danger')
+                            .addClass(status === 'aktif' ? 'text-success' : 'text-danger');
 
-                    // PASTIKAN BAGIAN INI:
-                    // response.message harus ada di JSON yang dikirim Controller
                     if (response.success) {
                         alert(response.message); 
                     }
                 },
                 error: function(xhr) {
                     dropdown.prop('disabled', false);
-                    // Jika error, kita bisa melihat detailnya di console
                     console.log(xhr.responseText);
                     alert('Gagal memperbarui status.');
                 }
             });
         });
     });
+});
 </script>
 @endpush

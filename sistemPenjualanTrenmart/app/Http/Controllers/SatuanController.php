@@ -84,4 +84,13 @@ class SatuanController extends Controller
 
         return redirect()->back()->with('success', 'Satuan berhasil dihapus!');
     }
+    public function toggleHidden(Request $request)
+    {
+        // Contoh untuk Kategori, ulangi untuk Merk & Satuan
+        $data = Satuan::where('kd_satuan', $request->id)->firstOrFail();
+        $data->is_hidden = !$data->is_hidden; // Membalik nilai (true jadi false, dst)
+        $data->save();
+
+        return response()->json(['success' => true, 'is_hidden' => $data->is_hidden]);
+    }
 }

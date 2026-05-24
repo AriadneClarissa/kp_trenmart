@@ -3,203 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $title ?? 'Laporan Penjualan' }}</title>
+    <title>Laporan Penjualan</title>
     <style>
+        /* 1. KUNCI UNTUK JARAK TEPI (MARGIN) SAAT PRINT/PDF */
         @page {
-            margin: 18mm 14mm;
+            size: A4 landscape; /* Hapus 'landscape' jika ingin potret */
+            margin: 2cm; /* Memberikan jarak tepi 2cm di semua sisi kertas */
         }
 
         body {
-            font-family: DejaVu Sans, Arial, sans-serif;
-            font-size: 11px;
-            color: #111827;
+            font-family: Arial, sans-serif;
             margin: 0;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 18px;
-        }
-
-        .header h1 {
-            margin: 0;
-            font-size: 22px;
-            font-weight: 700;
-        }
-
-        .header .period {
-            margin-top: 6px;
+            padding: 15px; /* Jarak tambahan agar rapi saat dilihat di browser */
+            color: #333;
             font-size: 12px;
         }
 
-        .meta {
-            width: 100%;
-            border-bottom: 2px solid #222;
-            margin-bottom: 14px;
-            padding-bottom: 8px;
+        /* 2. STYLE UNTUK HEADER PERUSAHAAN */
+        .kop-surat {
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 3px solid #000;
+            padding-bottom: 15px;
+        }
+        .kop-surat h1 {
+            margin: 0 0 5px 0;
+            font-size: 22px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .kop-surat p {
+            margin: 3px 0;
+            font-size: 13px;
         }
 
-        .meta td {
-            vertical-align: top;
+        /* Style Tabel Laporan */
+        .judul-laporan {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 16px;
+            font-weight: bold;
         }
-
-        .meta .right {
-            text-align: right;
-            white-space: nowrap;
-        }
-
-        .company-name {
-            font-size: 14px;
-            font-weight: 700;
-            margin-bottom: 2px;
-        }
-
-        table.report {
+        table {
             width: 100%;
             border-collapse: collapse;
+            margin-bottom: 20px;
         }
-
-        table.report thead th {
-            background: #efefef;
-            border: 1px solid #d1d5db;
-            padding: 8px 6px;
-            font-size: 10.5px;
+        table th, table td {
+            border: 1px solid #999;
+            padding: 8px;
             text-align: left;
         }
-
-        table.report td {
-            border: 1px solid #e5e7eb;
-            padding: 8px 6px;
-            vertical-align: top;
+        table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
         }
-
-        table.report tfoot th {
-            border: 1px solid #d1d5db;
-            background: #e5e7eb;
-            padding: 8px 6px;
-        }
-
-        .num {
-            width: 34px;
-            text-align: center;
-        }
-
-        .order-no {
-            width: 120px;
-        }
-
-        .date {
-            width: 128px;
-            white-space: nowrap;
-        }
-
-        .customer {
-            width: 110px;
-        }
-
-        .total {
-            width: 110px;
+        .text-right {
             text-align: right;
-            white-space: nowrap;
         }
-
-        .items ul {
-            margin: 0;
-            padding-left: 16px;
-        }
-
-        .items li {
-            margin: 0 0 2px 0;
-        }
-
-        .signature {
-            margin-top: 28px;
-            width: 100%;
-        }
-
-        .signature .box {
-            width: 220px;
-            margin-left: auto;
-            text-align: left;
-        }
-
-        .muted {
-            color: #6b7280;
+        .text-center {
+            text-align: center;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Laporan Penjualan</h1>
-        <div class="period">{{ $period }}</div>
+
+    <div class="kop-surat">
+        <h1>PT TREN ABADI STATIONERI</h1>
+        <p>Jalan Jenderal Ahmad Yani, Tangga Takat, Kota Palembang</p>
+        <p>Telp. 0859-3522-7778 &nbsp;|&nbsp; Email: Trenabadistationeri@gmail.com</p>
     </div>
 
-    <table class="meta">
-        <tr>
-            <td>
-                <div class="company-name">Trenmart</div>
-                Jl. Pasar Baru No. 123<br>
-                Telp: (021) 000-0000
-            </td>
-            <td class="right muted">Dicetak: {{ $generated_at->format('d M Y H:i') }}</td>
-        </tr>
-    </table>
+    <div class="judul-laporan">
+        LAPORAN PENJUALAN<br>
+        <span style="font-weight: normal; font-size: 12px;">
+            Periode: {{ \Carbon\Carbon::parse(request('start', now()->startOfMonth()))->translatedFormat('d F Y') }} - {{ \Carbon\Carbon::parse(request('end', now()))->translatedFormat('d F Y') }}
+        </span>
+    </div>
 
-    <table class="report">
+    <table>
         <thead>
             <tr>
-                <th class="num">No.</th>
-                <th class="date">Tanggal/Waktu Selesai</th>
-                <th class="order-no">No. Pesanan</th>
-                <th class="customer">Pelanggan</th>
+                <th style="width: 5%;" class="text-center">No.</th>
+                <th>Tanggal/Waktu Selesai</th>
+                <th>No. Pesanan</th>
+                <th>Pelanggan</th>
                 <th>Isi Pesanan</th>
-                <th class="total">Total (Rp)</th>
+                <th class="text-right">Total (Rp)</th>
             </tr>
         </thead>
         <tbody>
-            @php $idx = 1; $grand = 0; @endphp
-            @forelse($orders as $o)
-                @php
-                    $grand += $o->total;
-                    $completedAt = $o->completed_at ?? $o->updated_at;
-                @endphp
+            {{-- Contoh Looping Data (Sesuaikan dengan milikmu) --}}
+            {{-- @forelse($orders as $index => $order)
                 <tr>
-                    <td class="num">{{ $idx++ }}</td>
-                    <td class="date">{{ $completedAt ? $completedAt->format('d M Y H:i') : '-' }}</td>
-                    <td class="order-no">#{{ $o->order_number }}</td>
-                    <td class="customer">{{ $o->user?->name ?? 'Guest' }}</td>
-                    <td class="items">
-                        <ul>
-                            @forelse($o->items as $item)
-                                <li>{{ $item->produk?->nama_produk ?? $item->kd_produk }} x {{ $item->quantity }}</li>
-                            @empty
-                                <li>-</li>
-                            @endforelse
-                        </ul>
-                    </td>
-                    <td class="total">{{ number_format($o->total, 0, ',', '.') }}</td>
+                    <td class="text-center">{{ $index + 1 }}</td>
+                    <td>{{ $order->completed_at }}</td>
+                    <td>{{ $order->order_number }}</td>
+                    <td>{{ $order->user->name ?? 'Umum' }}</td>
+                    <td>{{ $order->items_description }}</td>
+                    <td class="text-right">{{ number_format($order->total, 0, ',', '.') }}</td>
                 </tr>
-            @empty
+            @empty --}}
                 <tr>
-                    <td colspan="6" style="text-align:center; padding: 18px 6px;">Tidak ada pesanan selesai pada periode ini.</td>
+                    <td colspan="6" class="text-center" style="padding: 15px;">Tidak ada pesanan selesai pada periode ini.</td>
                 </tr>
-            @endforelse
+            {{-- @endforelse --}}
         </tbody>
+        {{-- TFOOT: Grand Total --}}
         <tfoot>
             <tr>
-                <th colspan="5" class="total" style="text-align:right;">Grand Total</th>
-                <th class="total">Rp {{ number_format($grand, 0, ',', '.') }}</th>
+                <td colspan="5" class="text-right" style="font-weight: bold;">Grand Total</td>
+                <td class="text-right" style="font-weight: bold;">Rp 0</td>
             </tr>
         </tfoot>
     </table>
 
-    <table class="signature">
-        <tr>
-            <td>
-                Mengetahui,<br><br><br>
-                Pemilik Trenmart
-            </td>
-        </tr>
-    </table>
+    <div style="margin-top: 40px; width: 100%; text-align: right;">
+        <p style="margin-bottom: 70px;">Mengetahui,</p>
+        <p style="font-weight: bold;">Pemilik Trenmart</p>
+    </div>
 </body>
 </html>

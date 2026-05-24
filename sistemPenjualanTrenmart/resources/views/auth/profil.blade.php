@@ -155,7 +155,7 @@
                         </div>
 
                         <div class="text-end">
-                            <button class="btn btn-primary">Simpan Kata Sandi</button>
+                            <button type="submit" id="btnSubmitPassword" class="btn btn-danger fw-bold px-4" style="background-color: #800000;">Ubah Kata Sandi</button>
                         </div>
                     </form>
                 </div>
@@ -166,8 +166,8 @@
 
 <script>
     function togglePassword(inputId, iconId) {
-        const input = document.getElementById(inputId);
-        const icon = document.getElementById(iconId);
+        var input = document.getElementById(inputId);
+        var icon = document.getElementById(iconId);
 
         if (input.type === 'password') {
             input.type = 'text';
@@ -180,39 +180,58 @@
         }
     }
 
-    // Ambil semua input yang memiliki class profile-input
-    const inputs = document.querySelectorAll('.profile-input');
-    const editBtn = document.getElementById('editBtn');
-    const saveGroup = document.getElementById('saveGroup');
-    
-    // Variabel untuk menyimpan data asli jika user menekan 'Batal'
-    let originalData = {};
+    var inputs = document.querySelectorAll('.profile-input');
+    var editBtn = document.getElementById('editBtn');
+    var saveGroup = document.getElementById('saveGroup');
+    var originalData = {};
 
     function enableEditing() {
-        // Simpan data saat ini dan aktifkan input
-        inputs.forEach(input => {
+        inputs.forEach(function(input) {
             originalData[input.name] = input.value;
             input.disabled = false;
         });
 
-        // Ganti tombol Edit menjadi Simpan/Batal
-        editBtn.style.display = 'none';
-        saveGroup.style.display = 'inline-block';
+        if(editBtn) editBtn.style.display = 'none';
+        if(saveGroup) saveGroup.style.display = 'inline-block';
         
-        // Fokuskan ke input pertama agar user bisa langsung mengetik
-        inputs[0].focus();
+        if (inputs.length > 0) {
+            inputs[0].focus();
+        }
     }
 
     function disableEditing() {
-        // Kembalikan nilai input ke data asli dan matikan input
-        inputs.forEach(input => {
+        inputs.forEach(function(input) {
             input.value = originalData[input.name] || input.value;
             input.disabled = true;
         });
 
-        // Kembalikan tombol ke semula
-        editBtn.style.display = 'inline-block';
-        saveGroup.style.display = 'none';
+        if(editBtn) editBtn.style.display = 'inline-block';
+        if(saveGroup) saveGroup.style.display = 'none';
     }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        var passwordInputs = document.querySelectorAll('#current_password, #new_password, #new_password_confirmation');
+        var btnSubmitPassword = document.getElementById('btnSubmitPassword');
+
+        if (passwordInputs.length > 0 && btnSubmitPassword) {
+            passwordInputs.forEach(function(input) {
+                input.addEventListener('input', function() {
+                    var isAnyFilled = Array.from(passwordInputs).some(inp => inp.value.trim() !== '');
+                    
+                    if (isAnyFilled) {
+                        btnSubmitPassword.textContent = 'Simpan Perubahan';
+                        btnSubmitPassword.className = 'btn btn-success fw-bold px-4'; 
+                        // Menghapus warna marun saat tombol menjadi hijau
+                        btnSubmitPassword.style.backgroundColor = ''; 
+                    } else {
+                        btnSubmitPassword.textContent = 'Ubah Kata Sandi';
+                        btnSubmitPassword.className = 'btn btn-danger fw-bold px-4'; 
+                        // Mengembalikan warna marun saat input kosong
+                        btnSubmitPassword.style.backgroundColor = '#800000'; 
+                    }
+                });
+            });
+        }
+    });
 </script>
 @endsection

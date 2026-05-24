@@ -44,7 +44,7 @@ class Produk extends Model
     }
 
     // Relasi ke Satuan
-    public function satuanModel()
+    public function satuan()
     {
         return $this->belongsTo(Satuan::class, 'kd_satuan', 'kd_satuan');
     }
