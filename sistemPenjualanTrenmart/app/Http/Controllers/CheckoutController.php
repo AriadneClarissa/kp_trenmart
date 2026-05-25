@@ -47,59 +47,33 @@ class CheckoutController extends Controller
         return view('checkout.select_payment', compact('cartItems', 'paymentMethods', 'total', 'storeAddress', 'customerAddress', 'shippingPreview'));
     }
 
+    // Di CheckoutController.php
     public function addressSuggestions(Request $request)
     {
-        $data = $request->validate([
-            'q' => 'required|string|min:3|max:255',
-        ]);
-
-        $headers = [
-            'User-Agent' => 'TrenmartAddressAutocomplete/1.0',
-            'Accept-Language' => 'id',
-        ];
-
-        $response = Http::withHeaders($headers)->get('https://nominatim.openstreetmap.org/search', [
-            'q' => $data['q'],
-            'format' => 'jsonv2',
-            'addressdetails' => 1,
-            'limit' => 5,
-            'countrycodes' => 'id',
-        ]);
-
-        $rows = $response->successful() ? $response->json() : [];
-
-        // Fallback query tanpa countrycodes jika hasil awal kosong.
-        if (empty($rows)) {
-            $fallbackResponse = Http::withHeaders($headers)->get('https://nominatim.openstreetmap.org/search', [
-                'q' => $data['q'],
-                'format' => 'jsonv2',
-                'addressdetails' => 1,
-                'limit' => 5,
-            ]);
-            $rows = $fallbackResponse->successful() ? $fallbackResponse->json() : [];
+        $query = $request->query('q');
+        if (! $query) {
+            return response()->json(['success' => false, 'suggestions' => []]);
         }
 
-        // Log query and suggestion count to help debugging why suggestions may be empty
-        \Illuminate\Support\Facades\Log::info('addressSuggestions: query', [
-            'q' => $data['q'],
-            'initial_count' => is_array($response->successful() ? $response->json() : []) ? count($response->successful() ? $response->json() : []) : 0,
-            'final_count' => is_array($rows) ? count($rows) : 0,
+        $normalizedQuery = trim($query);
+        if (! str_contains(strtolower($normalizedQuery), 'sumatera selatan') && ! str_contains(strtolower($normalizedQuery), 'sumsel')) {
+            $normalizedQuery .= ' Sumatera Selatan';
+        }
+
+        // Panggil API Nominatim dari SINI (Server-Side) dan batasi ke Sumatera Selatan
+        $url = "https://nominatim.openstreetmap.org/search?q=" . urlencode($normalizedQuery) . 
+            "&format=jsonv2&limit=5&countrycodes=id&viewbox=102.00,-1.50,106.50,-5.00&bounded=1";
+            
+        $client = new \GuzzleHttp\Client();
+        $response = $client->get($url, [
+            'headers' => ['User-Agent' => 'TrenmartApp/1.0'] // WAJIB ADA
         ]);
 
-        $payload = collect($rows)
-            ->map(function ($row) {
-                return [
-                    'label' => $row['display_name'] ?? '',
-                    'lat' => $row['lat'] ?? null,
-                    'lon' => $row['lon'] ?? null,
-                ];
-            })
-            ->filter(fn($item) => !empty($item['label']))
-            ->values();
-
+        usleep(1000000); // Simulasi delay 1 detik untuk menghindari rate limit
+        
         return response()->json([
             'success' => true,
-            'suggestions' => $payload,
+            'suggestions' => json_decode($response->getBody()->getContents())
         ]);
     }
 
@@ -347,7 +321,7 @@ class CheckoutController extends Controller
             'limit' => 1,
             'countrycodes' => 'id',
             // Koordinat batas Sumatera Selatan (Viewbox)
-            'viewbox' => '102.3,-5.0,106.5,-2.0', 
+            'viewbox' => '102.3,-2.0,106.5,-5.0', 
             'bounded' => 1, 
         ]);
 

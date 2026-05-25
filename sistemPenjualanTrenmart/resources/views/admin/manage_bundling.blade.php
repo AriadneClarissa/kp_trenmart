@@ -199,8 +199,6 @@
         document.getElementById('display_total_normal').innerText = total.toLocaleString('id-ID');
         document.getElementById('input_total_normal').value = total;
     }
-
-    // --- LOGIC PENCARIAN AJAX DENGAN HARGA ---
     // --- LOGIC PENCARIAN AJAX DENGAN HARGA ---
     $('#inputNamaProduk, #inputMerkProduk').on('keyup', function() {
         let nama = $('#inputNamaProduk').val();

@@ -87,7 +87,7 @@
         <div class="col-lg-8">
             {{-- List Produk --}}
             <div class="card card-custom p-4">
-                {{-- JUMLAH ITEM & HAPUS SEMUA: Sekarang tepat di atas list produk --}}
+                {{-- JUMLAH ITEM & HAPUS SEMUA --}}
                 <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
                     <h6 class="fw-bold mb-0">Produk ({{ count($items) }} item)</h6>
                     @if(count($items) > 0)
@@ -103,13 +103,34 @@
 
                 @forelse($items as $item)
                 <div class="d-flex align-items-center py-3 border-bottom {{ $loop->last ? 'border-0' : '' }}">
-                    <img src="{{ \App\Helpers\StorageProxy::url($item->produk->gambar ?? 'images/no-image.png') }}" class="product-img me-3">
                     
-                    <div class="flex-grow-1">
-                        <h6 class="fw-bold mb-0">{{ $item->produk->nama_produk }}</h6>
-                        <p class="text-muted small mb-1">{{ $item->produk->merk->nama_merk ?? 'Trenmart' }}</p>
-                        <h6 class="text-accent fw-bold mb-0">Rp {{ number_format($item->harga_at_time, 0, ',', '.') }}</h6>
-                    </div>
+                    {{-- LOGIKA PEMISAHAN TAMPILAN BUNDLING & REGULER --}}
+                    @if($item->bundling_id != null && $item->bundling)
+                        {{-- 1. Tampilan Paket Bundling --}}
+                        @php
+                            $gambarBundling = null;
+                            if($item->bundling->items && $item->bundling->items->count() > 0) {
+                                $produkPertama = $item->bundling->items->first()->produk;
+                                $gambarBundling = $produkPertama ? $produkPertama->gambar : null;
+                            }
+                        @endphp
+                        <img src="{{ \App\Helpers\StorageProxy::url($gambarBundling ?? 'images/no-image.png') }}" class="product-img me-3" style="object-fit: cover;">
+                        
+                        <div class="flex-grow-1">
+                            <h6 class="fw-bold mb-0 text-danger">{{ $item->bundling->name }}</h6>
+                            <p class="text-muted small mb-1">Paket Bundling Hemat</p>
+                            <h6 class="text-accent fw-bold mb-0">Rp {{ number_format($item->harga_at_time, 0, ',', '.') }}</h6>
+                        </div>
+                    @else
+                        {{-- 2. Tampilan Produk Reguler (INI YANG TADI HILANG) --}}
+                        <img src="{{ \App\Helpers\StorageProxy::url($item->produk->gambar ?? 'images/no-image.png') }}" class="product-img me-3">
+                        
+                        <div class="flex-grow-1">
+                            <h6 class="fw-bold mb-0">{{ $item->produk->nama_produk }}</h6>
+                            <p class="text-muted small mb-1">{{ $item->produk->merk->nama_merk ?? 'Trenmart' }}</p>
+                            <h6 class="text-accent fw-bold mb-0">Rp {{ number_format($item->harga_at_time, 0, ',', '.') }}</h6>
+                        </div>
+                    @endif {{-- INI PENUTUP YANG SANGAT PENTING --}}
 
                     <div class="text-end">
                         <form action="{{ route('cart.update', $item->id) }}" method="POST" class="qty-container mb-2">
@@ -133,7 +154,6 @@
                 <div class="text-center py-5 text-muted">Keranjang Anda kosong</div>
                 @endforelse
             </div>
-
         </div>
 
         {{-- KOLOM KANAN: RINGKASAN PESANAN (STICKY) --}}
@@ -144,7 +164,15 @@
                 <div id="items-list">
                     @foreach($items as $item)
                     <div class="d-flex justify-content-between mb-2 small text-muted">
-                        <span class="text-truncate" style="max-width: 160px;">{{ $item->produk->nama_produk }} ×{{ $item->jumlah }}</span>
+                        <span class="text-truncate" style="max-width: 160px;">
+                            {{-- LOGIKA PEMISAHAN NAMA DI RINGKASAN --}}
+                            @if($item->bundling_id != null && $item->bundling)
+                                {{ $item->bundling->name }}
+                            @else
+                                {{ $item->produk->nama_produk }}
+                            @endif
+                            ×{{ $item->jumlah }}
+                        </span>
                         <span>Rp {{ number_format($item->harga_at_time * $item->jumlah, 0, ',', '.') }}</span>
                     </div>
                     @endforeach

@@ -346,7 +346,7 @@
                         </div>
                         <div class="address-hint" id="address-hint">Gunakan tombol lokasi <i class="bi bi-geo-alt-fill"></i> atau ketik minimal 3 huruf untuk rekomendasi alamat.</div>
                         <small class="text-muted d-block mt-2">Alamat toko: {{ $storeAddress }}</small>
-                        <small class="text-muted d-block">Jika jarak di bawah 5 km, ongkir gratis.</small>
+                        <small class="text-muted d-block">Jika jarak di bawah 1 km, ongkir gratis.</small>
                     </div>
                 </div>
             </form>
@@ -431,6 +431,9 @@
             return;
         }
 
+        // Koordinat batas Sumatera Selatan
+        const sumselViewbox = '102.00,-1.50,106.50,-5.00';
+
         try {
             const url = `{{ route('checkout.address_suggestions') }}?q=${encodeURIComponent(query)}`;
             console.log('📡 Fetching server suggestions:', url);
@@ -442,14 +445,19 @@
 
             if (data.success && Array.isArray(data.suggestions) && data.suggestions.length > 0) {
                 console.log('📍 Got', data.suggestions.length, 'server suggestions');
-                renderSuggestions(data.suggestions);
-                return data.suggestions;
+                const formatted = data.suggestions.map(item => ({
+                    label: item.display_name || item.label || '',
+                    lat: item.lat || null,
+                    lon: item.lon || null,
+                }));
+                renderSuggestions(formatted);
+                return formatted;
             }
 
             console.warn('⚠️ Server returned no suggestions, trying client-side Nominatim fallback');
 
-            // Client-side fallback directly to Nominatim (helps when server-side fails or is blocked)
-            const fallbackUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=jsonv2&limit=6&countrycodes=id`;
+            // Fallback 1 dengan Viewbox Sumatera Selatan
+            const fallbackUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=jsonv2&limit=6&countrycodes=id&viewbox=${sumselViewbox}&bounded=1`;
             try {
                 const fbResp = await fetch(fallbackUrl);
                 const fbData = await fbResp.json();
@@ -468,9 +476,9 @@
         } catch (error) {
             console.error('❌ Error fetching server suggestions:', error);
 
-            // Try direct client-side Nominatim as last resort
+            // Fallback 2 (jika backend error) dengan Viewbox Sumatera Selatan
             try {
-                const fallbackUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=jsonv2&limit=6&countrycodes=id`;
+                const fallbackUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=jsonv2&limit=6&countrycodes=id&viewbox=${sumselViewbox}&bounded=1`;
                 const fbResp = await fetch(fallbackUrl);
                 const fbData = await fbResp.json();
                 const fbSuggestions = (fbData || []).map(item => ({ label: item.display_name || '', lat: item.lat || null, lon: item.lon || null }));
@@ -518,9 +526,8 @@
             btn.className = 'address-suggestion-item';
             btn.textContent = item.label || 'Alamat';
 
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                input.value = item.label;
+            btn.addEventListener('click', () => {
+                input.value = item.label || '';
                 setShippingCoordinates(item.lat, item.lon);
                 hideSuggestionList();
                 refreshShippingQuote();
@@ -765,7 +772,7 @@
             });
         }
 
-        // Search button - lookup the typed address and pick the first suggestion
+        // Search button - lookup the typed address and show suggestions
         const searchBtn = document.getElementById('search-address-btn');
         if (searchBtn) {
             searchBtn.addEventListener('click', async (e) => {
@@ -779,20 +786,10 @@
 
                 searchBtn.classList.add('loading');
                 try {
-                    // Fetch suggestions and if any, use the first one
                     const suggestions = await fetchAddressSuggestions(query);
-                    console.log('🔎 suggestions length:', Array.isArray(suggestions) ? suggestions.length : 'no-array');
-                    if (Array.isArray(suggestions) && suggestions.length > 0) {
-                        const first = suggestions[0];
-                        shippingAddress.value = first.label || query;
-                        hideSuggestionList();
-                        refreshShippingQuote();
-                    } else {
-                        alert('Tidak menemukan alamat yang cocok. Coba ubah kata kunci.');
+                    if (!Array.isArray(suggestions) || suggestions.length === 0) {
+                        alert('Alamat tidak ditemukan. Coba gunakan nama jalan yang lebih umum atau gunakan tombol lokasi.');
                     }
-                } catch (err) {
-                    console.error('Error during address search click handler:', err);
-                    alert('Terjadi kesalahan saat mencari alamat. Cek console untuk detail.');
                 } finally {
                     searchBtn.classList.remove('loading');
                 }

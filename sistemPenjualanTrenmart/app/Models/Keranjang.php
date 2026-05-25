@@ -22,4 +22,5 @@ class Keranjang extends Model
     {
         return $this->belongsTo(Bundling::class, 'bundling_id', 'id');
     }
+    
 }

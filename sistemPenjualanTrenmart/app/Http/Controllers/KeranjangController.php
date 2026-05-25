@@ -22,24 +22,30 @@ class KeranjangController extends Controller
 
         $backUrl = session('cart_back_url', route('katalog'));
 
-        // Gunakan eager loading 'produk.merk' agar tidak error saat memanggil nama merk
-        $items = Keranjang::with(['produk.merk'])
+        // PERBAIKAN 1: Tambahkan 'bundling' di eager loading agar data paket ikut terpanggil
+        $items = Keranjang::with(['produk.merk', 'bundling'])
                             ->where('user_id', Auth::id())
                             ->get();
         
         $total = 0;
         foreach ($items as $item) {
-            // Tentukan harga berdasarkan tipe customer saat ini
-            $harga = (Auth::user()->customer_type === 'langganan') 
-                      ? ($item->produk->harga_jual_langganan ?? $item->produk->harga_jual_umum) 
-                      : $item->produk->harga_jual_umum;
+            
+            // PERBAIKAN 2: Pisahkan pengecekan harga untuk Bundling dan Produk Reguler
+            if ($item->bundling_id != null && $item->bundling) {
+                // JIKA INI PAKET BUNDLING (Ambil harga dari tabel bundling)
+                $harga = $item->bundling->bundling_price; 
+            } else {
+                // JIKA INI PRODUK REGULER (Cek apakah user langganan atau umum)
+                $harga = (Auth::user()->customer_type === 'langganan') 
+                          ? ($item->produk->harga_jual_langganan ?? $item->produk->harga_jual_umum) 
+                          : $item->produk->harga_jual_umum;
+            }
             
             // Simpan harga ke atribut sementara untuk ditampilkan di Blade
             $item->harga_at_time = $harga;
             $total += $harga * $item->jumlah;
         }
 
-        // Variabel dikirim sebagai 'items' agar sesuai dengan @forelse($items as $item) di Blade
         return view('keranjang', compact('items', 'total', 'backUrl'));
     }
 
@@ -68,7 +74,6 @@ class KeranjangController extends Controller
         }
 
         // 2. Cek apakah barang sudah ada di keranjang user
-        // Kita cek berdasarkan kd_produk ATAU bundling_id
         $itemExist = Keranjang::where('user_id', Auth::id())
                         ->when($type === 'bundling', function($q) use ($id) {
                             return $q->where('bundling_id', $id);
@@ -89,7 +94,7 @@ class KeranjangController extends Controller
             Keranjang::create([
                 'user_id'   => Auth::id(),
                 'kd_produk' => $kdProdukValue,
-                'bundling_id' => $bundlingIdValue, // Pastikan kolom ini sudah kamu tambah di migration keranjang
+                'bundling_id' => $bundlingIdValue, 
                 'jumlah'    => 1
             ]);
         }

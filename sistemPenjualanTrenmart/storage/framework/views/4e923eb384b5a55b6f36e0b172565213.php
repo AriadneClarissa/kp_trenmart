@@ -101,13 +101,34 @@
 
                 <?php $__empty_1 = true; $__currentLoopData = $items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                 <div class="d-flex align-items-center py-3 border-bottom <?php echo e($loop->last ? 'border-0' : ''); ?>">
-                    <img src="<?php echo e(\App\Helpers\StorageProxy::url($item->produk->gambar ?? 'images/no-image.png')); ?>" class="product-img me-3">
                     
-                    <div class="flex-grow-1">
-                        <h6 class="fw-bold mb-0"><?php echo e($item->produk->nama_produk); ?></h6>
-                        <p class="text-muted small mb-1"><?php echo e($item->produk->merk->nama_merk ?? 'Trenmart'); ?></p>
-                        <h6 class="text-accent fw-bold mb-0">Rp <?php echo e(number_format($item->harga_at_time, 0, ',', '.')); ?></h6>
-                    </div>
+                    
+                    <?php if($item->bundling_id != null && $item->bundling): ?>
+                        
+                        <?php
+                            $gambarBundling = null;
+                            if($item->bundling->items && $item->bundling->items->count() > 0) {
+                                $produkPertama = $item->bundling->items->first()->produk;
+                                $gambarBundling = $produkPertama ? $produkPertama->gambar : null;
+                            }
+                        ?>
+                        <img src="<?php echo e(\App\Helpers\StorageProxy::url($gambarBundling ?? 'images/no-image.png')); ?>" class="product-img me-3" style="object-fit: cover;">
+                        
+                        <div class="flex-grow-1">
+                            <h6 class="fw-bold mb-0 text-danger"><?php echo e($item->bundling->name); ?></h6>
+                            <p class="text-muted small mb-1">Paket Bundling Hemat</p>
+                            <h6 class="text-accent fw-bold mb-0">Rp <?php echo e(number_format($item->harga_at_time, 0, ',', '.')); ?></h6>
+                        </div>
+                    <?php else: ?>
+                        
+                        <img src="<?php echo e(\App\Helpers\StorageProxy::url($item->produk->gambar ?? 'images/no-image.png')); ?>" class="product-img me-3">
+                        
+                        <div class="flex-grow-1">
+                            <h6 class="fw-bold mb-0"><?php echo e($item->produk->nama_produk); ?></h6>
+                            <p class="text-muted small mb-1"><?php echo e($item->produk->merk->nama_merk ?? 'Trenmart'); ?></p>
+                            <h6 class="text-accent fw-bold mb-0">Rp <?php echo e(number_format($item->harga_at_time, 0, ',', '.')); ?></h6>
+                        </div>
+                    <?php endif; ?> 
 
                     <div class="text-end">
                         <form action="<?php echo e(route('cart.update', $item->id)); ?>" method="POST" class="qty-container mb-2">
@@ -131,7 +152,6 @@
                 <div class="text-center py-5 text-muted">Keranjang Anda kosong</div>
                 <?php endif; ?>
             </div>
-
         </div>
 
         
@@ -142,7 +162,18 @@
                 <div id="items-list">
                     <?php $__currentLoopData = $items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <div class="d-flex justify-content-between mb-2 small text-muted">
-                        <span class="text-truncate" style="max-width: 160px;"><?php echo e($item->produk->nama_produk); ?> ×<?php echo e($item->jumlah); ?></span>
+                        <span class="text-truncate" style="max-width: 160px;">
+                            
+                            <?php if($item->bundling_id != null && $item->bundling): ?>
+                                <?php echo e($item->bundling->name); ?>
+
+                            <?php else: ?>
+                                <?php echo e($item->produk->nama_produk); ?>
+
+                            <?php endif; ?>
+                            ×<?php echo e($item->jumlah); ?>
+
+                        </span>
                         <span>Rp <?php echo e(number_format($item->harga_at_time * $item->jumlah, 0, ',', '.')); ?></span>
                     </div>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
