@@ -26,27 +26,7 @@ class OrderController extends Controller
                       ->where('user_id', Auth::id())
                       ->firstOrFail();
 
-        $computedDistance = null;
-        if ($order->shipping_distance_km === null && $order->shipping_address) {
-            try {
-                $checkout = app(\App\Http\Controllers\CheckoutController::class);
-                $quote = $checkout->calculateShipping($checkout->getStoreAddress(), $order->shipping_address);
-                $computedDistance = $quote['distance_km'] ?? null;
-
-                // Persist computed distance and shipping cost if missing
-                if ($computedDistance !== null) {
-                    $order->update([
-                        'shipping_distance_km' => $quote['distance_km'],
-                        'shipping_cost' => $quote['shipping_cost'] ?? $order->shipping_cost,
-                    ]);
-                }
-            } catch (\Throwable $e) {
-                report($e);
-                $computedDistance = null;
-            }
-        }
-
-        return view('pesanan.show', compact('order', 'computedDistance'));
+        return view('pesanan.show', compact('order'));
     }
 
     public function markAsCompleted(Request $request, $id)

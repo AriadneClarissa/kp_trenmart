@@ -11,7 +11,22 @@ class AdminUserController extends Controller
     public function index()
     {
         $users = User::orderBy('created_at', 'desc')->get();
-        return view('admin.users.index', compact('users'));
+        return view('admin.users.index', [
+            'users' => $users,
+            'page' => 'all',
+        ]);
+    }
+
+    public function internalUsers()
+    {
+        $users = User::whereIn('role', ['owner', 'admin', 'kasir'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('admin.users.index', [
+            'users' => $users,
+            'page' => 'internal',
+        ]);
     }
 
     public function customers()

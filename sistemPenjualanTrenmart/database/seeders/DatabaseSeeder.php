@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,11 +17,12 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         User::updateOrCreate(
-            ['email' => 'admintrenmart@gmail.com'],
+            ['email' => 'owner@trenmart.com'],
             [
-                'name' => 'Admin Trenmart',
-                'password' => bcrypt('TAS102^&'), // bcrypt berfungsi untuk mengamankan password dengan hashing
-                'role' => 'admin',
+                'name' => 'Pemilik Trenmart',
+                'password' => Hash::make('owner123'),
+                'role' => 'owner',
+                'customer_type' => 'regular',
                 'is_approved' => true,
             ]
         );

@@ -1,11 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
-@include('admin._header', ['activePage' => 'users'])
+@include('admin._header', ['activePage' => $page === 'internal' ? 'internal_users' : 'users'])
 
 <div class="container-fluid">
     <div class="mb-4">
-        <h4 class="fw-bold ms-0">Daftar Pengguna (Admin & Pelanggan)</h4>
+        <h4 class="fw-bold ms-0">
+            {{ $page === 'internal' ? 'Daftar Pengguna Internal' : 'Daftar Pengguna (Admin & Pelanggan)' }}
+        </h4>
     </div>
 
     <div class="card shadow-sm">

@@ -90,7 +90,20 @@
     .order-step:first-child.completed::after,
     .order-step:first-child.active::after {
         left: 50%;
-        width: 50%;
+        width: 100%;
+    }
+
+    .order-step:first-child.completed::before,
+    .order-step:first-child.active::before {
+        content: "";
+        position: absolute;
+        top: 18px;
+        left: 32%;
+        width: 18%;
+        height: 4px;
+        background: #8b0000;
+        border-radius: 999px;
+        z-index: -1;
     }
 
     .order-step:last-child.completed::after,
@@ -154,7 +167,6 @@
 
         $stepClass = function (int $index) use ($currentStep) {
             if ($currentStep >= $index) return 'completed';
-            if ($currentStep + 1 === $index) return 'active';
             return '';
         };
 
@@ -260,11 +272,7 @@
                 <div class="mt-2 small text-muted">Status pesanan: {{ $order->order_status === 'processing' ? 'Diproses' : ($order->order_status === 'ready_to_ship' ? 'Siap Dikirim' : ($order->order_status === 'completed' ? 'Selesai' : ucfirst(str_replace('_',' ', $order->order_status ?? 'new')))) }}</div>
                     @if($order->pickup_method === 'delivery')
                     <div class="mt-2 small text-muted">Alamat kirim: {{ $order->shipping_address ?? '-' }}</div>
-                    @php
-                        $displayDistance = $order->shipping_distance_km ?? ($computedDistance ?? null);
-                    @endphp
-                    <div class="mt-2 small text-muted">Jarak: {{ $displayDistance !== null ? number_format($displayDistance, 2, ',', '.') . ' km' : '-' }}</div>
-                    <div class="mt-2 small text-muted">Ongkir: Rp {{ number_format($order->shipping_cost ?? 0,0,',','.') }}</div>
+                    <div class="mt-2 small text-muted">Tarif ongkir flat: Rp {{ number_format($order->shipping_cost ?? 0,0,',','.') }}</div>
                 @endif
                 <div class="mt-3 fw-bold">Total: Rp {{ number_format($order->total,0,',','.') }}</div>
             </div>

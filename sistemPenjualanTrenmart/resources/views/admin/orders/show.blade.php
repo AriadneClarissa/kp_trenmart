@@ -86,10 +86,7 @@
                         <div class="col-12 mt-3">
                             <p class="small text-muted mb-1">Alamat Pengiriman</p>
                             <p class="fw-semibold mb-0">{{ $order->shipping_address ?? '-' }}</p>
-                            @php
-                                $displayDistance = $order->shipping_distance_km ?? ($computedDistance ?? null);
-                            @endphp
-                            <p class="small text-muted mt-2 mb-0">Jarak: {{ $displayDistance !== null ? number_format($displayDistance, 2, ',', '.') . ' km' : '-' }} | Ongkir: Rp {{ number_format($order->shipping_cost ?? 0,0,',','.') }}</p>
+                            <p class="small text-muted mt-2 mb-0">Tarif ongkir flat: Rp {{ number_format($order->shipping_cost ?? 0,0,',','.') }}</p>
                         </div>
                     </div>
                 </div>

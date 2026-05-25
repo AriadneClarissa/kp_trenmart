@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ShippingSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 
 class AdminShippingSettingController extends Controller
 {
@@ -22,17 +23,30 @@ class AdminShippingSettingController extends Controller
         abort_unless(Auth::check() && Auth::user()->role === 'admin', 403);
 
         $request->validate([
-            'free_limit' => 'required|numeric',
-            'price_per_km' => 'required|integer',
+            'flat_rate' => 'required|integer|min:0',
         ]);
 
-        // Mengupdate data yang sudah ada, atau membuat baru jika belum ada
+        $payload = [];
+
+        if (Schema::hasColumn('shipping_settings', 'flat_rate')) {
+            $payload['flat_rate'] = (int) $request->flat_rate;
+        } elseif (Schema::hasColumn('shipping_settings', 'price_per_km')) {
+            $payload['price_per_km'] = (int) $request->flat_rate;
+            if (Schema::hasColumn('shipping_settings', 'free_limit')) {
+                $payload['free_limit'] = 0;
+            }
+        }
+
+        if ($payload === []) {
+            return back()->with('error', 'Skema tabel ongkir belum siap. Jalankan migrasi terlebih dahulu.');
+        }
+
         $settings = ShippingSetting::first();
-        
+
         if ($settings) {
-            $settings->update($request->all());
+            $settings->update($payload);
         } else {
-            ShippingSetting::create($request->all());
+            ShippingSetting::create($payload);
         }
 
         return back()->with('success', 'Pengaturan ongkir berhasil diperbarui!');

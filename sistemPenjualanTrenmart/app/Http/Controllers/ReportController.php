@@ -11,9 +11,33 @@ use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class ReportController extends Controller
 {
+    private function resolveMonthlyRange(Request $request): array
+    {
+        $startInput = $request->query('start');
+        $endInput = $request->query('end');
+
+        if ($startInput) {
+            $start = Carbon::parse($startInput)->startOfDay();
+            $end = $endInput
+                ? Carbon::parse($endInput)->endOfDay()
+                : (clone $start)->endOfWeek();
+
+            $periodLabel = $start->translatedFormat('d F Y') . ' - ' . $end->translatedFormat('d F Y');
+
+            return [$start, $end, $periodLabel];
+        }
+
+        $year = (int) $request->query('year', now()->year);
+        $month = (int) $request->query('month', now()->month);
+        $start = Carbon::create($year, $month, 1)->startOfMonth();
+        $end = (clone $start)->endOfMonth();
+
+        return [$start, $end, $start->translatedFormat('F Y')];
+    }
+
     private function completedOrdersQuery(Carbon $start, Carbon $end, string $type = 'all')
     {
-        $query = Order::with(['user', 'items.produk'])
+        $query = Order::with(['user', 'items.produk', 'paymentMethod'])
             ->where('order_status', 'completed')
             ->whereBetween(DB::raw('COALESCE(completed_at, stock_deducted_at, updated_at)'), [$start, $end]);
 
@@ -104,11 +128,7 @@ class ReportController extends Controller
     {
         abort_unless(Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isOwner()), 403);
 
-        $year = $request->query('year', now()->year);
-        $month = $request->query('month', now()->month);
-
-        $start = Carbon::create($year, $month, 1)->startOfMonth();
-        $end = (clone $start)->endOfMonth();
+        [$start, $end, $periodLabel] = $this->resolveMonthlyRange($request);
 
         $type = $request->query('type', 'all');
 
@@ -116,7 +136,7 @@ class ReportController extends Controller
 
         $data = [
             'title' => 'Laporan Penjualan Bulanan',
-            'period' => $start->format('F Y'),
+            'period' => $periodLabel,
             'orders' => $orders,
             'generated_at' => now(),
         ];
@@ -128,11 +148,7 @@ class ReportController extends Controller
     {
         abort_unless(Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isOwner()), 403);
 
-        $year = $request->query('year', now()->year);
-        $month = $request->query('month', now()->month);
-
-        $start = Carbon::create($year, $month, 1)->startOfMonth();
-        $end = (clone $start)->endOfMonth();
+        [$start, $end, $periodLabel] = $this->resolveMonthlyRange($request);
 
         $type = $request->query('type', 'all');
 
@@ -140,12 +156,12 @@ class ReportController extends Controller
 
         $data = [
             'title' => 'Laporan Penjualan Bulanan',
-            'period' => $start->format('F Y'),
+            'period' => $periodLabel,
             'orders' => $orders,
             'generated_at' => now(),
         ];
 
-        $pdf = PDF::loadView('reports.print', $data)->setPaper('a4', 'portrait');
+        $pdf = PDF::loadView('reports.print', $data)->setPaper('a4', 'landscape');
         return $pdf->download('laporan_bulanan_' . $start->format('Y_m') . ($type !== 'all' ? "_{$type}" : '') . '.pdf');
     }
 
@@ -189,7 +205,7 @@ class ReportController extends Controller
             'generated_at' => now(),
         ];
 
-        $pdf = PDF::loadView('reports.print', $data)->setPaper('a4', 'portrait');
+        $pdf = PDF::loadView('reports.print', $data)->setPaper('a4', 'landscape');
         return $pdf->download('laporan_mingguan_' . $start->format('Y_m_d') . ($type !== 'all' ? "_{$type}" : '') . '.pdf');
     }
 }

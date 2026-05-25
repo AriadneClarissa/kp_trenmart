@@ -88,8 +88,6 @@ Route::middleware(['auth'])->group(function () {
 
     // --- CHECKOUT & PEMBAYARAN ---
     Route::get('/checkout', [\App\Http\Controllers\CheckoutController::class, 'index'])->name('checkout.index');
-    Route::get('/checkout/address-suggestions', [\App\Http\Controllers\CheckoutController::class, 'addressSuggestions'])->name('checkout.address_suggestions');
-    Route::get('/checkout/reverse-geocode', [\App\Http\Controllers\CheckoutController::class, 'reverseGeocode'])->name('checkout.reverse_geocode');
     Route::get('/checkout/shipping-quote', [\App\Http\Controllers\CheckoutController::class, 'shippingQuote'])->name('checkout.shipping_quote');
     Route::post('/checkout/place-order', [\App\Http\Controllers\CheckoutController::class, 'placeOrder'])->name('checkout.place_order');
     Route::get('/checkout/{order}/upload-proof', [\App\Http\Controllers\CheckoutController::class, 'uploadProof'])->name('checkout.upload_proof');
@@ -105,6 +103,7 @@ Route::middleware(['auth'])->group(function () {
 
             return app(\App\Http\Controllers\AdminUserController::class)->index();
         })->name('admin.dashboard');
+        Route::get('/users/internal', [\App\Http\Controllers\AdminUserController::class, 'internalUsers'])->name('admin.users.internal');
         
         // Pengaturan Tampilan & Search
         Route::get('/search-produk-ajax', [ProdukController::class, 'searchAjax'])->name('admin.produk.search_ajax');

@@ -52,6 +52,9 @@
                     <a href="{{ route('admin.dashboard') }}" class="btn btn-sm admin-nav-btn {{ $activePage === 'users' ? 'active' : 'btn-outline-secondary' }}">
                         <i class="bi bi-people me-1"></i> Semua Pengguna
                     </a>
+                    <a href="{{ route('admin.users.internal') }}" class="btn btn-sm admin-nav-btn {{ $activePage === 'internal_users' ? 'active' : 'btn-outline-secondary' }}">
+                        <i class="bi bi-shield-lock me-1"></i> User Internal
+                    </a>
                 @endif
                 @if(auth()->user()->isAdmin())
                     <a href="{{ route('admin.customers.index') }}" class="btn btn-sm admin-nav-btn {{ $activePage === 'customers' ? 'active' : 'btn-outline-secondary' }}">
