@@ -56,25 +56,108 @@ class CheckoutController extends Controller
         }
 
         $normalizedQuery = trim($query);
-        if (! str_contains(strtolower($normalizedQuery), 'sumatera selatan') && ! str_contains(strtolower($normalizedQuery), 'sumsel')) {
-            $normalizedQuery .= ' Sumatera Selatan';
+        // Jika pengguna tidak menyebutkan Palembang, tambahkan agar pencarian dibatasi ke Kota Palembang
+        if (! str_contains(strtolower($normalizedQuery), 'palembang')) {
+            $normalizedQuery .= ' Palembang';
         }
 
-        // Panggil API Nominatim dari SINI (Server-Side) dan batasi ke Sumatera Selatan
-        $url = "https://nominatim.openstreetmap.org/search?q=" . urlencode($normalizedQuery) . 
-            "&format=jsonv2&limit=5&countrycodes=id&viewbox=102.00,-1.50,106.50,-5.00&bounded=1";
-            
-        $client = new \GuzzleHttp\Client();
-        $response = $client->get($url, [
-            'headers' => ['User-Agent' => 'TrenmartApp/1.0'] // WAJIB ADA
+        try {
+            $response = Http::withHeaders([
+                'User-Agent' => 'TrenmartShippingCalculator/1.0',
+                'Accept-Language' => 'id',
+            ])->timeout(10)->get('https://nominatim.openstreetmap.org/search', [
+                'q' => $normalizedQuery,
+                'format' => 'jsonv2',
+                'limit' => 6,
+                'countrycodes' => 'id',
+                // Bounding box Kota Palembang: left_lon, top_lat, right_lon, bottom_lat
+                'viewbox' => '104.6,-2.8,105.0,-3.2',
+                'bounded' => 1,
+                'addressdetails' => 1,
+            ]);
+
+            if (! $response->successful()) {
+                return response()->json([
+                    'success' => false,
+                    'suggestions' => [],
+                ]);
+            }
+
+            $suggestions = collect($response->json() ?? [])
+                ->filter(function ($item) {
+                    $display = strtolower((string) ($item['display_name'] ?? ''));
+                    $city = strtolower((string) ($item['address']['city'] ?? $item['address']['town'] ?? $item['address']['county'] ?? ''));
+                    return str_contains($display, 'palembang') || str_contains($city, 'palembang');
+                })
+                ->values()
+                ->all();
+
+            return response()->json([
+                'success' => true,
+                'suggestions' => $suggestions,
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('Address suggestion failed', ['error' => $e->getMessage()]);
+
+            return response()->json([
+                'success' => false,
+                'suggestions' => [],
+            ]);
+        }
+    }
+
+    public function reverseGeocode(Request $request)
+    {
+        $data = $request->validate([
+            'lat' => 'required|numeric',
+            'lon' => 'required|numeric',
         ]);
 
-        usleep(1000000); // Simulasi delay 1 detik untuk menghindari rate limit
-        
-        return response()->json([
-            'success' => true,
-            'suggestions' => json_decode($response->getBody()->getContents())
-        ]);
+        try {
+            $response = Http::withHeaders([
+                'User-Agent' => 'TrenmartShippingCalculator/1.0',
+                'Accept-Language' => 'id',
+            ])->timeout(10)->get('https://nominatim.openstreetmap.org/reverse', [
+                'format' => 'jsonv2',
+                'lat' => (float) $data['lat'],
+                'lon' => (float) $data['lon'],
+                'zoom' => 18,
+                'addressdetails' => 1,
+            ]);
+
+            if (! $response->successful()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal reverse geocode.',
+                ], 422);
+            }
+
+            $payload = $response->json() ?? [];
+            $address = (string) ($payload['display_name'] ?? '');
+            $city = strtolower((string) ($payload['address']['city'] ?? $payload['address']['town'] ?? $payload['address']['county'] ?? ''));
+            $isPalembang = str_contains(strtolower($address), 'palembang') || str_contains($city, 'palembang');
+
+            if (! $isPalembang || $address === '') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Lokasi di luar jangkauan Palembang.',
+                ], 422);
+            }
+
+            return response()->json([
+                'success' => true,
+                'address' => $address,
+                'lat' => (float) $data['lat'],
+                'lon' => (float) $data['lon'],
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('Reverse geocode failed', ['error' => $e->getMessage()]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal reverse geocode.',
+            ], 422);
+        }
     }
 
     public function shippingQuote(Request $request)
@@ -271,12 +354,12 @@ class CheckoutController extends Controller
     {
         // 1. Ambil setting dari tabel shipping_settings
         $settings = \App\Models\ShippingSetting::first() ?? new \App\Models\ShippingSetting([
-            'free_limit' => 1.0, 
-            'shipping_per_km_price' => 2000
+            'free_limit' => 1.0,
+            'price_per_km' => 2000,
         ]);
 
         $freeLimit = (float) $settings->free_limit;
-        $pricePerKm = (int) $settings->shipping_per_km_price;
+        $pricePerKm = (int) ($settings->price_per_km ?? 0);
 
         $storeCoordinates = $this->geocodeAddress($storeAddress);
         $customerCoordinates = $customerCoordinates ?: $this->geocodeAddress($customerAddress);
@@ -320,9 +403,9 @@ class CheckoutController extends Controller
             'format' => 'jsonv2',
             'limit' => 1,
             'countrycodes' => 'id',
-            // Koordinat batas Sumatera Selatan (Viewbox)
-            'viewbox' => '102.3,-2.0,106.5,-5.0', 
-            'bounded' => 1, 
+            // Bounding box Kota Palembang: left_lon, top_lat, right_lon, bottom_lat
+            'viewbox' => '104.6,-2.8,105.0,-3.2',
+            'bounded' => 1,
         ]);
 
         if (! $response->successful()) {

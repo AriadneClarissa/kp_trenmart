@@ -431,11 +431,14 @@
             return;
         }
 
-        // Koordinat batas Sumatera Selatan
-        const sumselViewbox = '102.00,-1.50,106.50,-5.00';
+        // Koordinat batas Kota Palembang
+        const palembangViewbox = '104.6,-2.8,105.0,-3.2';
+        const normalizedQuery = String(query || '').toLowerCase().includes('palembang')
+            ? query
+            : `${query} Palembang`;
 
         try {
-            const url = `{{ route('checkout.address_suggestions') }}?q=${encodeURIComponent(query)}`;
+            const url = `{{ route('checkout.address_suggestions') }}?q=${encodeURIComponent(normalizedQuery)}`;
             console.log('📡 Fetching server suggestions:', url);
 
             const response = await fetch(url);
@@ -456,12 +459,14 @@
 
             console.warn('⚠️ Server returned no suggestions, trying client-side Nominatim fallback');
 
-            // Fallback 1 dengan Viewbox Sumatera Selatan
-            const fallbackUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=jsonv2&limit=6&countrycodes=id&viewbox=${sumselViewbox}&bounded=1`;
+            // Fallback 1 dengan Viewbox Palembang
+            const fallbackUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(normalizedQuery)}&format=jsonv2&limit=6&countrycodes=id&viewbox=${palembangViewbox}&bounded=1`;
             try {
                 const fbResp = await fetch(fallbackUrl);
                 const fbData = await fbResp.json();
-                const fbSuggestions = (fbData || []).map(item => ({ label: item.display_name || '', lat: item.lat || null, lon: item.lon || null }));
+                const fbSuggestions = (fbData || [])
+                    .filter(item => (item.display_name || '').toLowerCase().includes('palembang'))
+                    .map(item => ({ label: item.display_name || '', lat: item.lat || null, lon: item.lon || null }));
                 if (fbSuggestions.length > 0) {
                     console.log('📡 Fallback got', fbSuggestions.length, 'suggestions');
                     renderSuggestions(fbSuggestions);
@@ -476,12 +481,14 @@
         } catch (error) {
             console.error('❌ Error fetching server suggestions:', error);
 
-            // Fallback 2 (jika backend error) dengan Viewbox Sumatera Selatan
+            // Fallback 2 (jika backend error) dengan Viewbox Palembang
             try {
-                const fallbackUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=jsonv2&limit=6&countrycodes=id&viewbox=${sumselViewbox}&bounded=1`;
+                const fallbackUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(normalizedQuery)}&format=jsonv2&limit=6&countrycodes=id&viewbox=${palembangViewbox}&bounded=1`;
                 const fbResp = await fetch(fallbackUrl);
                 const fbData = await fbResp.json();
-                const fbSuggestions = (fbData || []).map(item => ({ label: item.display_name || '', lat: item.lat || null, lon: item.lon || null }));
+                const fbSuggestions = (fbData || [])
+                    .filter(item => (item.display_name || '').toLowerCase().includes('palembang'))
+                    .map(item => ({ label: item.display_name || '', lat: item.lat || null, lon: item.lon || null }));
                 if (fbSuggestions.length > 0) {
                     renderSuggestions(fbSuggestions);
                     return fbSuggestions;
@@ -662,16 +669,13 @@
                 const lon = position.coords.longitude;
                 console.log('📍 Got coordinates:', lat, lon);
 
-                // Reverse geocode
+                // Reverse geocode via backend agar tidak kena blokir CORS/header dari browser
                 try {
-                    const response = await fetch(
-                        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`,
-                        { headers: { 'User-Agent': 'TrenmartApp/1.0' } }
-                    );
+                    const response = await fetch(`{{ route('checkout.reverse_geocode') }}?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`);
                     const data = await response.json();
-                    const address = data.display_name || '';
+                    const address = data.address || '';
 
-                    if (address) {
+                    if (data.success && address) {
                         document.getElementById('shipping_address').value = address;
                         setShippingCoordinates(lat, lon);
                         if (statusEl) statusEl.innerText = 'Lokasi terdeteksi';
@@ -681,8 +685,8 @@
                         setTimeout(() => btn.classList.remove('success'), 2000);
                         setTimeout(() => { if (statusEl) statusEl.classList.remove('show'); }, 2500);
                     } else {
-                        console.warn('Reverse geocode returned no address');
-                        if (statusEl) statusEl.innerText = 'Gagal menentukan alamat dari koordinat';
+                        console.warn('Reverse geocode returned no address:', data);
+                        if (statusEl) statusEl.innerText = data.message || 'Gagal menentukan alamat dari koordinat';
                         btn.classList.remove('loading');
                     }
                 } catch (e) {

@@ -398,7 +398,7 @@
                                     </div>
                                 </li>
                                 <li><a class="dropdown-item rounded-3" href="{{ route('profile.edit') }}"><i class="bi bi-person me-2"></i>Profil</a></li>
-                                @if(auth()->user()->isAdmin())
+                                @if(auth()->user()->role === 'admin')
                                     <li><a class="dropdown-item rounded-3" href="{{ route('admin.shipping.edit') }}"><i class="bi bi-truck me-2"></i>Pengaturan Ongkir</a></li>
                                 @endif
                                 @if(auth()->user()->isOwner())

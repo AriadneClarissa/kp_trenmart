@@ -8,16 +8,19 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::table('keranjang', function (Blueprint $table) {
-            // Tambahkan kolom, sesuaikan tipe datanya (misal: integer/bigInteger)
-            $table->unsignedBigInteger('bundling_id')->nullable()->after('kd_produk');
-        });
+        if (!Schema::hasColumn('keranjang', 'bundling_id')) {
+            Schema::table('keranjang', function (Blueprint $table) {
+                $table->unsignedBigInteger('bundling_id')->nullable()->after('kd_produk');
+            });
+        }
     }
 
     public function down()
     {
-        Schema::table('keranjang', function (Blueprint $table) {
-            $table->dropColumn('bundling_id');
-        });
+        if (Schema::hasColumn('keranjang', 'bundling_id')) {
+            Schema::table('keranjang', function (Blueprint $table) {
+                $table->dropColumn('bundling_id');
+            });
+        }
     }
 };

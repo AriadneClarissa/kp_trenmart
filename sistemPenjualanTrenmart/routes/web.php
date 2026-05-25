@@ -89,6 +89,7 @@ Route::middleware(['auth'])->group(function () {
     // --- CHECKOUT & PEMBAYARAN ---
     Route::get('/checkout', [\App\Http\Controllers\CheckoutController::class, 'index'])->name('checkout.index');
     Route::get('/checkout/address-suggestions', [\App\Http\Controllers\CheckoutController::class, 'addressSuggestions'])->name('checkout.address_suggestions');
+    Route::get('/checkout/reverse-geocode', [\App\Http\Controllers\CheckoutController::class, 'reverseGeocode'])->name('checkout.reverse_geocode');
     Route::get('/checkout/shipping-quote', [\App\Http\Controllers\CheckoutController::class, 'shippingQuote'])->name('checkout.shipping_quote');
     Route::post('/checkout/place-order', [\App\Http\Controllers\CheckoutController::class, 'placeOrder'])->name('checkout.place_order');
     Route::get('/checkout/{order}/upload-proof', [\App\Http\Controllers\CheckoutController::class, 'uploadProof'])->name('checkout.upload_proof');
