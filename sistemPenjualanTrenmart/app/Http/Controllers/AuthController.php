@@ -46,6 +46,7 @@ class AuthController extends Controller
         'role' => 'customer',
         'phone_number' => $validated['phone_number'],
         'home_address' => $validated['home_address'],
+        'is_active' => true,
     ]);
         // Log the user in or redirect to login with success
         return redirect()->route('login')->with('success', 'Pendaftaran berhasil! Silakan masuk.');
@@ -66,6 +67,10 @@ class AuthController extends Controller
             ->first();
 
         if ($user && Hash::check($credentials['password'], $user->password)) {
+            if (!$user->isActive()) {
+                return back()->withErrors(['login' => 'Akun Anda telah dinonaktifkan oleh pemilik sistem.'])->onlyInput('login');
+            }
+
             Auth::login($user, $request->boolean('remember'));
 
             if ($user->status === 'rejected') {
@@ -116,7 +121,12 @@ class AuthController extends Controller
                     'role' => 'customer',
                     'google_id' => $googleUser->id,
                     'is_approved' => true, 
+                    'is_active' => true,
                 ]);
+            }
+
+            if (!$user->isActive()) {
+                return redirect()->route('login')->with('error', 'Akun Anda telah dinonaktifkan oleh pemilik sistem.');
             }
 
             Auth::login($user);

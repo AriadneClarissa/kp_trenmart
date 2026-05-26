@@ -8,8 +8,12 @@
         font-weight: 500;
         transition: all 0.2s ease;
         white-space: nowrap;
-        min-width: 132px;
+        min-width: 148px;
+        min-height: 40px;
+        display: inline-flex;
+        align-items: center;
         justify-content: center;
+        text-align: center;
     }
     .admin-header-actions {
         display: flex;
@@ -17,6 +21,9 @@
         gap: 0.5rem;
         align-items: center;
         justify-content: flex-end;
+    }
+    .admin-header-actions .admin-nav-btn {
+        flex: 0 0 auto;
     }
     .admin-nav-btn.active {
         background-color: var(--maroon);
@@ -88,4 +95,4 @@
         </div>
     </div>
 </div>
-<?php /**PATH C:\Users\asus\OneDrive\Documents\GitHub\kp_trenmart\sistemPenjualanTrenmart\resources\views\admin\_header.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\Users\asus\OneDrive\Documents\GitHub\kp_trenmart\sistemPenjualanTrenmart\resources\views/admin/_header.blade.php ENDPATH**/ ?>

@@ -29,6 +29,36 @@ class AdminUserController extends Controller
         ]);
     }
 
+    public function toggleInternalUserActiveState(\Illuminate\Http\Request $request, int $id)
+    {
+        abort_unless(Auth::check() && Auth::user()->isOwner(), 403);
+
+        $user = User::whereIn('role', ['owner', 'admin', 'kasir'])->findOrFail($id);
+
+        if ($user->id === Auth::id()) {
+            return back()->with('error', 'Akun sendiri tidak bisa dinonaktifkan dari halaman ini.');
+        }
+
+        $user->update([
+            'is_active' => ! $user->is_active,
+        ]);
+
+        try {
+            ActivityLog::create([
+                'actor_id' => Auth::id(),
+                'action' => $user->is_active ? 'activate_internal_user' : 'deactivate_internal_user',
+                'details' => ($user->is_active ? 'Mengaktifkan' : 'Menonaktifkan') . ' user internal ' . $user->email,
+                'ip_address' => $request->ip(),
+                'subject_type' => 'user',
+                'subject_id' => $user->id,
+            ]);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        return back()->with('success', 'Status user berhasil diperbarui.');
+    }
+
     public function customers()
     {
         $customers = User::where('role', 'customer')->orderBy('created_at', 'desc')->get();

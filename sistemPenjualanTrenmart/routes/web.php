@@ -146,6 +146,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/users', [\App\Http\Controllers\AdminUserController::class, 'index'])->name('admin.users.index');
         Route::get('/users/create', [\App\Http\Controllers\AdminUserController::class, 'create'])->name('admin.users.create');
         Route::post('/users', [\App\Http\Controllers\AdminUserController::class, 'store'])->name('admin.users.store');
+        Route::post('/users/{id}/toggle-active', [\App\Http\Controllers\AdminUserController::class, 'toggleInternalUserActiveState'])->name('admin.users.toggle_active');
         Route::get('/customers', [\App\Http\Controllers\AdminUserController::class, 'customers'])->name('admin.customers.index');
 
         // Admin - Create Admin Account

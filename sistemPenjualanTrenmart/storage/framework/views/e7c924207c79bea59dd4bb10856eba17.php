@@ -210,6 +210,10 @@
         }
 
         .main-container { width: 100%; padding-right: .75rem; padding-left: .75rem; margin-right: auto; margin-left: auto; }
+        .main-container.full-width-page {
+            width: calc(100vw - 1rem);
+            max-width: calc(100vw - 1rem);
+        }
         @media (min-width: 576px) { .main-container { max-width: 540px; } }
         @media (min-width: 768px) { .main-container { max-width: 720px; } }
         @media (min-width: 992px) { .main-container { max-width: 960px; } }
@@ -446,7 +450,7 @@
         </div>
     </div>
 </div>
-<main class="main-container mt-4 mb-5">
+<main class="main-container <?php echo e(isset($page) && in_array($page, ['all', 'internal', 'customers'], true) ? 'full-width-page' : ''); ?> mt-4 mb-5">
     <?php echo $__env->yieldContent('content'); ?>
 </main>
 

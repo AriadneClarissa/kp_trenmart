@@ -19,6 +19,7 @@ class User extends \Illuminate\Foundation\Auth\User
         'role',           
         'customer_type',  
         'is_approved',    
+        'is_active',
         'kd_pelanggan',
         'phone_number',
         'home_address',   
@@ -38,6 +39,7 @@ class User extends \Illuminate\Foundation\Auth\User
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_approved' => 'boolean',
+            'is_active' => 'boolean',
         ];
     }
 
@@ -70,6 +72,11 @@ class User extends \Illuminate\Foundation\Auth\User
     public function isInternalStaff(): bool
     {
         return $this->isAdmin() || $this->isCashier();
+    }
+
+    public function isActive(): bool
+    {
+        return $this->is_active !== false;
     }
 
     public function roleLabel(): string
