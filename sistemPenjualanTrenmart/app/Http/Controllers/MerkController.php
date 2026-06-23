@@ -17,6 +17,8 @@ class MerkController extends Controller
         $request->validate([
             // Tambahkan unique agar tidak ada merk ganda
             'nama_merk' => 'required|string|max:255|unique:merk,nama_merk',
+        ], [
+            'nama_merk.unique' => 'Nama merk sudah terdaftar.'
         ]);
 
         // 2. Format menjadi Kapital Awal Kata

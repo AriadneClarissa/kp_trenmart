@@ -17,6 +17,8 @@ class SatuanController extends Controller
         $request->validate([
             'nama_satuan' => 'required|string|max:255|unique:satuan,nama_satuan',
             'stok_minimal' => 'required|integer|min:0',
+        ], [
+        'nama_satuan.unique' => 'Nama satuan sudah terdaftar.'
         ]);
 
         // 2. Format menjadi Kapital Awal Kata
